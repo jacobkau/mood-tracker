@@ -2,7 +2,7 @@
 # MoodTracker - README
 # MoodTracker - A Personal Mood Tracking Application
 
-![MoodTracker Screenshot](./screenshot.png) <!-- Replace with actual screenshot -->
+![MoodTracker Screenshot](./image.png) <!-- Replace with actual screenshot -->
 
 ## Table of Contents
 - [Features](#features)
