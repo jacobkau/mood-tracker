@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import MoodEntry from "../components/mood/MoodEntry";
 import MoodList from "../components/mood/MoodList";
-import MoodStats from "../components/Mood/MoodStats";
+import MoodStats from "../components/mood/MoodStats";
 
 export default function Dashboard() {
   const [moods, setMoods] = useState([]);
