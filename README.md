@@ -184,3 +184,10 @@ http://localhost:5173
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
+# MoodTracker - A Personal Mood Tracking Application
+
+[![Live Demo](https://img.shields.io/badge/Live-Demo-green?style=for-the-badge&logo=vercel)](https://mood-tracker-three-eta.vercel.app/)
+
+...
+
