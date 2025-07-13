@@ -1,5 +1,75 @@
 
 # MoodTracker - README
+# MoodTracker - A Personal Mood Tracking Application
+
+![MoodTracker Screenshot](./screenshot.png) <!-- Replace with actual screenshot -->
+
+## Table of Contents
+- [Features](#features)
+- [Technologies](#technologies)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [API Endpoints](#api-endpoints)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Features
+
+📊 **Comprehensive Mood Tracking**
+- Daily mood logging with emoji support
+- Optional notes for context
+- Mood history calendar view
+- Statistics and trends visualization
+
+🔒 **Secure Authentication**
+- JWT-based login/registration
+- Password encryption
+- Protected routes
+
+🎨 **Personalization**
+- Customizable profile
+- Themed interface (light/dark modes)
+- Responsive design for all devices
+
+📈 **Data Insights**
+- Weekly/Monthly mood patterns
+- Mood frequency analysis
+- Export data functionality
+
+## Technologies
+
+### Frontend
+- **React** (v18) - UI framework  
+- **Vite** - Build tool  
+- **Tailwind CSS** - Styling  
+- **React Router** (v6) - Navigation  
+- **React Icons** - Icon library  
+- **Axios** - HTTP client  
+- **Chart.js** - Data visualization  
+
+### Backend
+- **Node.js** - Runtime environment  
+- **Express** - Web framework  
+- **MongoDB** - Database  
+- **Mongoose** - ODM  
+- **JWT** - Authentication  
+- **Bcrypt** - Password hashing  
+- **CORS** - Cross-origin support  
+
+## Installation
+
+### Prerequisites
+- Node.js (v16+)
+- MongoDB (v5+)
+- Git
+
+### Steps
+## Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/moodtracker.git
+   cd moodtracker
 
 ## Installation
 
