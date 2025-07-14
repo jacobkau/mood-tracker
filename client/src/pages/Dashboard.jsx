@@ -9,13 +9,20 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchMoods = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/moods", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setMoods(res.data);
-      } catch (err) {
+     try {
+  const token = localStorage.getItem("token");
+
+  const res = await axios.get(
+    `${import.meta.env.VITE_API_BASE_URL}/api/moods`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  setMoods(res.data);
+} catch (err) {
         console.error("Failed to fetch moods", err);
       }
     };
