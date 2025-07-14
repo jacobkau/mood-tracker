@@ -9,7 +9,7 @@ export default function Contact() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
-  const [activeTab, setActiveTab] = useState("contact"); // 'contact' or 'partnership'
+  const [activeTab, setActiveTab] = useState("contact"); 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,7 +18,7 @@ export default function Contact() {
     try {
       const formEndpoint = activeTab === "contact" 
         ? 'https://formspree.io/f/mnnzapdn' 
-        : 'https://formspree.io/f/mpartner'; // Different endpoint for partnerships
+        : 'https://formspree.io/f/xnnzaoya'; 
       
       const response = await fetch(formEndpoint, {
         method: 'POST',
