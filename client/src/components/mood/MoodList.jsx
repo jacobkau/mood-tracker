@@ -1,17 +1,25 @@
 import axios from "axios";
 
 export default function MoodList({ moods, setMoods }) {
-  const handleDelete = async (id) => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/moods/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setMoods(moods.filter((mood) => mood._id !== id));
-    } catch (err) {
-      console.error("Failed to delete mood", err);
-    }
-  };
+ const handleDelete = async (id) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    await axios.delete(
+      `${import.meta.env.VITE_API_BASE_URL}/api/moods/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    setMoods(moods.filter((mood) => mood._id !== id));
+  } catch (err) {
+    console.error("Failed to delete mood", err);
+  }
+};
+
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
