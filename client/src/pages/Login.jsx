@@ -12,12 +12,15 @@ export default function Login({ setIsAuthenticated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        { username, password },
-        { headers: { 'Content-Type': 'application/json' } }
-      );
+   try {
+  const res = await axios.post(
+    `${import.meta.env.VITE_API_BASE_URL}/api/auth/login`,
+    { username, password },
+    {
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
+
 
       localStorage.setItem("token", res.data.token);
       setIsAuthenticated(true);
