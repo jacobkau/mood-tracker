@@ -15,13 +15,14 @@ const handleSubmit = async (e) => {
   try {
     setError("");
 
-    const res = await axios.post(
-      "http://localhost:5000/api/auth/register",
-      { username, password },
-      {
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+const res = await axios.post(
+  `${import.meta.env.VITE_API_BASE_URL}/api/auth/register`,
+  { username, password },
+  {
+    headers: { "Content-Type": "application/json" },
+  }
+);
+
 
     console.log("Registration successful:", res.data);
     toast.success("Registration successful! Please log in."); // ✅ Show success toast
