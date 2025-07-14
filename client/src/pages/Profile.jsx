@@ -19,10 +19,17 @@ export default function Profile() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const { data } = await axios.get("http://localhost:5000/api/auth/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+       const token = localStorage.getItem("token");
+
+const { data } = await axios.get(
+  `${import.meta.env.VITE_API_BASE_URL}/api/auth/me`,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
+
         setUser(data);
         setFormData(prev => ({ 
           ...prev, 
