@@ -6,21 +6,29 @@ export default function MoodEntry({ setMoods }) {
   const [notes, setNotes] = useState("");
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem("token");
-      const res = await axios.post(
-        "http://localhost:5000/api/moods",
-        { mood, notes },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setMoods((prev) => [...prev, res.data]);
-      setMood("");
-      setNotes("");
-    } catch (err) {
-      console.error("Failed to add mood", err);
-    }
-  };
+  e.preventDefault();
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/api/moods`,
+      { mood, notes },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    setMoods((prev) => [...prev, res.data]);
+    setMood("");
+    setNotes("");
+  } catch (err) {
+    console.error("Failed to add mood", err);
+  }
+};
+
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
