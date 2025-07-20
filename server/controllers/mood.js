@@ -33,22 +33,31 @@ const addMood = async (req, res) => {
 // @route   DELETE /api/moods/:id
 const deleteMood = async (req, res) => {
   try {
-    const mood = await Mood.findById(req.params.id);
+    const { id } = req.params;
+
+    // Validate ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid mood ID format' });
+    }
+
+    const mood = await Mood.findById(id);
 
     if (!mood) {
       return res.status(404).json({ error: 'Mood not found' });
     }
 
-    // Check if mood belongs to user
-    if (mood.userId.toString() !== req.user.id) {
+    // Check if user is authenticated and owns the mood
+    if (!req.user || mood.userId.toString() !== req.user.id) {
       return res.status(401).json({ error: 'Not authorized' });
     }
 
     await mood.remove();
-    res.json({ message: 'Mood removed' });
+    res.status(200).json({ message: 'Mood removed' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Delete error:", err);
+    res.status(500).json({ error: err.message || 'Server error' });
   }
 };
+
 
 module.exports = { getMoods, addMood, deleteMood };
