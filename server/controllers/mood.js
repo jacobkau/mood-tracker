@@ -31,6 +31,7 @@ const addMood = async (req, res) => {
 
 // @desc    Delete a mood
 // @route   DELETE /api/moods/:id
+
 const deleteMood = async (req, res) => {
   try {
     const { id } = req.params;
@@ -46,18 +47,22 @@ const deleteMood = async (req, res) => {
       return res.status(404).json({ error: 'Mood not found' });
     }
 
-    // Check if user is authenticated and owns the mood
-    if (!req.user || mood.userId.toString() !== req.user.id) {
-      return res.status(401).json({ error: 'Not authorized' });
+    // req.user is a full Mongoose document, so use _id
+    if (!req.user || mood.userId.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ error: 'Not authorized to delete this mood' });
     }
 
-    await mood.remove();
+    await mood.deleteOne(); // or await mood.remove() if using Mongoose <7
     res.status(200).json({ message: 'Mood removed' });
+
   } catch (err) {
-    console.error("Delete error:", err);
-    res.status(500).json({ error: err.message || 'Server error' });
+    console.error("🔥 Error in deleteMood:", err);
+    res.status(500).json({ error: err.message || 'Server error during deletion' });
   }
 };
+
+module.exports = { deleteMood };
+
 
 
 module.exports = { getMoods, addMood, deleteMood };
