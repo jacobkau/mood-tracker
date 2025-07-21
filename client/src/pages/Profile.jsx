@@ -130,26 +130,34 @@ export default function Profile() {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    if (window.confirm("Are you sure you want to delete your account? This cannot be undone.")) {
-      try {
-        const token = localStorage.getItem("token");
-        await axios.delete(
-          `${import.meta.env.VITE_API_BASE_URL}/api/profile`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
+const handleDeleteAccount = async () => {
+  if (window.confirm("Are you sure you want to delete your account? This cannot be undone.")) {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.delete(
+        `${import.meta.env.VITE_API_BASE_URL}/api/profile`,
+        {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
           }
-        );
-        
-        localStorage.removeItem("token");
-        toast.success("Account deleted successfully");
-        navigate("/login");
-      } catch (err) {
-        console.error("Delete failed:", err);
-        toast.error(err.response?.data?.error || "Failed to delete account");
-      }
+        }
+      );
+      
+      console.log("Delete response:", response.data);
+      localStorage.removeItem("token");
+      toast.success(response.data.message || "Account deleted successfully");
+      navigate("/login");
+    } catch (err) {
+      console.error("Delete failed:", {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message
+      });
+      toast.error(err.response?.data?.error || "Failed to delete account");
     }
-  };
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
