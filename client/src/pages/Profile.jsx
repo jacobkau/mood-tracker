@@ -149,6 +149,7 @@ const handleDeleteAccount = async () => {
       console.log("Delete response:", response.data);
       localStorage.removeItem("token");
       toast.success(response.data.message || "Account deleted successfully");
+      window.location.href = "/register";
       navigate("/register");
     } catch (err) {
       console.error("Delete failed:", {
