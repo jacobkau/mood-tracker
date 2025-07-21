@@ -41,4 +41,29 @@ router.put("/", protect, async (req, res) => {
   }
 });
 
+// @desc    Delete user profile
+// @route   DELETE /api/profile
+router.delete("/", protect, async (req, res) => {
+  try {
+    // Optional: Add password confirmation for extra security
+    // const { password } = req.body;
+    // const user = await User.findById(req.user.id).select('+password');
+    // const isMatch = await bcrypt.compare(password, user.password);
+    // if (!isMatch) return res.status(401).json({ error: "Invalid password" });
+
+    await User.findByIdAndDelete(req.user.id);
+    
+    res.json({ 
+      success: true,
+      message: "Account deleted successfully" 
+    });
+  } catch (err) {
+    console.error("Delete profile error:", err);
+    res.status(500).json({ 
+      error: "Failed to delete account",
+      details: process.env.NODE_ENV === 'development' ? err.message : null
+    });
+  }
+});
+
 module.exports = router;
