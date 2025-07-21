@@ -82,4 +82,33 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+const deleteProfile = async (req, res) => {
+  try {
+    // Get user ID from the authenticated request
+    const userId = req.user.id;
+    
+    // Optional: Add password confirmation for extra security
+    // const { password } = req.body;
+    // const user = await User.findById(userId).select('+password');
+    // if (!user) return res.status(404).json({ error: "User not found" });
+    // const isMatch = await bcrypt.compare(password, user.password);
+    // if (!isMatch) return res.status(401).json({ error: "Invalid password" });
+
+    // Delete the user
+    await User.findByIdAndDelete(userId);
+    
+    res.status(200).json({ 
+      message: "Account deleted successfully",
+      deletedUserId: userId
+    });
+
+  } catch (err) {
+    console.error("Delete Profile Error:", err);
+    res.status(500).json({ 
+      error: "Failed to delete account",
+      details: process.env.NODE_ENV === 'development' ? err.message : null
+    });
+  }
+};
+
+module.exports = { register, login,  deleteProfile  };
