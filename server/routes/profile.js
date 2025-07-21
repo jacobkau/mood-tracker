@@ -56,6 +56,7 @@ router.delete("/", protect, async (req, res) => {
     res.json({ 
       success: true,
       message: "Account deleted successfully" 
+      redirectTo: "/register"
     });
   } catch (err) {
     console.error("Delete profile error:", err);
