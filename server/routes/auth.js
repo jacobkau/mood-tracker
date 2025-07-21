@@ -5,7 +5,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { protect } = require('../middleware/authMiddleware');
 
-
+// Register new user
 router.post("/register", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -17,6 +17,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
+// Login user
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -31,6 +32,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// Get current user profile
 router.get('/me', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
@@ -38,6 +40,29 @@ router.get('/me', protect, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Delete user profile
+router.delete('/profile', protect, async (req, res) => {
+  try {
+    // Get user from middleware
+    const userId = req.user.id;
+    
+    // Delete user
+    await User.findByIdAndDelete(userId);
+    
+    res.status(200).json({ 
+      success: true,
+      message: "Account deleted successfully",
+      deletedUserId: userId
+    });
+  } catch (err) {
+    console.error("Delete profile error:", err);
+    res.status(500).json({ 
+      error: "Failed to delete account",
+      details: process.env.NODE_ENV === 'development' ? err.message : null
+    });
   }
 });
 
