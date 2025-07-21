@@ -52,14 +52,14 @@ router.delete("/", protect, async (req, res) => {
     res.status(200).json({ 
       success: true,
       message: "Account deleted successfully",
-      redirect: "/register"  // Now properly included in the response object
+      redirect: "/"  
     });
   } catch (err) {
     console.error("Delete profile error:", err);
     res.status(500).json({ 
       error: "Failed to delete account",
       details: process.env.NODE_ENV === 'development' ? err.message : null,
-      redirect: "/register"  // Also added to error response if needed
+      redirect: "/" 
     });
   }
 });
