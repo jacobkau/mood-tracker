@@ -16,16 +16,37 @@ const protect = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       // Get user from token
-      req.user = await User.findById(decoded.id).select('-password');
+      const user = await User.findById(decoded.id).select('-password');
+      
+      if (!user) {
+        return res.status(401).json({ 
+          error: 'User not found',
+          redirectTo: '/register'  // Signal that frontend should redirect
+        });
+      }
 
+      req.user = user;
       next();
     } catch (err) {
-      res.status(401).json({ error: 'Not authorized' });
+      // Handle different error cases
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({ 
+          error: 'Session expired', 
+          redirectTo: '/login' 
+        });
+      }
+      return res.status(401).json({ 
+        error: 'Not authorized',
+        redirectTo: '/register'  // Signal that frontend should redirect
+      });
     }
   }
 
   if (!token) {
-    res.status(401).json({ error: 'No token provided' });
+    return res.status(401).json({ 
+      error: 'No token provided',
+      redirectTo: '/register'  // Signal that frontend should redirect
+    });
   }
 };
 
