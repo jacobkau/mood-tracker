@@ -57,10 +57,12 @@ export default function MoodList({ moods, setMoods }) {
   };
 
 const handleDelete = async (id) => {
+  console.log("Delete initiated for ID:", id); // Add this
   try {
     const token = localStorage.getItem("token");
+    console.log("Using token:", token ? "exists" : "missing"); // Add this
 
-    await axios.delete(
+    const response = await axios.delete(
       `${import.meta.env.VITE_API_BASE_URL}/api/moods/${id}`,
       {
         headers: {
@@ -68,9 +70,19 @@ const handleDelete = async (id) => {
         },
       }
     );
-    setMoods((prevMoods) => prevMoods.filter((mood) => mood._id !== id));
+    
+    console.log("Delete response:", response.data); // Add this
+    
+    setMoods((prevMoods) => {
+      const newMoods = prevMoods.filter((mood) => mood._id !== id);
+      console.log("Previous moods:", prevMoods.length, "New moods:", newMoods.length); // Add this
+      return newMoods;
+    });
+    
   } catch (err) {
-    console.error("Failed to delete mood", err.response?.data || err.message);
+    console.error("Full error:", err); // Enhance this
+    console.error("Response data:", err.response?.data); // Add this
+    alert(`Delete failed: ${err.response?.data?.error || err.message}`);
   }
 };
 
