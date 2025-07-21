@@ -57,10 +57,11 @@ export default function MoodList({ moods, setMoods }) {
   };
 
 const handleDelete = async (id) => {
-  console.log("Delete initiated for ID:", id); // Add this
+  console.log("[FRONTEND] Deleting mood ID:", id, typeof id); // Check ID type
+  
   try {
     const token = localStorage.getItem("token");
-    console.log("Using token:", token ? "exists" : "missing"); // Add this
+    console.log("[FRONTEND] Token exists:", !!token); // Verify token
 
     const response = await axios.delete(
       `${import.meta.env.VITE_API_BASE_URL}/api/moods/${id}`,
@@ -71,18 +72,21 @@ const handleDelete = async (id) => {
       }
     );
     
-    console.log("Delete response:", response.data); // Add this
+    console.log("[FRONTEND] Delete response:", response.data); // Log response
     
     setMoods((prevMoods) => {
-      const newMoods = prevMoods.filter((mood) => mood._id !== id);
-      console.log("Previous moods:", prevMoods.length, "New moods:", newMoods.length); // Add this
-      return newMoods;
+      const updatedMoods = prevMoods.filter((mood) => mood._id !== id);
+      console.log("[FRONTEND] Moods after deletion:", updatedMoods); // Verify state update
+      return updatedMoods;
     });
-    
+
   } catch (err) {
-    console.error("Full error:", err); // Enhance this
-    console.error("Response data:", err.response?.data); // Add this
-    alert(`Delete failed: ${err.response?.data?.error || err.message}`);
+    console.error("[FRONTEND] Delete error:", {
+      message: err.message,
+      response: err.response?.data,
+      status: err.response?.status,
+    });
+    alert(`Failed to delete mood: ${err.response?.data?.error || err.message}`);
   }
 };
 
