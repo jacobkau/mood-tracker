@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Mood = require('../models/Mood');
 
 // @desc    Get all moods for a user
