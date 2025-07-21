@@ -37,37 +37,29 @@ const deleteMood = async (req, res) => {
     const { id } = req.params;
     console.log("[BACKEND] Deleting mood ID:", id);
 
-    // Check if ID is valid
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      console.log("[BACKEND] Invalid ID format");
-      return res.status(400).json({ error: "Invalid mood ID format" });
+      return res.status(400).json({ error: "Invalid ID format" });
     }
 
-    // Find the mood
     const mood = await Mood.findById(id);
-    console.log("[BACKEND] Found mood:", mood);
-
     if (!mood) {
-      console.log("[BACKEND] Mood not found");
       return res.status(404).json({ error: "Mood not found" });
     }
 
-    // Check ownership
-    console.log("[BACKEND] User ID from token:", req.user._id);
-    console.log("[BACKEND] Mood's user ID:", mood.userId);
+    // Debug: Log user IDs
+    console.log("User ID from token:", req.user._id);
+    console.log("Mood's user ID:", mood.userId);
 
     if (mood.userId.toString() !== req.user._id.toString()) {
-      console.log("[BACKEND] Unauthorized (user mismatch)");
       return res.status(401).json({ error: "Not authorized" });
     }
 
-    // Delete
     await mood.deleteOne();
     console.log("[BACKEND] Mood deleted successfully");
     res.status(200).json({ message: "Mood removed" });
 
   } catch (err) {
-    console.error("[BACKEND] Error:", err);
+    console.error("[BACKEND] Full error:", err); // <-- This will show the exact error
     res.status(500).json({ error: "Server error during deletion" });
   }
 };
