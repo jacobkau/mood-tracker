@@ -19,16 +19,16 @@ export default function Profile() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-       const token = localStorage.getItem("token");
+        const token = localStorage.getItem("token");
 
-const { data } = await axios.get(
-  `${import.meta.env.VITE_API_BASE_URL}/api/auth/me`,
-  {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  }
-);
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/api/auth/me`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         setUser(data);
         setFormData(prev => ({ 
@@ -92,7 +92,7 @@ const { data } = await axios.get(
       }
       
       await axios.put(
-        "http://localhost:5000/api/profile",
+        `${import.meta.env.VITE_API_BASE_URL}/api/profile`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -106,9 +106,12 @@ const { data } = await axios.get(
       }));
       
       // Refresh user data
-      const { data } = await axios.get("http://localhost:5000/api/auth/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/api/auth/me`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setUser(data);
       
     } catch (err) {
@@ -131,16 +134,19 @@ const { data } = await axios.get(
     if (window.confirm("Are you sure you want to delete your account? This cannot be undone.")) {
       try {
         const token = localStorage.getItem("token");
-        await axios.delete("http://localhost:5000/api/profile", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await axios.delete(
+          `${import.meta.env.VITE_API_BASE_URL}/api/profile`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         
         localStorage.removeItem("token");
         toast.success("Account deleted successfully");
         navigate("/login");
       } catch (err) {
         console.error("Delete failed:", err);
-        toast.error("Failed to delete account");
+        toast.error(err.response?.data?.error || "Failed to delete account");
       }
     }
   };
