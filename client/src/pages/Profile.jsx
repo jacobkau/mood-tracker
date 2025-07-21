@@ -141,6 +141,8 @@ const handleDeleteAccount = async () => {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
+          // If implementing password confirmation:
+          // data: { password: prompt("Enter your password to confirm deletion") }
         }
       );
       
