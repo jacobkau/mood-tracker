@@ -41,30 +41,28 @@ router.put("/", protect, async (req, res) => {
   }
 });
 
+
 // @desc    Delete user profile
 // @route   DELETE /api/profile
 router.delete("/", protect, async (req, res) => {
   try {
-    // Optional: Add password confirmation for extra security
-    // const { password } = req.body;
-    // const user = await User.findById(req.user.id).select('+password');
-    // const isMatch = await bcrypt.compare(password, user.password);
-    // if (!isMatch) return res.status(401).json({ error: "Invalid password" });
-
     await User.findByIdAndDelete(req.user.id);
     
-    res.json({ 
+    // Properly structured response object
+    res.status(200).json({ 
       success: true,
-      message: "Account deleted successfully" 
-      redirectTo: "/register"
+      message: "Account deleted successfully",
+      redirectTo: "/register"  // Now properly included in the response object
     });
   } catch (err) {
     console.error("Delete profile error:", err);
     res.status(500).json({ 
       error: "Failed to delete account",
-      details: process.env.NODE_ENV === 'development' ? err.message : null
+      details: process.env.NODE_ENV === 'development' ? err.message : null,
+      redirectTo: "/register"  // Also added to error response if needed
     });
   }
 });
+
 
 module.exports = router;
