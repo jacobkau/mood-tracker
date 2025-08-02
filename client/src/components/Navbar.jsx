@@ -19,19 +19,23 @@ export default function Navbar({ setIsAuthenticated }) {
     }
   };
 
-  function NavLink({ to, icon, text }) {
-    const isActive = location.pathname === to;
-    return (
-      <Link
-        to={to}
-        className={`flex items-center ${isActive ? currentTheme.active : ${currentTheme.text} ${currentTheme.hover}} transition-colors`}
-        aria-current={isActive ? "page" : undefined}
-      >
-        {icon}
-        <span className="ml-1">{text}</span>
-      </Link>
-    );
-  }
+ function NavLink({ to, icon, text }) {
+  const isActive = location.pathname === to;
+  return (
+    <Link
+      to={to}
+      className={`flex items-center ${
+        isActive 
+          ? currentTheme.active 
+          : ${currentTheme.text} ${currentTheme.hover}
+      } transition-colors`}
+      aria-current={isActive ? "page" : undefined}
+    >
+      {icon}
+      <span className="ml-1">{text}</span>
+    </Link>
+  );
+}
   
   function MobileNavLink({ to, icon, text }) {
     const isActive = location.pathname === to;
