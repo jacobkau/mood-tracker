@@ -63,7 +63,7 @@ export default function Navbar({ setIsAuthenticated }) {
                 <img 
     src="/icon.png" 
     alt="MoodTracker Logo"
-    className="h-20 w-25"
+    className="h-10 w-10"
   />
               </div>
               <span className="hidden sm:inline">Witty MoodTracker</span>
