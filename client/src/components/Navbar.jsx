@@ -55,20 +55,20 @@ export default function Navbar({ setIsAuthenticated }) {
         <div className="flex justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link
-              to="/"
-              className={`flex items-center text-xl font-bold ${currentTheme.text} hover:opacity-80`}
-            >
-              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-4xl">
-                <img 
-    src="/icon.png" 
-    alt="MoodTracker Logo"
-    className="h-10 w-10"
-  />
-              </div>
-              <span className="hidden sm:inline">Witty MoodTracker</span>
-            </Link>
-          </div>
+  <Link
+    to="/"
+    className={flex items-center text-xl font-bold ${currentTheme.text} hover:opacity-80}
+  >
+    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-4xl">
+      <img
+        src="/icon.png"
+        alt="MoodTracker Logo"
+        className="h-10 w-10"
+      />
+    </div>
+    <span className="hidden sm:inline ml-3">Witty MoodTracker</span>
+  </Link>
+</div>
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-8">
