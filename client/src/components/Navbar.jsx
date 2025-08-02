@@ -59,7 +59,7 @@ export default function Navbar({ setIsAuthenticated }) {
               to="/"
               className={`flex items-center text-xl font-bold ${currentTheme.text} hover:opacity-80`}
             >
-              <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center text-4xl">
+              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-4xl">
                 <img 
     src="/icon.png" 
     alt="MoodTracker Logo"
