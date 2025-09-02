@@ -4,6 +4,7 @@ import { useTheme } from '../context/useTheme';
 export default function Footer() {
   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
+  console.log("Footer theme:", theme, currentTheme);
   
 
   return (
@@ -12,8 +13,7 @@ export default function Footer() {
         
         <div>
           <h4 className={`${currentTheme.footerText} font-semibold mb-4`}>😊 Witty MoodTracker</h4>
-          <p className="text-sm">Your companion for emotional wellness and mental health awareness. console.log("Footer theme:", theme, currentTheme);
-</p>
+          <p className="text-sm">Your companion for emotional wellness and mental health awareness.</p>
         </div>
         
         <div>
