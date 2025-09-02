@@ -9,7 +9,13 @@ import Contact from './pages/Contact';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import Developer from './pages/Developer';
-import Home from './pages/Home'; // Import the new Home component
+import Home from './pages/Home';
+import Features from './pages/Features';
+import Pricing from './pages/Pricing';
+import Testimonials from './pages/Testimonials';
+import Blog from './pages/Blog';
+import Guides from './pages/Guides';
+import FAQ from './pages/FAQ';
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { ToastContainer } from "react-toastify";
@@ -43,6 +49,12 @@ function App() {
               isAuthenticated ? <Dashboard /> : <Home />
             }
           />
+          <Route path="/features" element={<Features />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/testimonials" element={<Testimonials />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/guides" element={<Guides />} />
+          <Route path="/faq" element={<FAQ />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
