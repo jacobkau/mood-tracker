@@ -6,10 +6,7 @@ const Home = () => {
     const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
   return (
-    <div className={' ${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col'}>
-
-
-
+   <div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col`}>
       {/* Hero Section */}
       <main className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-10">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
