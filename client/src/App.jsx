@@ -20,7 +20,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useEffect, useState } from "react";
+import { useEffect, useContext, useState } from "react";
 import { ThemeProvider } from './context/ThemeProvider';
 
 function App() {
