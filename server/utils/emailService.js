@@ -1,17 +1,11 @@
 const nodemailer = require('nodemailer');
 
-// Create transporter with Mailtrap configuration
+// Create transporter with Gmail configuration
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: false, // Use TLS
+  service: 'gmail',
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  },
-  // Mailtrap specific settings
-  tls: {
-    rejectUnauthorized: false // For development with Mailtrap
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
   }
 });
 
@@ -27,8 +21,8 @@ transporter.verify(function(error, success) {
 // Support email template
 const sendSupportEmail = async ({ ticketId, name, email, subject, message }) => {
   const mailOptions = {
-    from: process.env.SMTP_FROM,
-    to: process.env.SUPPORT_EMAIL,
+    from: process.env.EMAIL_USER,
+    to: process.env.SUPPORT_EMAIL || 'kaujacob4@gmail.com',
     subject: `Support Ticket #${ticketId}: ${subject}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -63,7 +57,7 @@ const sendSupportEmail = async ({ ticketId, name, email, subject, message }) => 
 // Support confirmation email to user
 const sendSupportConfirmation = async ({ to, name, ticketId, subject }) => {
   const mailOptions = {
-    from: process.env.SMTP_FROM,
+    from: process.env.EMAIL_USER,
     to: to,
     subject: `Support Request Received - Ticket #${ticketId}`,
     html: `
@@ -102,8 +96,8 @@ const sendSupportConfirmation = async ({ to, name, ticketId, subject }) => {
 // Contact form email template
 const sendContactEmail = async ({ name, email, subject, message, type }) => {
   const mailOptions = {
-    from: process.env.SMTP_FROM,
-    to: process.env.CONTACT_EMAIL,
+    from: process.env.EMAIL_USER,
+    to: process.env.CONTACT_EMAIL || 'kaujacob4@gmail.com',
     subject: `Contact Form: ${subject} (${type})`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -135,7 +129,7 @@ const sendContactEmail = async ({ name, email, subject, message, type }) => {
 // Newsletter welcome email
 const sendNewsletterWelcome = async (email) => {
   const mailOptions = {
-    from: process.env.SMTP_FROM,
+    from: process.env.EMAIL_USER,
     to: email,
     subject: 'Welcome to Our Newsletter!',
     html: `
