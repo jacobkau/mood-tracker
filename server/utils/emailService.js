@@ -1,25 +1,42 @@
 const nodemailer = require('nodemailer');
 
-// Create transporter with Gmail configuration
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+// Check if email credentials are available
+const hasEmailCredentials = () => {
+  return process.env.EMAIL_USER && process.env.EMAIL_PASS;
+};
 
-// Verify connection configuration
-transporter.verify(function(error, success) {
-  if (error) {
-    console.error('Email transporter verification failed:', error);
-  } else {
-    console.log('Email transporter is ready to send messages');
-  }
-});
+// Create transporter with Gmail configuration only if credentials are available
+let transporter;
+
+if (hasEmailCredentials()) {
+  transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+
+  // Verify connection configuration
+  transporter.verify(function(error, success) {
+    if (error) {
+      console.error('Email transporter verification failed:', error.message);
+    } else {
+      console.log('Email transporter is ready to send messages');
+    }
+  });
+} else {
+  console.warn('Email credentials not found. Email functionality will be disabled.');
+  console.warn('Please set EMAIL_USER and EMAIL_PASS environment variables.');
+}
 
 // Support email template
 const sendSupportEmail = async ({ ticketId, name, email, subject, message }) => {
+  if (!transporter) {
+    console.warn('Email transporter not available. Skipping support email.');
+    return false;
+  }
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: process.env.SUPPORT_EMAIL || 'kaujacob4@gmail.com',
@@ -49,13 +66,18 @@ const sendSupportEmail = async ({ ticketId, name, email, subject, message }) => 
     console.log(`Support email sent for ticket ${ticketId}:`, info.messageId);
     return true;
   } catch (error) {
-    console.error('Error sending support email:', error);
-    throw new Error('Failed to send support email');
+    console.error('Error sending support email:', error.message);
+    return false; // Don't throw error, just return false
   }
 };
 
 // Support confirmation email to user
 const sendSupportConfirmation = async ({ to, name, ticketId, subject }) => {
+  if (!transporter) {
+    console.warn('Email transporter not available. Skipping confirmation email.');
+    return false;
+  }
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: to,
@@ -88,13 +110,18 @@ const sendSupportConfirmation = async ({ to, name, ticketId, subject }) => {
     console.log(`Support confirmation sent to ${to}:`, info.messageId);
     return true;
   } catch (error) {
-    console.error('Error sending support confirmation:', error);
-    throw new Error('Failed to send confirmation email');
+    console.error('Error sending support confirmation:', error.message);
+    return false;
   }
 };
 
 // Contact form email template
 const sendContactEmail = async ({ name, email, subject, message, type }) => {
+  if (!transporter) {
+    console.warn('Email transporter not available. Skipping contact email.');
+    return false;
+  }
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: process.env.CONTACT_EMAIL || 'kaujacob4@gmail.com',
@@ -121,13 +148,18 @@ const sendContactEmail = async ({ name, email, subject, message, type }) => {
     console.log(`Contact email sent from ${email}:`, info.messageId);
     return true;
   } catch (error) {
-    console.error('Error sending contact email:', error);
-    throw new Error('Failed to send contact email');
+    console.error('Error sending contact email:', error.message);
+    return false;
   }
 };
 
 // Newsletter welcome email
 const sendNewsletterWelcome = async (email) => {
+  if (!transporter) {
+    console.warn('Email transporter not available. Skipping newsletter welcome.');
+    return false;
+  }
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
@@ -156,13 +188,14 @@ const sendNewsletterWelcome = async (email) => {
     console.log(`Newsletter welcome sent to ${email}:`, info.messageId);
     return true;
   } catch (error) {
-    console.error('Error sending newsletter welcome:', error);
-    throw new Error('Failed to send welcome email');
+    console.error('Error sending newsletter welcome:', error.message);
+    return false;
   }
 };
 
 module.exports = {
   transporter,
+  hasEmailCredentials,
   sendSupportEmail,
   sendSupportConfirmation,
   sendContactEmail,
