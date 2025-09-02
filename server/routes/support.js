@@ -17,15 +17,6 @@ router.post('/contact', async (req, res) => {
       });
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Please provide a valid email address' 
-      });
-    }
-    
     const supportTicket = new SupportTicket({
       name,
       email,
@@ -37,8 +28,8 @@ router.post('/contact', async (req, res) => {
     
     await supportTicket.save();
     
+    // Try to send emails, but don't fail the request if they fail
     try {
-      // Send email notification to support team
       await sendSupportEmail({
         ticketId: supportTicket._id,
         name,
@@ -46,18 +37,19 @@ router.post('/contact', async (req, res) => {
         subject,
         message
       });
-      
-      // Send confirmation email to user
+    } catch (emailError) {
+      console.warn('Support email failed:', emailError.message);
+    }
+    
+    try {
       await sendSupportConfirmation({
         to: email,
         name,
         ticketId: supportTicket._id,
         subject
       });
-      
-    } catch (emailError) {
-      console.error('Email sending failed:', emailError);
-      // Don't fail the request if email fails, just log it
+    } catch (confirmationError) {
+      console.warn('Confirmation email failed:', confirmationError.message);
     }
     
     res.status(201).json({ 
