@@ -2,12 +2,29 @@ const express = require('express');
 const router = express.Router();
 const SupportTicket = require('../models/SupportTicket');
 const auth = require('../middleware/auth');
-const { sendSupportEmail } = require('../utils/emailService');
+const { sendSupportEmail, sendSupportConfirmation } = require('../utils/emailService');
 
 // Submit support request
 router.post('/contact', async (req, res) => {
   try {
     const { name, email, subject, message } = req.body;
+    
+    // Validate required fields
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'All fields are required' 
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Please provide a valid email address' 
+      });
+    }
     
     const supportTicket = new SupportTicket({
       name,
@@ -20,26 +37,28 @@ router.post('/contact', async (req, res) => {
     
     await supportTicket.save();
     
-    // Send email notification to support team
-    await sendSupportEmail({
-      ticketId: supportTicket._id,
-      name,
-      email,
-      subject,
-      message
-    });
-    
-    // Send confirmation email to user
-    await sendSupportEmail({
-      to: email,
-      subject: 'Support Request Received',
-      template: 'support-confirmation',
-      context: {
+    try {
+      // Send email notification to support team
+      await sendSupportEmail({
+        ticketId: supportTicket._id,
+        name,
+        email,
+        subject,
+        message
+      });
+      
+      // Send confirmation email to user
+      await sendSupportConfirmation({
+        to: email,
         name,
         ticketId: supportTicket._id,
         subject
-      }
-    });
+      });
+      
+    } catch (emailError) {
+      console.error('Email sending failed:', emailError);
+      // Don't fail the request if email fails, just log it
+    }
     
     res.status(201).json({ 
       success: true,
