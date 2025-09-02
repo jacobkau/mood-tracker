@@ -14,6 +14,8 @@ const FAQ = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState('');
+    const { theme, themes } = useContext(ThemeContext);
+  const currentTheme = themes[theme];
 
   const toggleFAQ = (index) => {
     setActiveIndex(activeIndex === index ? null : index);
@@ -81,7 +83,7 @@ const FAQ = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={'${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen bg-gray-50'}>
       <PageHeader 
         title="Frequently Asked Questions" 
         description="Find answers to common questions about Witty MoodTracker"
