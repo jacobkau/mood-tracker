@@ -6,6 +6,9 @@ const authRoutes = require("./routes/auth");
 const moodRoutes = require("./routes/mood");
 const statsRoutes = require("./routes/stats"); 
 const profileRoutes = require("./routes/profile"); 
+const supportRoutes = require('./routes/support');
+const contentRoutes = require('./routes/content');
+const subscriptionRoutes = require('./routes/subscription');
 const contactRoutes = require('./routes/contact');
 
 dotenv.config();
@@ -28,6 +31,9 @@ app.use("/api/moods", moodRoutes);
 app.use("/api/stats", statsRoutes); 
 app.use("/api/profile", profileRoutes);
 app.use('/api/contact', contactRoutes)
+app.use("/api/support", supportRoutes);
+app.use("/api/content", contentRoutes);
+app.use("/api/subscription", subscriptionRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
