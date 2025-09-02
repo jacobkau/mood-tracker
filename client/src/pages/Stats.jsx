@@ -2,10 +2,13 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { FiActivity, FiTrendingUp, FiCalendar } from "react-icons/fi";
 import { toast } from "react-toastify";
+import { useTheme } from '../context/useTheme';
 import "react-toastify/dist/ReactToastify.css";
 
 export default function Stats() {
   const [stats, setStats] = useState(null);
+    const { theme, themes } = useTheme();
+  const currentTheme = themes[theme];
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -29,7 +32,7 @@ export default function Stats() {
     fetchStats();
   }, []);
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className={'${currentTheme.footerBg} ${currentTheme.footerText} min-h-screen bg-gray-50 p-4 md:p-8'}>
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Your Mood Statistics</h1>
         
