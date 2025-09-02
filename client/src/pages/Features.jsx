@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
 
 const Features = () => {
+    const { theme, themes } = useContext(ThemeContext);
+  const currentTheme = themes[theme];
   const features = [
     {
       title: "Daily Mood Tracking",
@@ -60,7 +62,7 @@ const Features = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={'${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen bg-gray-50'}>
       <PageHeader 
         title="Features" 
         description="Discover all the tools and features that make Witty MoodTracker the best choice for emotional wellness"
