@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import { contactSupport } from '../services/api';
 import { toast } from 'react-toastify';
+import { useTheme } from '../context/useTheme';
 
 const FAQ = () => {
   const [activeIndex, setActiveIndex] = useState(null);
@@ -14,7 +15,7 @@ const FAQ = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState('');
-    const { theme, themes } = useContext(ThemeContext);
+  const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
 
   const toggleFAQ = (index) => {
