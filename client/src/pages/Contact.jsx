@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FiMail, FiPhone, FiMapPin, FiUsers, FiBriefcase } from "react-icons/fi";
+import { useTheme } from '../context/useTheme';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -10,7 +11,7 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
   const [activeTab, setActiveTab] = useState("contact"); 
-    const { theme, themes } = useContext(ThemeContext);
+   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
 
   const handleSubmit = async (e) => {
