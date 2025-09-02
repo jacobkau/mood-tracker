@@ -41,7 +41,9 @@ function App() {
   return (
     <ThemeProvider>
       <BrowserRouter>
-        {isAuthenticated && <Navbar setIsAuthenticated={setIsAuthenticated} />}
+        {/* Always show navbar but pass authentication status */}
+        <Navbar setIsAuthenticated={setIsAuthenticated} isAuthenticated={isAuthenticated} />
+        
         <Routes>
           <Route
             path="/"
@@ -72,19 +74,25 @@ function App() {
             }
           />
           <Route
+            path="/dashboard"
+            element={
+              isAuthenticated ? <Dashboard /> : <Navigate to="/login" replace />
+            }
+          />
+          <Route
             path="/login"
             element={
               !isAuthenticated ? (
                 <Login setIsAuthenticated={setIsAuthenticated} />
               ) : (
-                <Navigate to="/" replace />
+                <Navigate to="/dashboard" replace />
               )
             }
           />
           <Route
             path="/register"
             element={
-              !isAuthenticated ? <Register /> : <Navigate to="/" replace />
+              !isAuthenticated ? <Register /> : <Navigate to="/dashboard" replace />
             }
           />
         </Routes>
