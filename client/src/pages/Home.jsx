@@ -4,27 +4,7 @@ import { Link } from "react-router-dom";
 const Home = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
-      {/* Header */}
-  <header className="sticky top-0 z-50 w-full bg-white shadow-sm py-6 px-4 sm:px-6 lg:px-8">
-  <div className="max-w-7xl mx-auto flex justify-between items-center">
-    <div className="flex items-center">
-      <div className="bg-indigo-600 rounded-full w-12 h-12 flex items-center justify-center mr-3 shadow-md">
-        <span className="text-white font-bold text-xl">😊</span>
-      </div>
-      <h1 className="text-2xl md:text-3xl font-bold text-indigo-800">
-        Witty MoodTracker
-      </h1>
-    </div>
-    <div className="flex items-center gap-4">
-      <Link
-        to="/login"
-        className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-5 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
-      >
-        Login
-      </Link>
-    </div>
-  </div>
-</header>
+
 
 
       {/* Hero Section */}
