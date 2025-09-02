@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import { getTestimonials } from '../services/api';
+import { useTheme } from '../context/useTheme';
 
 const Testimonials = () => {
   const [testimonials, setTestimonials] = useState([]);
   const [loading, setLoading] = useState(true);
+    const { theme, themes } = useTheme();
+  const currentTheme = themes[theme];
 
   useEffect(() => {
     const fetchTestimonials = async () => {
@@ -99,7 +102,7 @@ const Testimonials = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className={'${currentTheme.footerBg} ${currentTheme.footerText} min-h-screen bg-gray-50'}>
         <PageHeader title="Testimonials" />
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
