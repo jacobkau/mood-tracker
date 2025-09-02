@@ -95,7 +95,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                             className={`flex items-center text-xl font-bold ${currentTheme.text} hover:opacity-80`}
                         >
                             <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-2">
-                                <span className="text-indigo-600 font-bold text-lg">W</span>
+                                <span className="text-indigo-600 font-bold text-lg"> 😊</span>
                             </div>
                             <span className="hidden sm:inline">Witty MoodTracker</span>
                         </Link>
