@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
+import { useTheme } from '../context/useTheme';
 
 const Features = () => {
-    const { theme, themes } = useContext(ThemeContext);
+    const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
   const features = [
     {
