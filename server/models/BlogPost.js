@@ -77,9 +77,7 @@ blogPostSchema.pre('save', function(next) {
   next();
 });
 
-// Index for better query performance
 blogPostSchema.index({ published: 1, createdAt: -1 });
 blogPostSchema.index({ category: 1, published: 1 });
-blogPostSchema.index({ slug: 1 });
 
 module.exports = mongoose.model('BlogPost', blogPostSchema);
