@@ -6,6 +6,8 @@ import MoodStats from "../components/mood/MoodStats";
 
 export default function Dashboard() {
   const [moods, setMoods] = useState([]);
+  const { theme, themes } = useContext(ThemeContext);
+  const currentTheme = themes[theme];
 
   useEffect(() => {
     const fetchMoods = async () => {
@@ -30,7 +32,7 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className={'${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen bg-gray-50 p-4 md:p-8'}>
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Mood Tracker</h1>
         <p><i>Your personal companion for emotional wellness!</i></p>
