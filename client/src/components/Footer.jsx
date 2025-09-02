@@ -5,7 +5,7 @@ export default function Footer() {
   const currentTheme = themes[theme];
   return (
  
-      <footer className={'${currentTheme.footerBg} ${currentTheme.footerText} py-8 px-4 sm:px-6 lg:px-8 bg-gray-800 text-gray-300'}>
+     <footer className={`${currentTheme.footerBg} ${currentTheme.footerText} py-8 px-4 sm:px-6 lg:px-8`}>
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <h4 className="text-white font-semibold mb-4">😊 Witty MoodTracker</h4>
