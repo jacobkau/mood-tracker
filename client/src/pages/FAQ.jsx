@@ -145,67 +145,67 @@ const FAQ = () => {
         </div>
 
         {/* Contact Support Form */}
-        <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-xl font-semibold mb-4">Contact Support</h3>
-          <form onSubmit={handleContactSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Your Name"
-                value={contactForm.name}
-                onChange={(e) =>
-                  setContactForm({ ...contactForm, name: e.target.value })
-                }
-                className="p-2 border rounded-md"
-                required
-              />
-              <input
-                type="email"
-                placeholder="Your Email"
-                value={contactForm.email}
-                onChange={(e) =>
-                  setContactForm({ ...contactForm, email: e.target.value })
-                }
-                className="p-2 border rounded-md"
-                required
-              />
-            </div>
-            <input
-              type="text"
-              placeholder="Subject"
-              value={contactForm.subject}
-              onChange={(e) =>
-                setContactForm({ ...contactForm, subject: e.target.value })
-              }
-              className="p-2 border rounded-md w-full"
-              required
-            />
-            <textarea
-              placeholder="How can we help you?"
-              value={contactForm.message}
-              onChange={(e) =>
-                setContactForm({ ...contactForm, message: e.target.value })
-              }
-              className="p-2 border rounded-md w-full h-32"
-              required
-            />
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50"
-            >
-              {isSubmitting ? "Sending..." : "Send Message"}
-            </button>
-            {submitStatus === "success" && (
-              <p className="text-green-600">Message sent successfully!</p>
-            )}
-            {submitStatus === "error" && (
-              <p className="text-red-600">
-                Failed to send message. Please try again.
-              </p>
-            )}
-          </form>
-        </div>
+<div className="mt-8 bg-white p-6 rounded-lg shadow-md">
+  <h3 className="text-xl font-semibold mb-4">Contact Support</h3>
+  <form onSubmit={handleContactSubmit} className="space-y-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <input
+        type="text"
+        placeholder="Your Name"
+        value={contactForm.name}
+        onChange={(e) =>
+          setContactForm({ ...contactForm, name: e.target.value })
+        }
+        className="p-2 border rounded-md"
+        required
+      />
+      <input
+        type="email"
+        placeholder="Your Email"
+        value={contactForm.email}
+        onChange={(e) =>
+          setContactForm({ ...contactForm, email: e.target.value })
+        }
+        className="p-2 border rounded-md"
+        required
+      />
+    </div>
+    <input
+      type="text"
+      placeholder="Subject"
+      value={contactForm.subject}
+      onChange={(e) =>
+        setContactForm({ ...contactForm, subject: e.target.value })
+      }
+      className="p-2 border rounded-md w-full"
+      required
+    />
+    <textarea
+      placeholder="How can we help you?"
+      value={contactForm.message}
+      onChange={(e) =>
+        setContactForm({ ...contactForm, message: e.target.value })
+      }
+      className="p-2 border rounded-md w-full h-32"
+      required
+    />
+    <button
+      type="submit"
+      disabled={isSubmitting}
+      className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+    >
+      {isSubmitting ? "Sending..." : "Send Message"}
+    </button>
+    {submitStatus === "success" && (
+      <p className="text-green-600">Message sent successfully!</p>
+    )}
+    {submitStatus === "error" && (
+      <p className="text-red-600">
+        Failed to send message. Please try again.
+      </p>
+    )}
+  </form>
+</div>       
       </div>
     </div>
   );
