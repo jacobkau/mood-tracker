@@ -3,11 +3,14 @@ const mongoose = require('mongoose');
 const guideSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true
+    required: true,
+    trim: true,
+    maxlength: 100
   },
   description: {
     type: String,
-    required: true
+    required: true,
+    maxlength: 200
   },
   content: {
     type: String,
@@ -24,7 +27,8 @@ const guideSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    required: true
+    required: true,
+    enum: ['Getting Started', 'Analytics', 'Advanced', 'Therapy', 'Productivity', 'Relationships']
   },
   order: {
     type: Number,
@@ -33,9 +37,33 @@ const guideSchema = new mongoose.Schema({
   published: {
     type: Boolean,
     default: false
-  }
+  },
+  featured: {
+    type: Boolean,
+    default: false
+  },
+  steps: [{
+    title: String,
+    content: String,
+    imageUrl: String
+  }],
+  prerequisites: [{
+    type: String
+  }],
+  resources: [{
+    title: String,
+    url: String,
+    type: {
+      type: String,
+      enum: ['article', 'video', 'tool', 'book']
+    }
+  }]
 }, {
   timestamps: true
 });
+
+// Index for better query performance
+guideSchema.index({ published: 1, level: 1, category: 1 });
+guideSchema.index({ featured: 1, published: 1 });
 
 module.exports = mongoose.model('Guide', guideSchema);
