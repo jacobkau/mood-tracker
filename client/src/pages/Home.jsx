@@ -1,8 +1,9 @@
 // pages/Home.jsx
 import { Link } from "react-router-dom";
+import { useTheme } from '../context/useTheme';
 
 const Home = () => {
-  const { theme, themes } = useContext(ThemeContext);
+    const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
   return (
     <div className={' ${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col'}>
