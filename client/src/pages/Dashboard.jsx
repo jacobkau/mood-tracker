@@ -3,10 +3,11 @@ import axios from "axios";
 import MoodEntry from "../components/mood/MoodEntry";
 import MoodList from "../components/mood/MoodList";
 import MoodStats from "../components/mood/MoodStats";
+import { useTheme } from '../context/useTheme';
 
 export default function Dashboard() {
   const [moods, setMoods] = useState([]);
-  const { theme, themes } = useContext(ThemeContext);
+   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
 
   useEffect(() => {
