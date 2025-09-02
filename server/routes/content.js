@@ -1,33 +1,50 @@
-// routes/content.js
 const express = require('express');
 const router = express.Router();
 const BlogPost = require('../models/BlogPost');
 const Guide = require('../models/Guide');
+const Testimonial = require('../models/Testimonial');
+const NewsletterSubscriber = require('../models/NewsletterSubscriber');
 
-// Get all blog posts
-router.get('/blog-posts', async (req, res) => {
+// Get all published blog posts with pagination
+router.get('/blog', async (req, res) => {
   try {
-    const { page = 1, limit = 6 } = req.query;
-    const posts = await BlogPost.find({ published: true })
+    const { page = 1, limit = 6, category = '' } = req.query;
+    const query = { published: true };
+    
+    if (category) {
+      query.category = new RegExp(category, 'i');
+    }
+    
+    const posts = await BlogPost.find(query)
       .sort({ createdAt: -1 })
       .limit(limit * 1)
-      .skip((page - 1) * limit);
+      .skip((page - 1) * limit)
+      .select('-content -__v');
     
-    const total = await BlogPost.countDocuments({ published: true });
+    const total = await BlogPost.countDocuments(query);
     
     res.json({
+      success: true,
       posts,
-      totalPages: Math.ceil(total / limit),
-      currentPage: page,
-      total
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalPosts: total,
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1
+      }
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Get blog posts error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch blog posts' 
+    });
   }
 });
 
 // Get single blog post
-router.get('/blog-posts/:id', async (req, res) => {
+router.get('/blog/:id', async (req, res) => {
   try {
     const post = await BlogPost.findOne({ 
       _id: req.params.id, 
@@ -35,24 +52,40 @@ router.get('/blog-posts/:id', async (req, res) => {
     });
     
     if (!post) {
-      return res.status(404).json({ error: 'Post not found' });
+      return res.status(404).json({ 
+        success: false,
+        error: 'Blog post not found' 
+      });
     }
     
-    res.json(post);
+    // Increment view count
+    post.views = (post.views || 0) + 1;
+    await post.save();
+    
+    res.json({ success: true, post });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Get blog post error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch blog post' 
+    });
   }
 });
 
-// Get all guides
+// Get all published guides
 router.get('/guides', async (req, res) => {
   try {
     const guides = await Guide.find({ published: true })
-      .sort({ order: 1, createdAt: -1 });
+      .sort({ order: 1, createdAt: -1 })
+      .select('-__v');
     
-    res.json(guides);
+    res.json({ success: true, guides });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Get guides error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch guides' 
+    });
   }
 });
 
@@ -65,12 +98,67 @@ router.get('/guides/:id', async (req, res) => {
     });
     
     if (!guide) {
-      return res.status(404).json({ error: 'Guide not found' });
+      return res.status(404).json({ 
+        success: false,
+        error: 'Guide not found' 
+      });
     }
     
-    res.json(guide);
+    res.json({ success: true, guide });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Get guide error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch guide' 
+    });
+  }
+});
+
+// Get published testimonials
+router.get('/testimonials', async (req, res) => {
+  try {
+    const testimonials = await Testimonial.find({ approved: true })
+      .sort({ featured: -1, createdAt: -1 })
+      .select('-__v')
+      .limit(20);
+    
+    res.json({ success: true, testimonials });
+  } catch (error) {
+    console.error('Get testimonials error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch testimonials' 
+    });
+  }
+});
+
+// Submit testimonial
+router.post('/testimonials', async (req, res) => {
+  try {
+    const { name, role, content, rating } = req.body;
+    
+    const testimonial = new Testimonial({
+      name,
+      role,
+      content,
+      rating: Math.min(5, Math.max(1, rating)),
+      approved: false,
+      featured: false
+    });
+    
+    await testimonial.save();
+    
+    res.status(201).json({ 
+      success: true,
+      message: 'Testimonial submitted for review', 
+      testimonialId: testimonial._id 
+    });
+  } catch (error) {
+    console.error('Submit testimonial error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to submit testimonial' 
+    });
   }
 });
 
@@ -79,13 +167,42 @@ router.post('/newsletter', async (req, res) => {
   try {
     const { email } = req.body;
     
-    // Here you would typically save to a newsletter collection
-    // and integrate with your email service (Mailchimp, SendGrid, etc.)
-    console.log('Newsletter subscription:', email);
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Valid email address is required' 
+      });
+    }
     
-    res.json({ message: 'Subscribed to newsletter successfully' });
+    // Check if already subscribed
+    const existingSubscriber = await NewsletterSubscriber.findOne({ email });
+    if (existingSubscriber) {
+      return res.json({ 
+        success: true,
+        message: 'Already subscribed to newsletter' 
+      });
+    }
+    
+    const subscriber = new NewsletterSubscriber({
+      email,
+      active: true
+    });
+    
+    await subscriber.save();
+    
+    // Here you would typically send a welcome email
+    // await sendNewsletterWelcomeEmail(email);
+    
+    res.json({ 
+      success: true,
+      message: 'Subscribed to newsletter successfully' 
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Newsletter subscription error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to subscribe to newsletter' 
+    });
   }
 });
 
