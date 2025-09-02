@@ -36,7 +36,6 @@ const newsletterSubscriberSchema = new mongoose.Schema({
 });
 
 // Index for better query performance
-newsletterSubscriberSchema.index({ email: 1 });
 newsletterSubscriberSchema.index({ active: 1 });
 
 module.exports = mongoose.model('NewsletterSubscriber', newsletterSubscriberSchema);
