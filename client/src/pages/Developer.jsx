@@ -1,7 +1,7 @@
 import { FiGithub, FiTwitter, FiLinkedin, FiGlobe } from 'react-icons/fi';
-
+import { useTheme } from '../context/useTheme';
 export default function Developer() {
-    const { theme, themes } = useContext(ThemeContext);
+   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
   return (
     <div className={'${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8'}>
