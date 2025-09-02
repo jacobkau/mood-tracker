@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import { getBlogPosts, subscribeToNewsletter } from '../services/api';
 import { toast } from 'react-toastify';
+import { useTheme } from '../context/useTheme';
 
 const Blog = () => {
   const [blogPosts, setBlogPosts] = useState([]);
@@ -11,7 +12,7 @@ const Blog = () => {
   const [subscribing, setSubscribing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-    const { theme, themes } = useContext(ThemeContext);
+    const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
 
   useEffect(() => {
