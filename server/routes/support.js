@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const SupportTicket = require('../models/SupportTicket');
-const auth = require('../middleware/authMiddleware');
+const { protect } = require('../middleware/authMiddleware');
 const { sendSupportEmail, sendSupportConfirmation } = require('../utils/emailService');
 
 // Submit support request
@@ -75,7 +75,7 @@ router.post('/contact', async (req, res) => {
 });
 
 // Get user's support tickets (protected)
-router.get('/tickets', auth, async (req, res) => {
+router.get('/tickets', protect, async (req, res) => {
   try {
     const tickets = await SupportTicket.find({ email: req.user.email })
       .sort({ createdAt: -1 })
@@ -92,7 +92,7 @@ router.get('/tickets', auth, async (req, res) => {
 });
 
 // Get specific support ticket (protected)
-router.get('/tickets/:id', auth, async (req, res) => {
+router.get('/tickets/:id', protect, async (req, res) => {
   try {
     const ticket = await SupportTicket.findOne({
       _id: req.params.id,
