@@ -177,9 +177,14 @@ router.post('/newsletter', async (req, res) => {
     // Check if already subscribed
     const existingSubscriber = await NewsletterSubscriber.findOne({ email });
     if (existingSubscriber) {
+      if (!existingSubscriber.active) {
+        existingSubscriber.active = true;
+        existingSubscriber.unsubscribedAt = null;
+        await existingSubscriber.save();
+      }
       return res.json({ 
         success: true,
-        message: 'Already subscribed to newsletter' 
+        message: 'Subscribed to newsletter successfully' 
       });
     }
     
@@ -190,8 +195,13 @@ router.post('/newsletter', async (req, res) => {
     
     await subscriber.save();
     
-    // Here you would typically send a welcome email
-    // await sendNewsletterWelcomeEmail(email);
+    try {
+      // Send welcome email
+      await sendNewsletterWelcome(email);
+    } catch (emailError) {
+      console.error('Welcome email failed:', emailError);
+      // Continue even if email fails
+    }
     
     res.json({ 
       success: true,
