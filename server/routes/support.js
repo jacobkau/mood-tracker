@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const SupportTicket = require('../models/SupportTicket');
-const auth = require('../middleware/auth');
+const auth = require('../middleware/authMiddleware');
 const { sendSupportEmail, sendSupportConfirmation } = require('../utils/emailService');
 
 // Submit support request
