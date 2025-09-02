@@ -2,8 +2,10 @@
 import { Link } from "react-router-dom";
 
 const Home = () => {
+  const { theme, themes } = useContext(ThemeContext);
+  const currentTheme = themes[theme];
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
+    <div className={' ${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col'}>
 
 
 
