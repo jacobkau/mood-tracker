@@ -1,3 +1,4 @@
+// components/Navbar.jsx
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
   FiLogOut, 
@@ -12,7 +13,8 @@ import {
   FiStar,
   FiBook,
   FiHelpCircle,
-  FiFileText
+  FiFileText,
+  FiGrid
 } from "react-icons/fi";
 import { useTheme } from '../context/useTheme';
 
@@ -26,7 +28,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
         try {
             localStorage.removeItem("token");
             setIsAuthenticated(false);
-            navigate("/login", { replace: true });
+            navigate("/", { replace: true });
             window.dispatchEvent(new Event('storage'));
         } catch (error) {
             console.error("Logout failed:", error);
@@ -41,15 +43,15 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
         return (
             <Link
                 to={to}
-                className={`flex items-center ${
+                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${
                     isActive 
-                        ? currentTheme.active 
+                        ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200' 
                         : `${currentTheme.text} ${currentTheme.hover}`
                 } transition-colors`}
                 aria-current={isActive ? "page" : undefined}
             >
                 {icon}
-                <span className="ml-1">{text}</span>
+                <span className="ml-2">{text}</span>
             </Link>
         );
     }
@@ -62,9 +64,9 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
         return (
             <Link
                 to={to}
-                className={`flex flex-col items-center text-xs ${
+                className={`flex flex-col items-center text-xs p-2 rounded-md ${
                     isActive 
-                        ? currentTheme.active 
+                        ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200' 
                         : `${currentTheme.text} ${currentTheme.hover}`
                 }`}
                 aria-current={isActive ? "page" : undefined}
@@ -92,15 +94,15 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                             to="/"
                             className={`flex items-center text-xl font-bold ${currentTheme.text} hover:opacity-80`}
                         >
-                            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-2">
                                 <span className="text-indigo-600 font-bold text-lg">W</span>
                             </div>
-                            <span className="hidden sm:inline ml-3">Witty MoodTracker</span>
+                            <span className="hidden sm:inline">Witty MoodTracker</span>
                         </Link>
                     </div>
 
-                    {/* Navigation Links - Desktop */}
-                    <div className="hidden md:flex items-center space-x-6">
+                    {/* Desktop Navigation */}
+                    <div className="hidden md:flex items-center space-x-1">
                         {/* Public pages (no auth required) */}
                         <NavLink to="/" icon={<FiHome size={18} />} text="Home" />
                         <NavLink to="/features" icon={<FiFeather size={18} />} text="Features" />
@@ -111,7 +113,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                         <NavLink to="/faq" icon={<FiHelpCircle size={18} />} text="FAQ" />
                         
                         {/* Protected pages (auth required) */}
-                        <NavLink to="/dashboard" icon={<FiHome size={18} />} text="Dashboard" requiresAuth={true} />
+                        <NavLink to="/dashboard" icon={<FiGrid size={18} />} text="Dashboard" requiresAuth={true} />
                         <NavLink to="/stats" icon={<FiBarChart2 size={18} />} text="Statistics" requiresAuth={true} />
                         <NavLink to="/profile" icon={<FiUser size={18} />} text="Profile" requiresAuth={true} />
                         
@@ -120,7 +122,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                     </div>
 
                     {/* Auth buttons & Theme Toggle */}
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-3">
                         <button
                             onClick={toggleTheme}
                             className={`p-2 rounded-full ${currentTheme.text} ${currentTheme.hover}`}
@@ -132,7 +134,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                         {isAuthenticated ? (
                             <button
                                 onClick={handleLogout}
-                                className={`flex items-center ${currentTheme.text} hover:text-red-300 transition-colors`}
+                                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentTheme.text} hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900 dark:hover:text-red-200 transition-colors`}
                                 aria-label="Logout"
                             >
                                 <FiLogOut className="mr-1" size={18} />
@@ -159,34 +161,26 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
             </div>
 
             {/* Mobile Menu */}
-            <div className={`md:hidden ${currentTheme.mobileBg}`}>
-                <div className="flex justify-around py-2">
+            <div className={`md:hidden ${currentTheme.mobileBg} px-2 pt-2 pb-3 space-y-1`}>
+                <div className="grid grid-cols-4 gap-2">
                     {/* Public pages */}
                     <MobileNavLink to="/" icon={<FiHome size={20} />} text="Home" />
                     <MobileNavLink to="/features" icon={<FiFeather size={20} />} text="Features" />
                     <MobileNavLink to="/pricing" icon={<FiDollarSign size={20} />} text="Pricing" />
+                    <MobileNavLink to="/testimonials" icon={<FiStar size={20} />} text="Testimonials" />
                     
                     {/* Protected pages */}
-                    <MobileNavLink to="/dashboard" icon={<FiHome size={20} />} text="Dashboard" requiresAuth={true} />
+                    <MobileNavLink to="/dashboard" icon={<FiGrid size={20} />} text="Dashboard" requiresAuth={true} />
                     <MobileNavLink to="/stats" icon={<FiBarChart2 size={20} />} text="Stats" requiresAuth={true} />
+                    <MobileNavLink to="/blog" icon={<FiBook size={20} />} text="Blog" />
+                    <MobileNavLink to="/guides" icon={<FiFileText size={20} />} text="Guides" />
                     
-                    {/* More menu items for mobile */}
-                    <div className="relative group">
-                        <button className="flex flex-col items-center text-xs">
-                            <FiHelpCircle size={20} />
-                            <span className="mt-1">More</span>
-                        </button>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-40 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
-                            <MobileNavLink to="/testimonials" icon={<FiStar size={16} />} text="Testimonials" />
-                            <MobileNavLink to="/blog" icon={<FiBook size={16} />} text="Blog" />
-                            <MobileNavLink to="/guides" icon={<FiFileText size={16} />} text="Guides" />
-                            <MobileNavLink to="/faq" icon={<FiHelpCircle size={16} />} text="FAQ" />
-                            <MobileNavLink to="/contact" icon={<FiPhone size={16} />} text="Contact" />
-                            {isAuthenticated && (
-                                <MobileNavLink to="/profile" icon={<FiUser size={16} />} text="Profile" requiresAuth={true} />
-                            )}
-                        </div>
-                    </div>
+                    <MobileNavLink to="/faq" icon={<FiHelpCircle size={20} />} text="FAQ" />
+                    <MobileNavLink to="/contact" icon={<FiPhone size={20} />} text="Contact" />
+                    
+                    {isAuthenticated && (
+                        <MobileNavLink to="/profile" icon={<FiUser size={20} />} text="Profile" requiresAuth={true} />
+                    )}
                 </div>
             </div>
         </nav>
