@@ -91,9 +91,13 @@ const Testimonials = () => {
         <div className="mt-16 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-md p-8 text-center">
           <h2 className="text-2xl font-bold text-white mb-4">Join Our Happy Users</h2>
           <p className="text-indigo-100 mb-6">Start your journey to better emotional awareness today</p>
-          <button className="bg-white text-indigo-600 hover:bg-indigo-50 font-medium py-3 px-8 rounded-lg transition-colors duration-200">
-            Get Started Free
-          </button>
+       
+<Link
+  to="/register"
+  className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-8 rounded-lg transition-colors duration-200"
+>
+  Get Started Free
+</Link>
         </div>
       </div>
     </div>
