@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/authMiddleware');
+const { protect } = require('../middleware/authMiddleware');
 const User = require('../models/User');
 
 // Get subscription plans
@@ -75,7 +75,7 @@ router.get('/plans', async (req, res) => {
 });
 
 // Get user's subscription status
-router.get('/status', auth, async (req, res) => {
+router.get('/status', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('subscription');
     
@@ -93,7 +93,7 @@ router.get('/status', auth, async (req, res) => {
 });
 
 // Subscribe to a plan
-router.post('/subscribe', auth, async (req, res) => {
+router.post('/subscribe', protect, async (req, res) => {
   try {
     const { planId } = req.body;
     
@@ -137,7 +137,7 @@ router.post('/subscribe', auth, async (req, res) => {
 });
 
 // Cancel subscription
-router.post('/cancel', auth, async (req, res) => {
+router.post('/cancel', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     
