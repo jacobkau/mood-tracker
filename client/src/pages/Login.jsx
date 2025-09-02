@@ -3,12 +3,15 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useTheme } from '../context/useTheme';
 
 export default function Login({ setIsAuthenticated }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+    const { theme, themes } = useTheme();
+  const currentTheme = themes[theme];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,7 +38,7 @@ export default function Login({ setIsAuthenticated }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className={'${currentTheme.footerBg} ${currentTheme.footerText} min-h-screen flex items-center justify-center bg-gray-50'}>
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h1 className="text-2xl font-bold text-center mb-6 text-blue-600">Login</h1>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
