@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
+import { useTheme } from '../context/useTheme';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -15,6 +16,8 @@ export default function Profile() {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+    const { theme, themes } = useTheme();
+  const currentTheme = themes[theme];
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -163,7 +166,7 @@ const handleDeleteAccount = async () => {
 };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className={'${currentTheme.footerBg} ${currentTheme.footerText} min-h-screen bg-gray-50 p-4 md:p-8'}>
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Your Profile</h1>
         
