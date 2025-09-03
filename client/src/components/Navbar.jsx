@@ -133,8 +133,8 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                         <NavLink to="/contact" icon={<FiPhone size={18} />} text="Contact" />
                     </div>
 
-                    {/* Auth buttons & Theme Toggle */}
-                    <div className="flex items-center space-x-3">
+                    {/* Auth buttons & Theme Toggle - Only show on desktop */}
+                    <div className="hidden md:flex items-center space-x-3">
                         <button
                             onClick={toggleTheme}
                             className={`p-2 rounded-full ${currentTheme.navText} ${currentTheme.navHover}`}
@@ -150,7 +150,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                                 aria-label="Logout"
                             >
                                 <FiLogOut className="mr-1" size={18} />
-                                <span className="hidden md:inline">Logout</span>
+                                <span>Logout</span>
                             </button>
                         ) : (
                             <div className="flex space-x-2">
@@ -168,6 +168,17 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                                 </Link>
                             </div>
                         )}
+                    </div>
+
+                    {/* Mobile theme toggle - Only show on mobile */}
+                    <div className="md:hidden flex items-center">
+                        <button
+                            onClick={toggleTheme}
+                            className={`p-2 rounded-full ${currentTheme.navText} ${currentTheme.navHover}`}
+                            aria-label={`Toggle theme - switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                        >
+                            {theme === 'dark' ? <FiSun size={18} /> : <FiMoon size={18} />}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -196,19 +207,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                         )}
                     </div>
                     
-                    {/* Theme toggle for mobile */}
-                    <div className="pt-4 border-t border-opacity-20 border-white flex justify-center">
-                        <button
-                            onClick={toggleTheme}
-                            className={`flex items-center px-4 py-2 rounded-md ${currentTheme.navText}`}
-                            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-                        >
-                            {theme === 'dark' ? <FiSun size={18} className="mr-2" /> : <FiMoon size={18} className="mr-2" />}
-                            Switch to {theme === 'dark' ? 'Light' : 'Dark'} Mode
-                        </button>
-                    </div>
-                    
-                    {/* Auth buttons for mobile */}
+                    {/* Auth buttons for mobile - Only show if not authenticated */}
                     {!isAuthenticated && (
                         <div className="pt-4 border-t border-opacity-20 border-white grid grid-cols-2 gap-2">
                             <Link
@@ -225,6 +224,21 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                             >
                                 Sign Up
                             </Link>
+                        </div>
+                    )}
+                    
+                    {/* Logout button for mobile - Only show if authenticated */}
+                    {isAuthenticated && (
+                        <div className="pt-4 border-t border-opacity-20 border-white">
+                            <button
+                                onClick={() => {
+                                    handleLogout();
+                                    setMobileMenuOpen(false);
+                                }}
+                                className={`w-full text-center px-4 py-2 rounded-md ${currentTheme.navText} hover:bg-opacity-20 hover:bg-red-500 transition-colors`}
+                            >
+                                Logout
+                            </button>
                         </div>
                     )}
                 </div>
