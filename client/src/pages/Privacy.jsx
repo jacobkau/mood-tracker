@@ -1,6 +1,6 @@
 import { useTheme } from '../context/useTheme';
 
-export default function Privacy() {
+const Privacy = () => {
   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
 
@@ -67,3 +67,4 @@ export default function Privacy() {
     </div>
   );
 }
+export default Privacy;
