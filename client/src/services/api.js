@@ -5,8 +5,11 @@ const baseURL =
   (process.env.NODE_ENV === "production"
     ? "https://moodtracker-api.onrender.com/api"
     : "http://localhost:5000/api");
+
+const API = axios.create({
+  baseURL: baseURL,
   withCredentials: true,
-  timeout: 10000, // Add timeout
+  timeout: 10000,
 });
 
 // Add request interceptor for debugging
