@@ -23,7 +23,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useEffect, useContext, useState } from "react";
 import { ThemeProvider } from './context/ThemeProvider';
 import About from './pages/About';
-import ForgotPassword from "./pages/ForgotPassword";
+import ForgotPassword from "./pages/ResetPassword";
 
 
 
