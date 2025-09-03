@@ -25,6 +25,7 @@ import { ThemeProvider } from './context/ThemeProvider';
 import About from './pages/About';
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
+import AdminPanel from './components/AdminPanel';
 
 
 
@@ -57,7 +58,7 @@ function App() {
               isAuthenticated ? <Dashboard /> : <Home />
             }
           />
-           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ResetPassword />} />
           <Route path="/about" element={<About />} />
           <Route path="/features" element={<Features />} />
@@ -88,6 +89,7 @@ function App() {
               isAuthenticated ? <Dashboard /> : <Navigate to="/login" replace />
             }
           />
+          <Route path="/admin" element={<AdminPanel />} />
           <Route
             path="/login"
             element={
