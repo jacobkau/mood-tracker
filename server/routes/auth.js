@@ -138,14 +138,26 @@ router.delete('/profile', protect, async (req, res) => {
   }
 });
 
-// Update user profile
 router.put('/profile', protect, async (req, res) => {
   try {
     const userId = req.user.id;
+    const { currentPassword, newPassword, ...updates } = req.body;
 
-    // Only allow specific fields to be updated
-    const updates = (({ username, email, firstName, lastName, phone, address }) => 
-      ({ username, email, firstName, lastName, phone, address }))(req.body);
+    if (newPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({ error: "Current password is required" });
+      }
+      
+      const user = await User.findById(userId).select('+password');
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      
+      if (!isMatch) {
+        return res.status(401).json({ error: "Current password is incorrect" });
+      }
+      
+      // Hash new password
+      updates.password = await bcrypt.hash(newPassword, 12);
+    }
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
