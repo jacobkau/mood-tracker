@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
-import { useTheme } from "../../context/UseTheme";
+import { useTheme } from "../../context/useTheme';
 
 
 export default function MoodList({ moods, setMoods }) {
