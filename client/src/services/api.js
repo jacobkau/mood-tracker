@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api' || 'https://moodtracker-api.onrender.com/api',
   withCredentials: true,
   timeout: 10000, // Add timeout
 });
