@@ -13,8 +13,11 @@ import {
   FiBook,
   FiHelpCircle,
   FiFileText,
-  FiGrid
+  FiGrid,
+  FiMenu,
+  FiX
 } from "react-icons/fi";
+import { useState } from 'react';
 import { useTheme } from '../context/useTheme';
 
 export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
@@ -22,6 +25,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
     const location = useLocation();
     const { theme, setTheme, themes } = useTheme();
     const currentTheme = themes[theme];
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const handleLogout = () => {
         try {
@@ -69,6 +73,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                         : `${currentTheme.navText} ${currentTheme.navHover}`
                 }`}
                 aria-current={isActive ? "page" : undefined}
+                onClick={() => setMobileMenuOpen(false)}
             >
                 {icon}
                 <span className="mt-1">{text}</span>
@@ -87,14 +92,22 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
         <nav className={`sticky top-0 z-50 ${currentTheme.navBg} shadow-lg`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
-                    {/* Logo */}
+                    {/* Logo and Mobile Menu Button */}
                     <div className="flex items-center">
+                        <button
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className={`md:hidden p-2 rounded-md ${currentTheme.navText} ${currentTheme.navHover} mr-2`}
+                            aria-label="Toggle mobile menu"
+                        >
+                            {mobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+                        </button>
+                        
                         <Link
                             to="/"
                             className={`flex items-center text-xl font-bold ${currentTheme.navText} hover:opacity-80`}
                         >
-                            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-2">
-                                <span className="text-indigo-600 font-bold text-lg"> 😊</span>
+                            <div className="w-10 h-10 rounded-full bg-white bg-opacity-20 flex items-center justify-center mr-2">
+                                <span className="text-white font-bold text-lg">😊</span>
                             </div>
                             <span className="hidden sm:inline">Witty MoodTracker</span>
                         </Link>
@@ -133,7 +146,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                         {isAuthenticated ? (
                             <button
                                 onClick={handleLogout}
-                                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentTheme.navText} hover:bg-red-100 hover:text-red-700 transition-colors`}
+                                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentTheme.navText} hover:bg-opacity-20 hover:bg-red-500 transition-colors`}
                                 aria-label="Logout"
                             >
                                 <FiLogOut className="mr-1" size={18} />
@@ -149,7 +162,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                                 </Link>
                                 <Link
                                     to="/register"
-                                    className="px-3 py-2 rounded-md text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700"
+                                    className={`px-3 py-2 rounded-md text-sm font-medium ${currentTheme.btnPrimary}`}
                                 >
                                     Sign Up
                                 </Link>
@@ -159,29 +172,63 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                 </div>
             </div>
 
-            {/* Mobile Menu */}
-            <div className={`md:hidden ${currentTheme.mobileNavBg} px-2 pt-2 pb-3 space-y-1`}>
-                <div className="grid grid-cols-4 gap-2">
-                    {/* Public pages */}
-                    <MobileNavLink to="/" icon={<FiHome size={20} />} text="Home" />
-                    <MobileNavLink to="/features" icon={<FiFeather size={20} />} text="Features" />
-                    <MobileNavLink to="/pricing" icon={<FiDollarSign size={20} />} text="Pricing" />
-                    <MobileNavLink to="/testimonials" icon={<FiStar size={20} />} text="Testimonials" />
+            {/* Mobile Menu - Only shown when toggled */}
+            {mobileMenuOpen && (
+                <div className={`md:hidden ${currentTheme.mobileNavBg} px-2 pt-2 pb-3 space-y-1`}>
+                    <div className="grid grid-cols-4 gap-2">
+                        {/* Public pages */}
+                        <MobileNavLink to="/" icon={<FiHome size={20} />} text="Home" />
+                        <MobileNavLink to="/features" icon={<FiFeather size={20} />} text="Features" />
+                        <MobileNavLink to="/pricing" icon={<FiDollarSign size={20} />} text="Pricing" />
+                        <MobileNavLink to="/testimonials" icon={<FiStar size={20} />} text="Testimonials" />
+                        
+                        {/* Protected pages */}
+                        <MobileNavLink to="/dashboard" icon={<FiGrid size={20} />} text="Dashboard" requiresAuth={true} />
+                        <MobileNavLink to="/stats" icon={<FiBarChart2 size={20} />} text="Stats" requiresAuth={true} />
+                        <MobileNavLink to="/blog" icon={<FiBook size={20} />} text="Blog" />
+                        <MobileNavLink to="/guides" icon={<FiFileText size={20} />} text="Guides" />
+                        
+                        <MobileNavLink to="/faq" icon={<FiHelpCircle size={20} />} text="FAQ" />
+                        <MobileNavLink to="/contact" icon={<FiPhone size={20} />} text="Contact" />
+                        
+                        {isAuthenticated && (
+                            <MobileNavLink to="/profile" icon={<FiUser size={20} />} text="Profile" requiresAuth={true} />
+                        )}
+                    </div>
                     
-                    {/* Protected pages */}
-                    <MobileNavLink to="/dashboard" icon={<FiGrid size={20} />} text="Dashboard" requiresAuth={true} />
-                    <MobileNavLink to="/stats" icon={<FiBarChart2 size={20} />} text="Stats" requiresAuth={true} />
-                    <MobileNavLink to="/blog" icon={<FiBook size={20} />} text="Blog" />
-                    <MobileNavLink to="/guides" icon={<FiFileText size={20} />} text="Guides" />
+                    {/* Theme toggle for mobile */}
+                    <div className="pt-4 border-t border-opacity-20 border-white flex justify-center">
+                        <button
+                            onClick={toggleTheme}
+                            className={`flex items-center px-4 py-2 rounded-md ${currentTheme.navText}`}
+                            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                        >
+                            {theme === 'dark' ? <FiSun size={18} className="mr-2" /> : <FiMoon size={18} className="mr-2" />}
+                            Switch to {theme === 'dark' ? 'Light' : 'Dark'} Mode
+                        </button>
+                    </div>
                     
-                    <MobileNavLink to="/faq" icon={<FiHelpCircle size={20} />} text="FAQ" />
-                    <MobileNavLink to="/contact" icon={<FiPhone size={20} />} text="Contact" />
-                    
-                    {isAuthenticated && (
-                        <MobileNavLink to="/profile" icon={<FiUser size={20} />} text="Profile" requiresAuth={true} />
+                    {/* Auth buttons for mobile */}
+                    {!isAuthenticated && (
+                        <div className="pt-4 border-t border-opacity-20 border-white grid grid-cols-2 gap-2">
+                            <Link
+                                to="/login"
+                                className={`text-center px-4 py-2 rounded-md ${currentTheme.navText} ${currentTheme.navHover}`}
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Login
+                            </Link>
+                            <Link
+                                to="/register"
+                                className={`text-center px-4 py-2 rounded-md ${currentTheme.btnPrimary}`}
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Sign Up
+                            </Link>
+                        </div>
                     )}
                 </div>
-            </div>
+            )}
         </nav>
     );
 }
