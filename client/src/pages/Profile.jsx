@@ -90,60 +90,69 @@ export default function Profile() {
     if (!validateForm()) return;
     
     setIsLoading(true);
-    
-    try {
-      const token = localStorage.getItem("token");
-      const payload = {
-        username: formData.username,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        phone: formData.phone,
-        address: formData.address,
-      };
-      
-      if (formData.newPassword) {
-        payload.currentPassword = formData.currentPassword;
-        payload.newPassword = formData.newPassword;
-      }
-      
-      await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/api/profile`,
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      toast.success("Profile updated successfully");
-      setFormData(prev => ({
-        ...prev,
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      }));
-      
-      // Refresh user data
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/auth/me`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setUser(data);
-      
-    } catch (err) {
-      console.error("Update failed:", err);
-      const errorMessage = err.response?.data?.error || "Failed to update profile";
-      toast.error(errorMessage);
-      
-      if (err.response?.status === 401) {
-        setErrors(prev => ({
-          ...prev,
-          currentPassword: "Incorrect current password"
-        }));
-      }
-    } finally {
-      setIsLoading(false);
-    }
+try {
+  const token = localStorage.getItem("token");
+  const payload = {
+    username: formData.username,
+    firstName: formData.firstName,
+    lastName: formData.lastName,
+    phone: formData.phone,
+    address: formData.address,
   };
+  
+  if (formData.newPassword) {
+    payload.currentPassword = formData.currentPassword;
+    payload.newPassword = formData.newPassword;
+  }
+  
+  const response = await axios.put(
+    `${import.meta.env.VITE_API_BASE_URL}/api/profile`,
+    payload,
+    { 
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      } 
+    }
+  );
+  
+  toast.success("Profile updated successfully");
+  setFormData(prev => ({
+    ...prev,
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  }));
+  
+  // Update user data with the response
+  if (response.data.user) {
+    setUser(response.data.user);
+  }
+  
+} catch (err) {
+  console.error("Update failed:", {
+    status: err.response?.status,
+    data: err.response?.data,
+    message: err.message
+  });
+  
+  const errorMessage = err.response?.data?.error || "Failed to update profile";
+  toast.error(errorMessage);
+  
+  if (err.response?.status === 401) {
+    setErrors(prev => ({
+      ...prev,
+      currentPassword: "Incorrect current password"
+    }));
+  } else if (err.response?.status === 400) {
+    // Handle validation errors from backend
+    if (err.response.data.error.includes("username")) {
+      setErrors(prev => ({ ...prev, username: err.response.data.error }));
+    }
+  }
+} finally {
+  setIsLoading(false);
+};
 
   const handleDeleteAccount = async () => {
     if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
