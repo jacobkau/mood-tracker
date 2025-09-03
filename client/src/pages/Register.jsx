@@ -134,6 +134,15 @@ export default function Register() {
             </Link>
           </p>
         </div>
+         {/* Forgot password link */}
+  <div className="mt-2 text-right">
+    <Link
+      to="/forgot-password"
+      className={`text-sm ${currentTheme.bodyAccent} hover:${currentTheme.navHover} transition-colors`}
+    >
+      Forgot password?
+    </Link>
+  </div>
       </div>
     </div>
   );
