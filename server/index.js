@@ -12,6 +12,7 @@ const subscriptionRoutes = require('./routes/subscription');
 const contactRoutes = require('./routes/contact');
 const adminRoutes = require('./routes/admin');
 const path = require('path');
+const reviewRoutes = require('./routes/reviews');
 
 
 dotenv.config();
@@ -47,6 +48,7 @@ app.use("/api/support", supportRoutes);
 app.use("/api/content", contentRoutes);
 app.use("/api/subscription", subscriptionRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
