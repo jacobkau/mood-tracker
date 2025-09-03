@@ -14,24 +14,15 @@ const contactRoutes = require('./routes/contact');
 dotenv.config();
 const app = express();
 
-// Configure CORS with multiple allowed origins
-const allowedOrigins = [
-  'http://localhost:3000',
-  'https://mood-tracker-bice.vercel.app',
-  'https://mood-tracker-git-main-jacobkaus-projects.vercel.app',
-  'https://mood-tracker-cz20ej60u-jacobkaus-projects.vercel.app/',
-];
+const allowedOrigins = process.env.CLIENT_URLS.split(",");
 
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
     }
-    return callback(null, true);
   },
   credentials: true
 }));
