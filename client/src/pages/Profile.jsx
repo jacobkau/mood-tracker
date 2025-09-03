@@ -105,16 +105,16 @@ try {
     payload.newPassword = formData.newPassword;
   }
   
-  const response = await axios.put(
-    `${import.meta.env.VITE_API_BASE_URL}/api/profile`,
-    payload,
-    { 
-      headers: { 
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      } 
-    }
-  );
+const response = await axios.put(
+  `${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`,
+  payload,
+  { 
+    headers: { 
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    } 
+  }
+);
   
   toast.success("Profile updated successfully");
   setFormData(prev => ({
@@ -160,15 +160,15 @@ try {
     if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.delete(
-          `${import.meta.env.VITE_API_BASE_URL}/api/profile`,
-          {
-            headers: { 
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
+       const response = await axios.delete(
+  `${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`,
+  {
+    headers: { 
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  }
+);
         
         console.log("Delete response:", response.data);
         localStorage.removeItem("token");
