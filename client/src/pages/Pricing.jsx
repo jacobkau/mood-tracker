@@ -60,14 +60,14 @@ const Pricing = () => {
 
   if (loading) {
     return (
-      <div className={'${currentTheme.footerBg} ${currentTheme.footerText} min-h-screen bg-gray-50 flex items-center justify-center'}>
+      <div className={`${currentTheme.footerBg} ${currentTheme.footerText} min-h-screen bg-gray-50 flex items-center justify-center`}>
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
 
   return (
-    <div className={'${currentTheme.footerBg} ${currentTheme.footerText} min-h-screen bg-gray-50'>
+    <div className={`${currentTheme.footerBg} ${currentTheme.footerText} min-h-screen bg-gray-50`}>
       <PageHeader 
         title="Pricing" 
         description="Choose the plan that works best for your emotional wellness journey"
