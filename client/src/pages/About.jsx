@@ -1,8 +1,12 @@
 import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import { FiHeart, FiUsers, FiTarget, FiGlobe, FiAward, FiCode } from 'react-icons/fi';
+import { useTheme } from '../context/useTheme';
 
 const About = () => {
+  const { theme, themes } = useTheme();
+  const currentTheme = themes[theme];
+  
   const teamMembers = [
     {
       name: "Dr. Sarah Chen",
@@ -81,7 +85,7 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen ${currentTheme.bodyBg} ${currentTheme.bodyText}`}>
       <PageHeader 
         title="About Witty MoodTracker" 
         description="Learn about our mission, team, and the technology behind your emotional wellness journey"
@@ -96,7 +100,7 @@ const About = () => {
             toward better mental health. Our mission is to provide intuitive, powerful tools that help 
             people track, understand, and improve their emotional well-being through data-driven insights.
           </p>
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-8 text-white">
+          <div className={`bg-gradient-to-r ${currentTheme.headerGradient} rounded-xl p-8 text-white`}>
             <p className="text-lg italic">
               "We're not just building an app—we're creating a companion for your mental health journey, 
               empowering you with knowledge and insights to live a more balanced life."
@@ -106,13 +110,13 @@ const About = () => {
       </section>
 
       {/* Values Section */}
-      <section className="py-16 bg-white px-4 sm:px-6 lg:px-8">
+      <section className={`py-16 ${currentTheme.cardBg} px-4 sm:px-6 lg:px-8`}>
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Our Values</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {values.map((value, index) => (
-              <div key={index} className="text-center p-6 bg-indigo-50 rounded-xl hover:shadow-lg transition-shadow duration-300">
-                <div className="text-indigo-600 mb-4 flex justify-center">
+              <div key={index} className={`text-center p-6 rounded-xl hover:shadow-lg transition-shadow duration-300 ${currentTheme.highlight}`}>
+                <div className={`mb-4 flex justify-center ${currentTheme.bodyAccent}`}>
                   {value.icon}
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">{value.title}</h3>
@@ -124,7 +128,7 @@ const About = () => {
       </section>
 
       {/* Technology Section */}
-      <section className="py-16 bg-gray-50 px-4 sm:px-6 lg:px-8">
+      <section className={`py-16 ${currentTheme.bodyBg} px-4 sm:px-6 lg:px-8`}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Technology</h2>
@@ -134,9 +138,9 @@ const About = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            <div className="bg-white p-6 rounded-xl shadow-md">
+            <div className={`p-6 rounded-xl shadow-md ${currentTheme.cardBg}`}>
               <div className="flex items-center mb-4">
-                <FiCode className="w-8 h-8 text-indigo-600 mr-3" />
+                <FiCode className={`w-8 h-8 mr-3 ${currentTheme.bodyAccent}`} />
                 <h3 className="text-xl font-semibold">Modern Stack</h3>
               </div>
               <p className="text-gray-600">
@@ -144,9 +148,9 @@ const About = () => {
               </p>
             </div>
             
-            <div className="bg-white p-6 rounded-xl shadow-md">
+            <div className={`p-6 rounded-xl shadow-md ${currentTheme.cardBg}`}>
               <div className="flex items-center mb-4">
-                <FiAward className="w-8 h-8 text-indigo-600 mr-3" />
+                <FiAward className={`w-8 h-8 mr-3 ${currentTheme.bodyAccent}`} />
                 <h3 className="text-xl font-semibold">Advanced Analytics</h3>
               </div>
               <p className="text-gray-600">
@@ -154,9 +158,9 @@ const About = () => {
               </p>
             </div>
             
-            <div className="bg-white p-6 rounded-xl shadow-md">
+            <div className={`p-6 rounded-xl shadow-md ${currentTheme.cardBg}`}>
               <div className="flex items-center mb-4">
-                <FiHeart className="w-8 h-8 text-indigo-600 mr-3" />
+                <FiHeart className={`w-8 h-8 mr-3 ${currentTheme.bodyAccent}`} />
                 <h3 className="text-xl font-semibold">Privacy First</h3>
               </div>
               <p className="text-gray-600">
@@ -165,22 +169,22 @@ const About = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-8 shadow-md">
+          <div className={`rounded-xl p-8 shadow-md ${currentTheme.cardBg}`}>
             <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Security & Privacy</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <h4 className="font-semibold text-gray-900 mb-3">Data Protection</h4>
                 <ul className="text-gray-600 space-y-2">
                   <li className="flex items-start">
-                    <span className="text-green-500 mr-2">✓</span>
+                    <span className={`text-green-500 mr-2 ${currentTheme.bodyAccent}`}>✓</span>
                     <span>End-to-end encryption</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-green-500 mr-2">✓</span>
+                    <span className={`text-green-500 mr-2 ${currentTheme.bodyAccent}`}>✓</span>
                     <span>Regular security audits</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-green-500 mr-2">✓</span>
+                    <span className={`text-green-500 mr-2 ${currentTheme.bodyAccent}`}>✓</span>
                     <span>GDPR and HIPAA compliant</span>
                   </li>
                 </ul>
@@ -189,15 +193,15 @@ const About = () => {
                 <h4 className="font-semibold text-gray-900 mb-3">Privacy Commitment</h4>
                 <ul className="text-gray-600 space-y-2">
                   <li className="flex items-start">
-                    <span className="text-green-500 mr-2">✓</span>
+                    <span className={`text-green-500 mr-2 ${currentTheme.bodyAccent}`}>✓</span>
                     <span>No data sold to third parties</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-green-500 mr-2">✓</span>
+                    <span className={`text-green-500 mr-2 ${currentTheme.bodyAccent}`}>✓</span>
                     <span>Transparent data policies</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-green-500 mr-2">✓</span>
+                    <span className={`text-green-500 mr-2 ${currentTheme.bodyAccent}`}>✓</span>
                     <span>User control over data</span>
                   </li>
                 </ul>
@@ -208,21 +212,21 @@ const About = () => {
       </section>
 
       {/* Team Section */}
-      <section className="py-16 bg-white px-4 sm:px-6 lg:px-8">
+      <section className={`py-16 ${currentTheme.cardBg} px-4 sm:px-6 lg:px-8`}>
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Meet Our Team</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {teamMembers.map((member, index) => (
-              <div key={index} className="text-center bg-gray-50 p-6 rounded-xl hover:shadow-lg transition-shadow duration-300">
-                <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-800 font-bold text-xl mx-auto mb-4">
+              <div key={index} className={`text-center p-6 rounded-xl hover:shadow-lg transition-shadow duration-300 ${currentTheme.bodyBg}`}>
+                <div className={`w-20 h-20 rounded-full flex items-center justify-center font-bold text-xl mx-auto mb-4 ${currentTheme.highlight}`}>
                   {member.image}
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-1">{member.name}</h3>
-                <p className="text-indigo-600 font-medium mb-3">{member.role}</p>
+                <p className={`font-medium mb-3 ${currentTheme.bodyAccent}`}>{member.role}</p>
                 <p className="text-gray-600 mb-4 text-sm">{member.bio}</p>
                 <div className="flex flex-wrap justify-center gap-2">
                   {member.expertise.map((skill, skillIndex) => (
-                    <span key={skillIndex} className="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full">
+                    <span key={skillIndex} className={`text-xs px-2 py-1 rounded-full ${currentTheme.highlight}`}>
                       {skill}
                     </span>
                   ))}
@@ -234,17 +238,17 @@ const About = () => {
       </section>
 
       {/* Timeline Section */}
-      <section className="py-16 bg-gray-50 px-4 sm:px-6 lg:px-8">
+      <section className={`py-16 ${currentTheme.bodyBg} px-4 sm:px-6 lg:px-8`}>
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Our Journey</h2>
           <div className="space-y-12">
             {milestones.map((milestone, index) => (
               <div key={index} className="flex">
                 <div className="flex flex-col items-center mr-4">
-                  <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${currentTheme.btnPrimary}`}>
                     {milestone.year}
                   </div>
-                  <div className="w-1 bg-indigo-200 h-full mt-2"></div>
+                  <div className={`w-1 h-full mt-2 ${currentTheme.divider}`}></div>
                 </div>
                 <div className="flex-1 pb-8">
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">{milestone.title}</h3>
@@ -257,7 +261,7 @@ const About = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-indigo-600 to-purple-600 px-4 sm:px-6 lg:px-8">
+      <section className={`py-16 bg-gradient-to-r ${currentTheme.headerGradient} px-4 sm:px-6 lg:px-8`}>
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-white mb-6">Join Our Community</h2>
           <p className="text-indigo-100 text-xl mb-8">
@@ -266,7 +270,7 @@ const About = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/register"
-              className="bg-white text-indigo-600 hover:bg-indigo-50 font-medium py-3 px-8 rounded-lg transition-colors duration-200 text-lg"
+              className={`${currentTheme.btnPrimary} font-medium py-3 px-8 rounded-lg transition-colors duration-200 text-lg`}
             >
               Get Started Free
             </Link>
@@ -281,23 +285,23 @@ const About = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-white px-4 sm:px-6 lg:px-8">
+      <section className={`py-16 ${currentTheme.cardBg} px-4 sm:px-6 lg:px-8`}>
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-3xl md:text-4xl font-bold text-indigo-600">10,000+</div>
+              <div className={`text-3xl md:text-4xl font-bold ${currentTheme.bodyAccent}`}>10,000+</div>
               <div className="text-gray-600 mt-2">Active Users</div>
             </div>
             <div>
-              <div className="text-3xl md:text-4xl font-bold text-indigo-600">500K+</div>
+              <div className={`text-3xl md:text-4xl font-bold ${currentTheme.bodyAccent}`}>500K+</div>
               <div className="text-gray-600 mt-2">Mood Entries</div>
             </div>
             <div>
-              <div className="text-3xl md:text-4xl font-bold text-indigo-600">95%</div>
+              <div className={`text-3xl md:text-4xl font-bold ${currentTheme.bodyAccent}`}>95%</div>
               <div className="text-gray-600 mt-2">User Satisfaction</div>
             </div>
             <div>
-              <div className="text-3xl md:text-4xl font-bold text-indigo-600">24/7</div>
+              <div className={`text-3xl md:text-4xl font-bold ${currentTheme.bodyAccent}`}>24/7</div>
               <div className="text-gray-600 mt-2">Support</div>
             </div>
           </div>
