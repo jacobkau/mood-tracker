@@ -7,6 +7,10 @@ export default function Developer() {
   
   return (
     <div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen py-12 px-4 sm:px-6 lg:px-8`}>
+        <PageHeader 
+        title="The Developer" 
+        description="Find answers On the Developer of Witty MoodTracker"
+      />
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">About the Developer</h1>
