@@ -63,7 +63,7 @@ const Features = () => {
   ];
 
   return (
-    <div className={'${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen bg-gray-50'}>
+    <div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen`}>
       <PageHeader 
         title="Features" 
         description="Discover all the tools and features that make Witty MoodTracker the best choice for emotional wellness"
@@ -72,7 +72,7 @@ const Features = () => {
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
-            <div key={index} className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
+            <div key={index} className={`rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-300 ${currentTheme.cardBg}`}>
               <div className="flex justify-center mb-4">
                 {feature.icon}
               </div>
@@ -86,7 +86,7 @@ const Features = () => {
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Ready to experience these features?</h2>
           <Link
             to="/register"
-            className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-8 rounded-lg transition-colors duration-200 text-lg"
+            className={`inline-block text-white font-medium py-3 px-8 rounded-lg transition-colors duration-200 text-lg ${currentTheme.btnPrimary}`}
           >
             Get Started Free
           </Link>
