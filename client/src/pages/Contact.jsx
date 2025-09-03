@@ -11,7 +11,7 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
   const [activeTab, setActiveTab] = useState("contact"); 
-   const { theme, themes } = useTheme();
+  const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
 
   const handleSubmit = async (e) => {
@@ -51,7 +51,7 @@ export default function Contact() {
   };
 
   return (
-    <div className={'${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8'}>
+    <div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen py-12 px-4 sm:px-6 lg:px-8`}>
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
@@ -64,14 +64,14 @@ export default function Contact() {
           </p>
         </div>
 
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className={`shadow rounded-lg overflow-hidden ${currentTheme.cardBg}`}>
           {/* Tab Navigation */}
-          <div className="flex border-b">
+          <div className={`flex border-b ${currentTheme.navBorder}`}>
             <button
               onClick={() => setActiveTab("contact")}
               className={`flex-1 py-4 px-6 text-center font-medium ${
                 activeTab === "contact"
-                  ? "text-blue-600 border-b-2 border-blue-600"
+                  ? `${currentTheme.bodyAccent} border-b-2 ${currentTheme.navBorder}`
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -84,7 +84,7 @@ export default function Contact() {
               onClick={() => setActiveTab("partnership")}
               className={`flex-1 py-4 px-6 text-center font-medium ${
                 activeTab === "partnership"
-                  ? "text-blue-600 border-b-2 border-blue-600"
+                  ? `${currentTheme.bodyAccent} border-b-2 ${currentTheme.navBorder}`
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -105,7 +105,7 @@ export default function Contact() {
                 {activeTab === "contact" ? (
                   <>
                     <div className="flex items-start">
-                      <FiMail className="text-blue-500 mt-1 mr-4" size={20} />
+                      <FiMail className={`${currentTheme.bodyAccent} mt-1 mr-4`} size={20} />
                       <div>
                         <h3 className="font-medium text-gray-900">Email</h3>
                         <p className="text-gray-600">kaujacob4@gmail.com</p>
@@ -113,7 +113,7 @@ export default function Contact() {
                     </div>
 
                     <div className="flex items-start">
-                      <FiPhone className="text-blue-500 mt-1 mr-4" size={20} />
+                      <FiPhone className={`${currentTheme.bodyAccent} mt-1 mr-4`} size={20} />
                       <div>
                         <h3 className="font-medium text-gray-900">Phone</h3>
                         <p className="text-gray-600">+(254) 768 374 497</p>
@@ -121,7 +121,7 @@ export default function Contact() {
                     </div>
 
                     <div className="flex items-start">
-                      <FiMapPin className="text-blue-500 mt-1 mr-4" size={20} />
+                      <FiMapPin className={`${currentTheme.bodyAccent} mt-1 mr-4`} size={20} />
                       <div>
                         <h3 className="font-medium text-gray-900">Address</h3>
                         <p className="text-gray-600">Kitui, Eastern Kenya.</p>
@@ -131,7 +131,7 @@ export default function Contact() {
                 ) : (
                   <>
                     <div className="flex items-start">
-                      <FiBriefcase className="text-blue-500 mt-1 mr-4" size={20} />
+                      <FiBriefcase className={`${currentTheme.bodyAccent} mt-1 mr-4`} size={20} />
                       <div>
                         <h3 className="font-medium text-gray-900">Business Partnerships</h3>
                         <p className="text-gray-600">Collaborate with us to expand mental health support</p>
@@ -139,7 +139,7 @@ export default function Contact() {
                     </div>
 
                     <div className="flex items-start">
-                      <FiUsers className="text-blue-500 mt-1 mr-4" size={20} />
+                      <FiUsers className={`${currentTheme.bodyAccent} mt-1 mr-4`} size={20} />
                       <div>
                         <h3 className="font-medium text-gray-900">Community Programs</h3>
                         <p className="text-gray-600">Join our initiatives to promote mental wellness</p>
@@ -147,7 +147,7 @@ export default function Contact() {
                     </div>
 
                     <div className="flex items-start">
-                      <FiMail className="text-blue-500 mt-1 mr-4" size={20} />
+                      <FiMail className={`${currentTheme.bodyAccent} mt-1 mr-4`} size={20} />
                       <div>
                         <h3 className="font-medium text-gray-900">Sponsorships</h3>
                         <p className="text-gray-600">Support our mission through sponsorships</p>
@@ -163,7 +163,7 @@ export default function Contact() {
                 <div>
                   <label
                     htmlFor="name"
-                    className="block text-sm font-medium text-gray-700"
+                    className={`block text-sm font-medium ${currentTheme.labelText}`}
                   >
                     Name
                   </label>
@@ -174,14 +174,14 @@ export default function Contact() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className={`mt-1 block w-full rounded-md shadow-sm py-2 px-3 focus:outline-none ${currentTheme.inputBg} ${currentTheme.inputBorder} ${currentTheme.inputFocus}`}
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="email"
-                    className="block text-sm font-medium text-gray-700"
+                    className={`block text-sm font-medium ${currentTheme.labelText}`}
                   >
                     Email
                   </label>
@@ -192,14 +192,14 @@ export default function Contact() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className={`mt-1 block w-full rounded-md shadow-sm py-2 px-3 focus:outline-none ${currentTheme.inputBg} ${currentTheme.inputBorder} ${currentTheme.inputFocus}`}
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="message"
-                    className="block text-sm font-medium text-gray-700"
+                    className={`block text-sm font-medium ${currentTheme.labelText}`}
                   >
                     {activeTab === "contact" ? "Message" : "Tell us about your partnership interest"}
                   </label>
@@ -210,7 +210,7 @@ export default function Contact() {
                     value={formData.message}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className={`mt-1 block w-full rounded-md shadow-sm py-2 px-3 focus:outline-none ${currentTheme.inputBg} ${currentTheme.inputBorder} ${currentTheme.inputFocus}`}
                     placeholder={activeTab === "partnership" ? "What type of partnership are you interested in? How can we work together?" : ""}
                   />
                 </div>
@@ -219,7 +219,7 @@ export default function Contact() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                    className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${currentTheme.btnPrimary} focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50`}
                   >
                     {isSubmitting 
                       ? "Sending..." 
