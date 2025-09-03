@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
 import { useTheme } from '../context/useTheme';
 
-export default function Login({ setIsAuthenticated }) {
+export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,17 +24,22 @@ export default function Login({ setIsAuthenticated }) {
         `${import.meta.env.VITE_API_BASE_URL}/api/auth/login`,
         { username, password },
         {
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
 
-      localStorage.setItem("token", res.data.token);
-      setIsAuthenticated(true);
-      navigate("/", { replace: true });
-      window.dispatchEvent(new Event('storage')); // Trigger storage event
+      console.log("Login successful:", res.data);
+      toast.success("Login successful!");
+      navigate("/dashboard");
+
     } catch (err) {
-      console.error("Login failed:", err);
-      const message = err.response?.data?.error || "Login failed. Please try again.";
+      console.error("Login error details:", err.response?.data);
+
+      const message =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        "Login failed. Please try again.";
+
       setError(message);
       toast.error(message);
     } finally {
@@ -43,8 +48,8 @@ export default function Login({ setIsAuthenticated }) {
   };
 
   return (
-<div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen flex flex-col justify-center px-4 sm:px-6 lg:px-8`}>
-  <div className="flex-grow flex items-start sm:items-center justify-center">
+    <div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8`}>
+      <div className={`${currentTheme.cardBg} ${currentTheme.cardBorder} ${currentTheme.cardShadow} p-8 rounded-lg w-full max-w-md border`}>
         <div className="text-center">
           <h1 className={`text-3xl font-bold bg-gradient-to-r ${currentTheme.headerGradient} bg-clip-text text-transparent`}>
             Welcome Back
@@ -112,7 +117,7 @@ export default function Login({ setIsAuthenticated }) {
                   Signing in...
                 </span>
               ) : (
-                'Sign in'
+                'Sign In'
               )}
             </button>
           </div>
@@ -129,6 +134,15 @@ export default function Login({ setIsAuthenticated }) {
             </Link>
           </p>
         </div>
+         {/* Forgot password link */}
+  <div className="mt-2 text-right">
+    <Link
+      to="/forgot-password"
+      className={`text-sm ${currentTheme.bodyAccent} hover:${currentTheme.navHover} transition-colors`}
+    >
+      Forgot password?
+    </Link>
+  </div>
       </div>
     </div>
   );
