@@ -24,7 +24,7 @@ import { useEffect, useContext, useState } from "react";
 import { ThemeProvider } from './context/ThemeProvider';
 import About from './pages/About';
 import ResetPassword from "./pages/ResetPassword";
-
+import VerifyEmail from "./pages/VerifyEmail";
 
 
 
@@ -57,6 +57,7 @@ function App() {
               isAuthenticated ? <Dashboard /> : <Home />
             }
           />
+           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ResetPassword />} />
           <Route path="/about" element={<About />} />
           <Route path="/features" element={<Features />} />
