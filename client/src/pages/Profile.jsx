@@ -9,6 +9,10 @@ export default function Profile() {
   const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     username: "",
+    firstName: "",
+    lastName: "",
+    phone: "",
+    address: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
@@ -36,7 +40,11 @@ export default function Profile() {
         setUser(data);
         setFormData(prev => ({ 
           ...prev, 
-          username: data.username || "" 
+          username: data.username || "",
+          firstName: data.firstName || "",
+          lastName: data.lastName || "",
+          phone: data.phone || "",
+          address: data.address || "",
         }));
       } catch (err) {
         console.error("Failed to fetch user", err);
@@ -87,6 +95,10 @@ export default function Profile() {
       const token = localStorage.getItem("token");
       const payload = {
         username: formData.username,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        address: formData.address,
       };
       
       if (formData.newPassword) {
@@ -204,6 +216,60 @@ export default function Profile() {
                 className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus} ${
                   errors.username ? "border-red-500" : ""
                 }`}
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={`block text-sm font-medium ${currentTheme.labelText}`}>
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus}`}
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div>
+                <label className={`block text-sm font-medium ${currentTheme.labelText}`}>
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus}`}
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium ${currentTheme.labelText}`}>
+                Phone
+              </label>
+              <input
+                type="text"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus}`}
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium ${currentTheme.labelText}`}>
+                Address
+              </label>
+              <textarea
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus}`}
+                rows="3"
                 disabled={isLoading}
               />
             </div>
