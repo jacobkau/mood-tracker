@@ -74,63 +74,81 @@ export const getSubscriptionPlans = () => {
   // For development or if API fails, return mock data
   if (process.env.NODE_ENV === 'development') {
     return Promise.resolve({
-      data: [
-        {
-          id: 'free',
-          name: 'Free',
-          price: 0,
-          description: 'Perfect for getting started with mood tracking',
-          features: [
-            'Basic mood tracking',
-            '7-day history',
-            'Standard charts',
-            'Email support',
-            'Basic analytics'
-          ],
-          popular: false,
-          period: 'month'
-        },
-        {
-          id: 'pro',
-          name: 'Pro',
-          price: 4.99,
-          period: 'month',
-          description: 'For those who want deeper insights',
-          features: [
-            'Unlimited mood tracking',
-            '90-day history',
-            'Advanced analytics',
-            'Custom reminders',
-            'Data export',
-            'Priority support',
-            'Trend analysis'
-          ],
-          popular: true
-        },
-        {
-          id: 'premium',
-          name: 'Premium',
-          price: 49.99,
-          period: 'year',
-          description: 'Best value for committed users',
-          features: [
-            'Everything in Pro',
-            '365-day history',
-            'Trend predictions',
-            'Personalized insights',
-            'Therapist sharing',
-            '24/7 support',
-            'Custom reports',
-            'Advanced patterns'
-          ],
-          popular: false
-        }
-      ]
+      data: {
+        success: true,
+        plans: [
+          {
+            id: 'free',
+            name: 'Free',
+            price: 0,
+            description: 'Perfect for getting started with mood tracking',
+            features: [
+              'Basic mood tracking',
+              '7-day history',
+              'Standard charts',
+              'Email support',
+              'Basic analytics'
+            ],
+            popular: false,
+            period: 'month'
+          },
+          {
+            id: 'pro',
+            name: 'Pro',
+            price: 4.99,
+            period: 'month',
+            description: 'For those who want deeper insights',
+            features: [
+              'Unlimited mood tracking',
+              '90-day history',
+              'Advanced analytics',
+              'Custom reminders',
+              'Data export',
+              'Priority support',
+              'Trend analysis'
+            ],
+            popular: true
+          },
+          {
+            id: 'premium',
+            name: 'Premium',
+            price: 49.99,
+            period: 'year',
+            description: 'Best value for committed users',
+            features: [
+              'Everything in Pro',
+              '365-day history',
+              'Trend predictions',
+              'Personalized insights',
+              'Therapist sharing',
+              '24/7 support',
+              'Custom reports',
+              'Advanced patterns'
+            ],
+            popular: false
+          }
+        ]
+      }
     });
   }
   
   return API.get('/subscription/plans');
 };
+
+// Helper function to extract plans from API response
+export const extractPlansFromResponse = (response) => {
+  if (Array.isArray(response.data)) {
+    return response.data; // Direct array response
+  } else if (response.data && Array.isArray(response.data.plans)) {
+    return response.data.plans; // { success: true, plans: [...] }
+  } else if (response.data && response.data.success && Array.isArray(response.data.data)) {
+    return response.data.data; // { success: true, data: [...] }
+  } else {
+    console.error('Unexpected API response structure:', response.data);
+    throw new Error('Invalid plans data format');
+  }
+};
+
 export const subscribeToPlan = (planId) => API.post('/subscription/subscribe', { planId });
 export const getSubscriptionStatus = () => API.get('/subscription/status');
 export const cancelSubscription = () => API.post('/subscription/cancel');
