@@ -1,7 +1,10 @@
 import axios from 'axios';
 
-const API = axios.create({
-  baseURL: process.env.VITE_API_BASE_URL || 'http://localhost:5000/api' || 'https://moodtracker-api.onrender.com/api',
+const baseURL =
+  process.env.VITE_API_BASE_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://moodtracker-api.onrender.com/api"
+    : "http://localhost:5000/api");
   withCredentials: true,
   timeout: 10000, // Add timeout
 });
