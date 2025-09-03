@@ -43,11 +43,8 @@ export default function Login({ setIsAuthenticated }) {
   };
 
   return (
-  <div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen flex justify-center items-start sm:items-center px-4 sm:px-6 lg:px-8 py-6`}>
-
-  <div
-    className={`${currentTheme.cardBg} ${currentTheme.cardBorder} ${currentTheme.cardShadow} p-6 sm:p-8 rounded-lg w-full max-w-md border`}
-  >
+<div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen flex flex-col justify-center px-4 sm:px-6 lg:px-8`}>
+  <div className="flex-grow flex items-start sm:items-center justify-center">
         <div className="text-center">
           <h1 className={`text-3xl font-bold bg-gradient-to-r ${currentTheme.headerGradient} bg-clip-text text-transparent`}>
             Welcome Back
