@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 import { useTheme } from '../context/useTheme';
+import { FiCamera, FiX, FiUser } from "react-icons/fi";
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -17,8 +18,11 @@ export default function Profile() {
     newPassword: "",
     confirmPassword: "",
   });
+  const [profileImage, setProfileImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState("");
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [showPasswordSection, setShowPasswordSection] = useState(false);
   const navigate = useNavigate();
   const { theme, themes } = useTheme();
@@ -47,6 +51,11 @@ export default function Profile() {
           phone: data.phone || "",
           address: data.address || "",
         }));
+        
+        // Set profile image if exists
+        if (data.profileImage) {
+          setPreviewImage(`${import.meta.env.VITE_API_BASE_URL}${data.profileImage}`);
+        }
       } catch (err) {
         console.error("Failed to fetch user", err);
         if (err.response?.status === 401) {
@@ -61,6 +70,67 @@ export default function Profile() {
     fetchUser();
   }, [navigate]);
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type and size
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file');
+        return;
+      }
+      
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error('Image size must be less than 5MB');
+        return;
+      }
+      
+      setProfileImage(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setProfileImage(null);
+    setPreviewImage(user?.profileImage ? `${import.meta.env.VITE_API_BASE_URL}${user.profileImage}` : "");
+  };
+
+  const uploadProfileImage = async () => {
+    if (!profileImage) return null;
+    
+    setIsUploading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const formData = new FormData();
+      formData.append('profileImage', profileImage);
+      
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/auth/upload-profile-image`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      
+      toast.success("Profile image updated successfully");
+      return response.data.profileImagePath;
+    } catch (err) {
+      console.error("Failed to upload image", err);
+      toast.error(err.response?.data?.error || "Failed to upload profile image");
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
     
@@ -68,7 +138,6 @@ export default function Profile() {
       newErrors.username = "Username is required";
     }
     
-    // Only validate passwords if new password is provided
     if (formData.newPassword) {
       if (!formData.currentPassword) {
         newErrors.currentPassword = "Current password is required";
@@ -95,6 +164,11 @@ export default function Profile() {
     try {
       const token = localStorage.getItem("token");
       
+      let profileImagePath = null;
+      if (profileImage) {
+        profileImagePath = await uploadProfileImage();
+      }
+      
       // Only include password fields if new password is provided
       const payload = {
         username: formData.username,
@@ -103,6 +177,10 @@ export default function Profile() {
         phone: formData.phone,
         address: formData.address,
       };
+      
+      if (profileImagePath) {
+        payload.profileImage = profileImagePath;
+      }
       
       if (formData.newPassword) {
         payload.currentPassword = formData.currentPassword;
@@ -134,9 +212,15 @@ export default function Profile() {
         setShowPasswordSection(false);
       }
       
+      // Reset image state
+      setProfileImage(null);
+      
       // Update user data with the response
       if (response.data.user) {
         setUser(response.data.user);
+        if (response.data.user.profileImage) {
+          setPreviewImage(`${import.meta.env.VITE_API_BASE_URL}${response.data.user.profileImage}`);
+        }
       }
       
     } catch (err) {
@@ -223,6 +307,55 @@ export default function Profile() {
         </div>
         
         <div className={`${currentTheme.cardBg} ${currentTheme.cardBorder} ${currentTheme.cardShadow} p-6 rounded-lg border`}>
+          {/* Profile Image Section */}
+          <div className="flex flex-col items-center mb-6">
+            <div className="relative">
+              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-200 flex items-center justify-center">
+                {previewImage ? (
+                  <img 
+                    src={previewImage} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <FiUser className="w-16 h-16 text-gray-400" />
+                )}
+              </div>
+              
+              <label htmlFor="profileImage" className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full cursor-pointer hover:bg-blue-600 transition-colors">
+                <FiCamera className="w-4 h-4" />
+                <input
+                  id="profileImage"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                  disabled={isLoading || isUploading}
+                />
+              </label>
+              
+              {previewImage && (previewImage !== `${import.meta.env.VITE_API_BASE_URL}${user.profileImage}`) && (
+                <button
+                  onClick={removeImage}
+                  className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                  disabled={isLoading || isUploading}
+                >
+                  <FiX className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+            
+            <p className={`text-sm ${currentTheme.bodyAccent} mt-2`}>
+              Click camera icon to upload a new profile picture
+            </p>
+            
+            {isUploading && (
+              <div className={`mt-2 text-sm ${currentTheme.bodyAccent}`}>
+                Uploading image...
+              </div>
+            )}
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className={`block text-sm font-medium ${currentTheme.labelText}`}>Email</label>
@@ -244,7 +377,7 @@ export default function Profile() {
                 className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus} ${
                   errors.username ? "border-red-500" : ""
                 }`}
-                disabled={isLoading}
+                disabled={isLoading || isUploading}
               />
             </div>
 
@@ -258,7 +391,7 @@ export default function Profile() {
                   value={formData.firstName}
                   onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                   className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus}`}
-                  disabled={isLoading}
+                  disabled={isLoading || isUploading}
                 />
               </div>
               
@@ -271,7 +404,7 @@ export default function Profile() {
                   value={formData.lastName}
                   onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                   className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus}`}
-                  disabled={isLoading}
+                  disabled={isLoading || isUploading}
                 />
               </div>
             </div>
@@ -285,7 +418,7 @@ export default function Profile() {
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus}`}
-                disabled={isLoading}
+                disabled={isLoading || isUploading}
               />
             </div>
 
@@ -298,7 +431,7 @@ export default function Profile() {
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus}`}
                 rows="3"
-                disabled={isLoading}
+                disabled={isLoading || isUploading}
               />
             </div>
             
@@ -307,6 +440,7 @@ export default function Profile() {
                 type="button"
                 onClick={() => setShowPasswordSection(!showPasswordSection)}
                 className={`text-sm ${currentTheme.btnAccent} hover:underline mb-2`}
+                disabled={isLoading || isUploading}
               >
                 {showPasswordSection ? '▲ Hide Password Section' : '▼ Change Password'}
               </button>
@@ -331,7 +465,7 @@ export default function Profile() {
                           errors.currentPassword ? "border-red-500" : ""
                         }`}
                         placeholder="Required to change password"
-                        disabled={isLoading}
+                        disabled={isLoading || isUploading}
                       />
                     </div>
                     
@@ -350,7 +484,7 @@ export default function Profile() {
                           errors.newPassword ? "border-red-500" : ""
                         }`}
                         placeholder="At least 6 characters"
-                        disabled={isLoading}
+                        disabled={isLoading || isUploading}
                       />
                     </div>
                     
@@ -369,7 +503,7 @@ export default function Profile() {
                           errors.confirmPassword ? "border-red-500" : ""
                         }`}
                         placeholder="Must match new password"
-                        disabled={isLoading}
+                        disabled={isLoading || isUploading}
                       />
                     </div>
                   </div>
@@ -380,18 +514,18 @@ export default function Profile() {
             <div className="flex flex-col sm:flex-row justify-between items-center pt-6 gap-4">
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || isUploading}
                 className={`${currentTheme.btnPrimary} w-full sm:w-auto px-6 py-2 rounded-md font-medium transition-all duration-200 flex items-center justify-center ${
-                  isLoading ? 'opacity-70 cursor-not-allowed' : ''
+                  (isLoading || isUploading) ? 'opacity-70 cursor-not-allowed' : ''
                 }`}
               >
-                {isLoading ? (
+                {(isLoading || isUploading) ? (
                   <>
                     <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Updating...
+                    {isUploading ? 'Uploading...' : 'Updating...'}
                   </>
                 ) : (
                   'Update Profile'
@@ -401,9 +535,9 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={handleDeleteAccount}
-                disabled={isLoading}
+                disabled={isLoading || isUploading}
                 className={`${currentTheme.btnAccent} text-red-600 hover:text-red-700 px-4 py-2 rounded-md font-medium transition-colors ${
-                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                  (isLoading || isUploading) ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
                 Delete Account
