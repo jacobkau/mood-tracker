@@ -7,6 +7,7 @@ import { useTheme } from '../context/useTheme';
 
 export default function Register() {
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState(""); 
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,7 +23,7 @@ export default function Register() {
     try {
       const res = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/auth/register`,
-        { username, password },
+        { username, email, password },
         {
           headers: { "Content-Type": "application/json" },
         }
@@ -81,6 +82,23 @@ export default function Register() {
                 disabled={isSubmitting}
               />
             </div>
+          </div>
+
+          <div>
+            <label htmlFor="email" className={`block text-sm font-medium ${currentTheme.labelText}`}>
+              Email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={`${currentTheme.inputBg} ${currentTheme.inputBorder} block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none sm:text-sm`}
+              required
+              disabled={isSubmitting}
+            />
           </div>
 
           <div>
