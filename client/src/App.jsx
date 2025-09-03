@@ -26,6 +26,8 @@ import About from './pages/About';
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import AdminPanel from './components/AdminPanel';
+import ReviewsPage from './pages/ReviewsPage';
+import AdminReviewManager from './components/AdminReviewManager';
 
 
 
@@ -52,6 +54,7 @@ function App() {
         <Navbar setIsAuthenticated={setIsAuthenticated} isAuthenticated={isAuthenticated} />
         
         <Routes>
+          <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="/" element={<Home />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ResetPassword />} />
@@ -78,6 +81,9 @@ function App() {
               isAuthenticated ? <Profile /> : <Navigate to="/login" replace />
             }
           />
+          
+          <Route path="/admin/reviews"  element={
+              isAuthenticated ? <AdminReviewManager />  : <Navigate to="/login" replace /> } />
           <Route
             path="/dashboard"
             element={
