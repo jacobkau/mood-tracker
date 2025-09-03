@@ -11,6 +11,9 @@ const contentRoutes = require('./routes/content');
 const subscriptionRoutes = require('./routes/subscription');
 const contactRoutes = require('./routes/contact');
 const adminRoutes = require('./routes/admin');
+const express = require('express');
+const path = require('path');
+
 
 dotenv.config();
 const app = express();
@@ -35,6 +38,7 @@ app.use((req, res, next) => {
 });
 
 // Routes (keep the rest of your code the same)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/api/auth", authRoutes);
 app.use("/api/moods", moodRoutes);
 app.use("/api/stats", statsRoutes); 
