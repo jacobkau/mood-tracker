@@ -19,9 +19,9 @@ export default function Footer() {
         <div>
           <h4 className={`${currentTheme.footerText} font-semibold mb-4`}>Product</h4>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/" className={currentTheme.footerHover}>Features</Link></li>
-            <li><Link to="/" className={currentTheme.footerHover}>Pricing</Link></li>
-            <li><Link to="/" className={currentTheme.footerHover}>Testimonials</Link></li>
+            <li><Link to="/features" className={currentTheme.footerHover}>Features</Link></li>
+            <li><Link to="/pricing" className={currentTheme.footerHover}>Pricing</Link></li>
+            <li><Link to="/testimonials" className={currentTheme.footerHover}>Testimonials</Link></li>
           </ul>
         </div>
         
