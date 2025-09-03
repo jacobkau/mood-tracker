@@ -6,16 +6,36 @@ const jwt = require("jsonwebtoken");
 const { protect } = require('../middleware/authMiddleware');
 
 // Register new user
+// routes/auth.js
 router.post("/register", async (req, res) => {
   try {
-    const { username, password } = req.body;
-    const user = new User({ username, password });
+    const { username, email, password } = req.body;
+
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+    if (existingUser) {
+      return res.status(400).json({ error: "Username or email already taken" });
+    }
+
+    const user = new User({ username, email, password });
     await user.save();
-    res.status(201).json({ message: "User created" });
+
+    res.status(201).json({ message: "User created successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
+// routes/auth.js
+router.post('/request-reset', async (req, res) => {
+  const { email } = req.body;
+  // lookup user and send email logic here
+  res.json({ success: true, message: "Password reset email sent" });
+});
+
 
 // Login user
 router.post("/login", async (req, res) => {
