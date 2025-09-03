@@ -223,9 +223,83 @@ const sendVerificationEmail = async (to, link) => {
   }
 };
 
+
+const sendReviewNotificationEmail = async (review) => {
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@yourdomain.com';
+    
+    const mailOptions = {
+      from: process.env.EMAIL_FROM,
+      to: adminEmail,
+      subject: 'New Review Submission - Requires Approval',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>New Review Submitted</h2>
+          <p>A user has submitted a new review that requires your approval.</p>
+          
+          <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3>Review Details:</h3>
+            <p><strong>User:</strong> ${review.user.username} (${review.user.email})</p>
+            <p><strong>Rating:</strong> ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</p>
+            <p><strong>Title:</strong> ${review.title}</p>
+            <p><strong>Comment:</strong> ${review.comment}</p>
+          </div>
+          
+          <p>Please log in to the admin panel to approve or reject this review.</p>
+          
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p><a href="${process.env.ADMIN_URL}/admin/reviews" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Admin Panel</a></p>
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error('Error sending review notification email:', error);
+    throw error;
+  }
+};
+
+const sendReviewResponseEmail = async (review, adminMessage) => {
+  try {
+    const mailOptions = {
+      from: process.env.EMAIL_FROM,
+      to: review.user.email,
+      subject: 'Response to Your Review',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>Response to Your Review</h2>
+          <p>Dear ${review.user.username},</p>
+          
+          <p>Thank you for taking the time to review our service. Here's our response:</p>
+          
+          <div style="background: #f8f9fa; padding: 15px; border-left: 4px solid #007bff; margin: 20px 0;">
+            <p><em>${adminMessage}</em></p>
+          </div>
+          
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p>Best regards,<br>The ${process.env.APP_NAME} Team</p>
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error('Error sending review response email:', error);
+    throw error;
+  }
+};
+
+
+
+
 module.exports = {
   transporter,
+  sendReviewNotificationEmail,
   hasEmailCredentials,
+  sendReviewResponseEmail,
   sendSupportEmail,
   sendSupportConfirmation,
   sendContactEmail,
