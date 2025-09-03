@@ -216,4 +216,5 @@ router.post('/newsletter', async (req, res) => {
   }
 });
 
+
 module.exports = router;
