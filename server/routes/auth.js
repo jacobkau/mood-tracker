@@ -8,7 +8,19 @@ const { sendVerificationEmail } = require("../services/emailService");
 
 // Register new user
 const crypto = require("crypto");
-const { sendVerificationEmail } = require("../services/emailService");
+
+// Pick correct client URL dynamically
+const getClientUrl = (req) => {
+  const clientUrls = process.env.CLIENT_URLS.split(",");
+  const origin = req.get("origin");
+
+  if (origin && clientUrls.includes(origin)) {
+    return origin;
+  }
+
+  // Default to first one (production)
+  return clientUrls[0];
+};
 
 router.post("/register", async (req, res) => {
   try {
@@ -17,7 +29,6 @@ router.post("/register", async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ error: "Email already registered" });
 
-    // Create verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationTokenExpires = Date.now() + 60 * 60 * 1000; // 1 hour
 
@@ -30,21 +41,21 @@ router.post("/register", async (req, res) => {
       phone,
       address,
       verificationToken,
-      verificationTokenExpires
+      verificationTokenExpires,
     });
 
     await user.save();
 
-    // Send email verification
-    const verifyLink = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}&email=${email}`;
+    // 👇 dynamic client URL based on origin or fallback
+    const verifyLink = `${getClientUrl(req)}/verify-email?token=${verificationToken}&email=${email}`;
     await sendVerificationEmail(email, verifyLink);
 
     res.status(201).json({ message: "User created. Please check your email to verify your account." });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 router.get("/verify-email", async (req, res) => {
   try {
