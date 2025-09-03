@@ -193,11 +193,44 @@ const sendNewsletterWelcome = async (email) => {
   }
 };
 
+const sendVerificationEmail = async (to, link) => {
+  if (!transporter) {
+    console.warn("Email transporter not available. Skipping verification email.");
+    return false;
+  }
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to,
+    subject: "Verify Your Email Address",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+        <h2 style="color: #4F46E5;">Welcome!</h2>
+        <p>Thank you for registering. Please verify your email address by clicking the button below:</p>
+        <a href="${link}" style="display: inline-block; padding: 10px 20px; background: #4F46E5; color: white; border-radius: 4px; text-decoration: none;">Verify Email</a>
+        <p style="margin-top: 20px; font-size: 12px; color: #6B7280;">If you did not create this account, please ignore this email.</p>
+      </div>
+    `
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`Verification email sent to ${to}:`, info.messageId);
+    return true;
+  } catch (error) {
+    console.error("Error sending verification email:", error.message);
+    return false;
+  }
+};
+
 module.exports = {
   transporter,
   hasEmailCredentials,
   sendSupportEmail,
   sendSupportConfirmation,
   sendContactEmail,
-  sendNewsletterWelcome
+  sendNewsletterWelcome,
+  sendVerificationEmail
 };
+
+
