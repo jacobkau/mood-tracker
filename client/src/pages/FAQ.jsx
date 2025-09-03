@@ -84,7 +84,7 @@ const FAQ = () => {
   ];
 
   return (
-    <div className={'${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen bg-gray-50'}>
+    <div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen`}>
       <PageHeader 
         title="Frequently Asked Questions" 
         description="Find answers to common questions about Witty MoodTracker"
@@ -93,7 +93,7 @@ const FAQ = () => {
       <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="space-y-4">
           {faqItems.map((item, index) => (
-            <div key={index} className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-200 hover:shadow-lg">
+            <div key={index} className={`rounded-xl shadow-md overflow-hidden transition-all duration-200 hover:shadow-lg ${currentTheme.cardBg}`}>
               <button
                 className="w-full px-6 py-4 text-left focus:outline-none flex items-center justify-between"
                 onClick={() => toggleFAQ(index)}
@@ -102,7 +102,7 @@ const FAQ = () => {
                 <h3 className="text-lg font-medium text-gray-900 pr-4">{item.question}</h3>
                 <svg
                   className={`w-5 h-5 transition-transform duration-200 flex-shrink-0 ${
-                    activeIndex === index ? 'transform rotate-180 text-indigo-600' : 'text-gray-400'
+                    activeIndex === index ? `transform rotate-180 ${currentTheme.bodyAccent}` : 'text-gray-400'
                   }`}
                   fill="none"
                   stroke="currentColor"
@@ -122,7 +122,7 @@ const FAQ = () => {
         </div>
         
         {/* Contact Support Section */}
-        <div className="mt-16 bg-white rounded-xl shadow-md p-8">
+        <div className={`mt-16 rounded-xl shadow-md p-8 ${currentTheme.cardBg}`}>
           <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">Still have questions?</h2>
           <p className="text-gray-600 text-center mb-6">
             Our support team is here to help you with any questions or issues you might have
@@ -135,7 +135,7 @@ const FAQ = () => {
                 placeholder="Your Name"
                 value={contactForm.name}
                 onChange={(e) => setContactForm({...contactForm, name: e.target.value})}
-                className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className={`p-3 rounded-md focus:outline-none ${currentTheme.inputBg} ${currentTheme.inputBorder} ${currentTheme.inputFocus}`}
                 required
               />
               <input
@@ -143,7 +143,7 @@ const FAQ = () => {
                 placeholder="Your Email"
                 value={contactForm.email}
                 onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
-                className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className={`p-3 rounded-md focus:outline-none ${currentTheme.inputBg} ${currentTheme.inputBorder} ${currentTheme.inputFocus}`}
                 required
               />
             </div>
@@ -152,20 +152,20 @@ const FAQ = () => {
               placeholder="Subject"
               value={contactForm.subject}
               onChange={(e) => setContactForm({...contactForm, subject: e.target.value})}
-              className="p-3 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className={`p-3 rounded-md w-full focus:outline-none ${currentTheme.inputBg} ${currentTheme.inputBorder} ${currentTheme.inputFocus}`}
               required
             />
             <textarea
               placeholder="How can we help you?"
               value={contactForm.message}
               onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
-              className="p-3 border border-gray-300 rounded-md w-full h-32 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className={`p-3 rounded-md w-full h-32 focus:outline-none ${currentTheme.inputBg} ${currentTheme.inputBorder} ${currentTheme.inputFocus}`}
               required
             />
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`w-full text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${currentTheme.btnPrimary}`}
             >
               {isSubmitting ? (
                 <span className="flex items-center justify-center">
@@ -195,7 +195,7 @@ const FAQ = () => {
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
           <Link
             to="/guides"
-            className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 text-center group"
+            className={`p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 text-center group ${currentTheme.cardBg}`}
           >
             <div className="text-2xl mb-2">📚</div>
             <h3 className="font-medium text-gray-900 group-hover:text-indigo-600 transition-colors duration-200">User Guides</h3>
@@ -204,7 +204,7 @@ const FAQ = () => {
           
           <Link
             to="/blog"
-            className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 text-center group"
+            className={`p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 text-center group ${currentTheme.cardBg}`}
           >
             <div className="text-2xl mb-2">✍️</div>
             <h3 className="font-medium text-gray-900 group-hover:text-indigo-600 transition-colors duration-200">Blog</h3>
@@ -213,7 +213,7 @@ const FAQ = () => {
           
           <Link
             to="/contact"
-            className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 text-center group"
+            className={`p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 text-center group ${currentTheme.cardBg}`}
           >
             <div className="text-2xl mb-2">📞</div>
             <h3 className="font-medium text-gray-900 group-hover:text-indigo-600 transition-colors duration-200">Contact</h3>
@@ -222,9 +222,9 @@ const FAQ = () => {
         </div>
 
         {/* Quick Support Info */}
-        <div className="mt-8 bg-indigo-50 rounded-lg p-6">
-          <h3 className="font-semibold text-indigo-900 mb-2">Quick Support</h3>
-          <p className="text-indigo-700 text-sm">
+        <div className={`mt-8 rounded-lg p-6 ${currentTheme.highlight}`}>
+          <h3 className="font-semibold mb-2">Quick Support</h3>
+          <p className="text-sm">
             Email: support@wtymoodtracker.com<br />
             Response time: Typically within 24 hours<br />
             Hours: Monday-Friday, 9AM-6PM EST
