@@ -12,6 +12,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+
 // @desc    Handle contact form submission
 // @route   POST /api/contact
 router.post('/', async (req, res) => {
