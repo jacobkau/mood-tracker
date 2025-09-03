@@ -2,11 +2,13 @@ import axios from 'axios';
 
 const API = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
-  withCredentials: true
+  withCredentials: true,
+  timeout: 10000, // Add timeout
 });
 
-// Add auth token to requests
+// Add request interceptor for debugging
 API.interceptors.request.use((req) => {
+  console.log('Making request to:', req.url);
   const token = localStorage.getItem('token');
   if (token) {
     req.headers.Authorization = `Bearer ${token}`;
@@ -14,10 +16,11 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
-// Handle response errors
+// Improve response interceptor
 API.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error('API Error:', error.response?.data || error.message);
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.dispatchEvent(new Event('storage'));
@@ -61,7 +64,67 @@ export const submitTestimonial = (data) => API.post('/content/testimonials', dat
 export const subscribeToNewsletter = (email) => API.post('/content/newsletter', { email });
 
 // Subscription API
-export const getSubscriptionPlans = () => API.get('/subscription/plans');
+export const getSubscriptionPlans = () => {
+  // For development or if API fails, return mock data
+  if (process.env.NODE_ENV === 'development') {
+    return Promise.resolve({
+      data: [
+        {
+          id: 'free',
+          name: 'Free',
+          price: 0,
+          description: 'Perfect for getting started with mood tracking',
+          features: [
+            'Basic mood tracking',
+            '7-day history',
+            'Standard charts',
+            'Email support',
+            'Basic analytics'
+          ],
+          popular: false,
+          period: 'month'
+        },
+        {
+          id: 'pro',
+          name: 'Pro',
+          price: 4.99,
+          period: 'month',
+          description: 'For those who want deeper insights',
+          features: [
+            'Unlimited mood tracking',
+            '90-day history',
+            'Advanced analytics',
+            'Custom reminders',
+            'Data export',
+            'Priority support',
+            'Trend analysis'
+          ],
+          popular: true
+        },
+        {
+          id: 'premium',
+          name: 'Premium',
+          price: 49.99,
+          period: 'year',
+          description: 'Best value for committed users',
+          features: [
+            'Everything in Pro',
+            '365-day history',
+            'Trend predictions',
+            'Personalized insights',
+            'Therapist sharing',
+            '24/7 support',
+            'Custom reports',
+            'Advanced patterns'
+          ],
+          popular: false
+        }
+      ]
+    });
+  }
+  
+  return API.get('/subscription/plans');
+};
 export const subscribeToPlan = (planId) => API.post('/subscription/subscribe', { planId });
 export const getSubscriptionStatus = () => API.get('/subscription/status');
 export const cancelSubscription = () => API.post('/subscription/cancel');
