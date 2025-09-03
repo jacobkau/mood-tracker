@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import { useTheme } from '../context/useTheme';
+import { useTheme } from "../../context/UseTheme";
 
 export default function MoodEntry({ setMoods }) {
   const [mood, setMood] = useState("");
