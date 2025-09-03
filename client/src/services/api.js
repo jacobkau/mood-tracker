@@ -39,6 +39,12 @@ API.interceptors.response.use(
 export const login = (credentials) => API.post('/auth/login', credentials);
 export const register = (userData) => API.post('/auth/register', userData);
 export const getProfile = () => API.get('/auth/profile');
+// Password reset API
+export const requestPasswordReset = (email) =>
+  API.post('/auth/request-reset', { email });
+
+export const resetPassword = (token, newPassword) =>
+  API.post('/auth/reset-password', { token, newPassword });
 
 // Mood API
 export const addMood = (moodData) => API.post('/moods', moodData);
