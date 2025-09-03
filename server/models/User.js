@@ -13,18 +13,27 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: [true, "Email is required"],
     unique: true,
-    trim: true,
     lowercase: true,
-    match: [/.+@.+\..+/, "Please enter a valid email address"] // basic validation
+    trim: true,
+    match: [/^\S+@\S+\.\S+$/, "Invalid email format"]
   },
   password: {
     type: String,
     required: [true, "Password is required"],
     minlength: 6
-  }
+  },
+  fullName: { type: String, trim: true },
+  bio: { type: String, trim: true },
+  phone: { type: String, trim: true },
+  address: { type: String, trim: true },
+  dateOfBirth: { type: Date },
+
+  // Email verification
+  isVerified: { type: Boolean, default: false },
+  verificationToken: { type: String },
+  verificationTokenExpires: { type: Date }
 }, { timestamps: true });
 
-// hash password before saving
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 10);
