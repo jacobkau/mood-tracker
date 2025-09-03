@@ -19,6 +19,7 @@ export default function Profile() {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showPasswordSection, setShowPasswordSection] = useState(false);
   const navigate = useNavigate();
   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
@@ -67,6 +68,7 @@ export default function Profile() {
       newErrors.username = "Username is required";
     }
     
+    // Only validate passwords if new password is provided
     if (formData.newPassword) {
       if (!formData.currentPassword) {
         newErrors.currentPassword = "Current password is required";
@@ -90,85 +92,99 @@ export default function Profile() {
     if (!validateForm()) return;
     
     setIsLoading(true);
-try {
-  const token = localStorage.getItem("token");
-  const payload = {
-    username: formData.username,
-    firstName: formData.firstName,
-    lastName: formData.lastName,
-    phone: formData.phone,
-    address: formData.address,
-  };
-  
-  if (formData.newPassword) {
-    payload.currentPassword = formData.currentPassword;
-    payload.newPassword = formData.newPassword;
-  }
-  
-const response = await axios.put(
-  `${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`,
-  payload,
-  { 
-    headers: { 
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    } 
-  }
-);
-  
-  toast.success("Profile updated successfully");
-  setFormData(prev => ({
-    ...prev,
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  }));
-  
-  // Update user data with the response
-  if (response.data.user) {
-    setUser(response.data.user);
-  }
-  
-} catch (err) {
-  console.error("Update failed:", {
-    status: err.response?.status,
-    data: err.response?.data,
-    message: err.message
-  });
-  
-  const errorMessage = err.response?.data?.error || "Failed to update profile";
-  toast.error(errorMessage);
-  
-  if (err.response?.status === 401) {
-    setErrors(prev => ({
-      ...prev,
-      currentPassword: "Incorrect current password"
-    }));
-  } else if (err.response?.status === 400) {
-    // Handle validation errors from backend
-    if (err.response.data.error.includes("username")) {
-      setErrors(prev => ({ ...prev, username: err.response.data.error }));
+    try {
+      const token = localStorage.getItem("token");
+      
+      // Only include password fields if new password is provided
+      const payload = {
+        username: formData.username,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        address: formData.address,
+      };
+      
+      if (formData.newPassword) {
+        payload.currentPassword = formData.currentPassword;
+        payload.newPassword = formData.newPassword;
+        payload.confirmPassword = formData.confirmPassword;
+      }
+      
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`,
+        payload,
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          } 
+        }
+      );
+      
+      toast.success("Profile updated successfully");
+      
+      // Clear password fields only if password was changed
+      if (formData.newPassword) {
+        setFormData(prev => ({
+          ...prev,
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        }));
+        setShowPasswordSection(false);
+      }
+      
+      // Update user data with the response
+      if (response.data.user) {
+        setUser(response.data.user);
+      }
+      
+    } catch (err) {
+      console.error("Update failed:", {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message
+      });
+      
+      const errorMessage = err.response?.data?.error || "Failed to update profile";
+      toast.error(errorMessage);
+      
+      // Set specific field errors based on backend response
+      if (err.response?.status === 400 || err.response?.status === 401) {
+        const errorData = err.response.data.error.toLowerCase();
+        
+        if (errorData.includes("current password") || errorData.includes("incorrect")) {
+          setErrors(prev => ({
+            ...prev,
+            currentPassword: "Incorrect current password"
+          }));
+        } else if (errorData.includes("username")) {
+          setErrors(prev => ({ ...prev, username: err.response.data.error }));
+        } else if (errorData.includes("email")) {
+          setErrors(prev => ({ ...prev, email: err.response.data.error }));
+        } else if (errorData.includes("password")) {
+          // General password error
+          toast.error(err.response.data.error);
+        }
+      }
+    } finally {
+      setIsLoading(false);
     }
-  }
-} finally {
-  setIsLoading(false);
-  }
-};
-
+  };
 
   const handleDeleteAccount = async () => {
     if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
       try {
         const token = localStorage.getItem("token");
-       const response = await axios.delete(
-  `${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`,
-  {
-    headers: { 
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  }
-);
+        const response = await axios.delete(
+          `${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`,
+          {
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
         
         console.log("Delete response:", response.data);
         localStorage.removeItem("token");
@@ -211,6 +227,7 @@ const response = await axios.put(
             <div>
               <label className={`block text-sm font-medium ${currentTheme.labelText}`}>Email</label>
               <p className={`mt-1 ${currentTheme.bodySecondary} font-medium`}>{user.email || "Not provided"}</p>
+              <p className={`text-xs ${currentTheme.bodyAccent} mt-1`}>Email cannot be changed</p>
             </div>
             
             <div>
@@ -285,67 +302,79 @@ const response = await axios.put(
               />
             </div>
             
-            <div className={`pt-6 border-t ${currentTheme.divider}`}>
-              <h3 className={`text-lg font-medium ${currentTheme.bodySecondary} mb-4`}>Change Password</h3>
+            <div className="pt-4">
+              <button
+                type="button"
+                onClick={() => setShowPasswordSection(!showPasswordSection)}
+                className={`text-sm ${currentTheme.btnAccent} hover:underline mb-2`}
+              >
+                {showPasswordSection ? '▲ Hide Password Section' : '▼ Change Password'}
+              </button>
               
-              <div className="space-y-4">
-                <div>
-                  <label className={`block text-sm font-medium ${currentTheme.labelText}`}>
-                    Current Password
-                    {errors.currentPassword && (
-                      <span className="text-red-500 text-xs ml-2">{errors.currentPassword}</span>
-                    )}
-                  </label>
-                  <input
-                    type="password"
-                    value={formData.currentPassword}
-                    onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
-                    className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus} ${
-                      errors.currentPassword ? "border-red-500" : ""
-                    }`}
-                    placeholder="Required to change password"
-                    disabled={isLoading}
-                  />
+              {showPasswordSection && (
+                <div className={`pt-4 border-t ${currentTheme.divider}`}>
+                  <h3 className={`text-lg font-medium ${currentTheme.bodySecondary} mb-4`}>Change Password</h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className={`block text-sm font-medium ${currentTheme.labelText}`}>
+                        Current Password
+                        {errors.currentPassword && (
+                          <span className="text-red-500 text-xs ml-2">{errors.currentPassword}</span>
+                        )}
+                      </label>
+                      <input
+                        type="password"
+                        value={formData.currentPassword}
+                        onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
+                        className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus} ${
+                          errors.currentPassword ? "border-red-500" : ""
+                        }`}
+                        placeholder="Required to change password"
+                        disabled={isLoading}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className={`block text-sm font-medium ${currentTheme.labelText}`}>
+                        New Password
+                        {errors.newPassword && (
+                          <span className="text-red-500 text-xs ml-2">{errors.newPassword}</span>
+                        )}
+                      </label>
+                      <input
+                        type="password"
+                        value={formData.newPassword}
+                        onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+                        className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus} ${
+                          errors.newPassword ? "border-red-500" : ""
+                        }`}
+                        placeholder="At least 6 characters"
+                        disabled={isLoading}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className={`block text-sm font-medium ${currentTheme.labelText}`}>
+                        Confirm New Password
+                        {errors.confirmPassword && (
+                          <span className="text-red-500 text-xs ml-2">{errors.confirmPassword}</span>
+                        )}
+                      </label>
+                      <input
+                        type="password"
+                        value={formData.confirmPassword}
+                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                        className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus} ${
+                          errors.confirmPassword ? "border-red-500" : ""
+                        }`}
+                        placeholder="Must match new password"
+                        disabled={isLoading}
+                      />
+                    </div>
+                  </div>
                 </div>
-                
-                <div>
-                  <label className={`block text-sm font-medium ${currentTheme.labelText}`}>
-                    New Password
-                    {errors.newPassword && (
-                      <span className="text-red-500 text-xs ml-2">{errors.newPassword}</span>
-                    )}
-                  </label>
-                  <input
-                    type="password"
-                    value={formData.newPassword}
-                    onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
-                    className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus} ${
-                      errors.newPassword ? "border-red-500" : ""
-                    }`}
-                    placeholder="At least 6 characters"
-                    disabled={isLoading}
-                  />
-                </div>
-                
-                <div>
-                  <label className={`block text-sm font-medium ${currentTheme.labelText}`}>
-                    Confirm New Password
-                    {errors.confirmPassword && (
-                      <span className="text-red-500 text-xs ml-2">{errors.confirmPassword}</span>
-                    )}
-                  </label>
-                  <input
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus} ${
-                      errors.confirmPassword ? "border-red-500" : ""
-                    }`}
-                    placeholder="Must match new password"
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
+              )}
             </div>
             
             <div className="flex flex-col sm:flex-row justify-between items-center pt-6 gap-4">
