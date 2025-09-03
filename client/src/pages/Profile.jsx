@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
-import { useTheme } from '../context/useTheme';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -16,7 +16,7 @@ export default function Profile() {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-    const { theme, themes } = useTheme();
+  const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
 
   useEffect(() => {
@@ -133,149 +133,177 @@ export default function Profile() {
     }
   };
 
-const handleDeleteAccount = async () => {
-  if (window.confirm("Are you sure you want to delete your account? This cannot be undone.")) {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.delete(
-        `${import.meta.env.VITE_API_BASE_URL}/api/profile`,
-        {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
+  const handleDeleteAccount = async () => {
+    if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.delete(
+          `${import.meta.env.VITE_API_BASE_URL}/api/profile`,
+          {
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
           }
-          // If implementing password confirmation:
-          // data: { password: prompt("Enter your password to confirm deletion") }
-        }
-      );
-      
-      console.log("Delete response:", response.data);
-      localStorage.removeItem("token");
-      toast.success(response.data.message || "Account deleted successfully");
-      window.location.href = "/";
-      navigate("/");
-    } catch (err) {
-      console.error("Delete failed:", {
-        status: err.response?.status,
-        data: err.response?.data,
-        message: err.message
-      });
-      toast.error(err.response?.data?.error || "Failed to delete account");
+        );
+        
+        console.log("Delete response:", response.data);
+        localStorage.removeItem("token");
+        toast.success(response.data.message || "Account deleted successfully");
+        navigate("/");
+      } catch (err) {
+        console.error("Delete failed:", {
+          status: err.response?.status,
+          data: err.response?.data,
+          message: err.message
+        });
+        toast.error(err.response?.data?.error || "Failed to delete account");
+      }
     }
+  };
+
+  if (!user) {
+    return (
+      <div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen flex items-center justify-center`}>
+        <div className="text-center">
+          <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${currentTheme.bodyAccent} mx-auto`}></div>
+          <p className={`mt-4 ${currentTheme.bodyText}`}>Loading profile...</p>
+        </div>
+      </div>
+    );
   }
-};
 
   return (
-    <div className={'${currentTheme.footerBg} ${currentTheme.footerText} min-h-screen bg-gray-50 p-4 md:p-8'}>
+    <div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen py-8 px-4 md:px-8`}>
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">Your Profile</h1>
+        <div className="text-center mb-8">
+          <h1 className={`text-3xl font-bold bg-gradient-to-r ${currentTheme.headerGradient} bg-clip-text text-transparent`}>
+            Your Profile
+          </h1>
+          <p className={`mt-2 ${currentTheme.bodyAccent}`}>Manage your account settings</p>
+        </div>
         
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          {user ? (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
-                <p className="mt-1 text-gray-900">{user.email || "Not provided"}</p>
-              </div>
+        <div className={`${currentTheme.cardBg} ${currentTheme.cardBorder} ${currentTheme.cardShadow} p-6 rounded-lg border`}>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className={`block text-sm font-medium ${currentTheme.labelText}`}>Email</label>
+              <p className={`mt-1 ${currentTheme.bodySecondary} font-medium`}>{user.email || "Not provided"}</p>
+            </div>
+            
+            <div>
+              <label className={`block text-sm font-medium ${currentTheme.labelText}`}>
+                Username
+                {errors.username && (
+                  <span className="text-red-500 text-xs ml-2">{errors.username}</span>
+                )}
+              </label>
+              <input
+                type="text"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus} ${
+                  errors.username ? "border-red-500" : ""
+                }`}
+                disabled={isLoading}
+              />
+            </div>
+            
+            <div className={`pt-6 border-t ${currentTheme.divider}`}>
+              <h3 className={`text-lg font-medium ${currentTheme.bodySecondary} mb-4`}>Change Password</h3>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Username
-                  {errors.username && (
-                    <span className="text-red-500 text-xs ml-2">{errors.username}</span>
-                  )}
-                </label>
-                <input
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className={`mt-1 p-2 w-full border rounded-md focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.username ? "border-red-500" : ""
-                  }`}
-                />
-              </div>
-              
-              <div className="pt-4 border-t">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Change Password</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className={`block text-sm font-medium ${currentTheme.labelText}`}>
+                    Current Password
+                    {errors.currentPassword && (
+                      <span className="text-red-500 text-xs ml-2">{errors.currentPassword}</span>
+                    )}
+                  </label>
+                  <input
+                    type="password"
+                    value={formData.currentPassword}
+                    onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
+                    className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus} ${
+                      errors.currentPassword ? "border-red-500" : ""
+                    }`}
+                    placeholder="Required to change password"
+                    disabled={isLoading}
+                  />
+                </div>
                 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Current Password
-                      {errors.currentPassword && (
-                        <span className="text-red-500 text-xs ml-2">{errors.currentPassword}</span>
-                      )}
-                    </label>
-                    <input
-                      type="password"
-                      value={formData.currentPassword}
-                      onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
-                      className={`mt-1 p-2 w-full border rounded-md focus:ring-blue-500 focus:border-blue-500 ${
-                        errors.currentPassword ? "border-red-500" : ""
-                      }`}
-                      placeholder="Required to change password"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      New Password
-                      {errors.newPassword && (
-                        <span className="text-red-500 text-xs ml-2">{errors.newPassword}</span>
-                      )}
-                    </label>
-                    <input
-                      type="password"
-                      value={formData.newPassword}
-                      onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
-                      className={`mt-1 p-2 w-full border rounded-md focus:ring-blue-500 focus:border-blue-500 ${
-                        errors.newPassword ? "border-red-500" : ""
-                      }`}
-                      placeholder="At least 6 characters"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Confirm New Password
-                      {errors.confirmPassword && (
-                        <span className="text-red-500 text-xs ml-2">{errors.confirmPassword}</span>
-                      )}
-                    </label>
-                    <input
-                      type="password"
-                      value={formData.confirmPassword}
-                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                      className={`mt-1 p-2 w-full border rounded-md focus:ring-blue-500 focus:border-blue-500 ${
-                        errors.confirmPassword ? "border-red-500" : ""
-                      }`}
-                      placeholder="Must match new password"
-                    />
-                  </div>
+                <div>
+                  <label className={`block text-sm font-medium ${currentTheme.labelText}`}>
+                    New Password
+                    {errors.newPassword && (
+                      <span className="text-red-500 text-xs ml-2">{errors.newPassword}</span>
+                    )}
+                  </label>
+                  <input
+                    type="password"
+                    value={formData.newPassword}
+                    onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+                    className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus} ${
+                      errors.newPassword ? "border-red-500" : ""
+                    }`}
+                    placeholder="At least 6 characters"
+                    disabled={isLoading}
+                  />
+                </div>
+                
+                <div>
+                  <label className={`block text-sm font-medium ${currentTheme.labelText}`}>
+                    Confirm New Password
+                    {errors.confirmPassword && (
+                      <span className="text-red-500 text-xs ml-2">{errors.confirmPassword}</span>
+                    )}
+                  </label>
+                  <input
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    className={`${currentTheme.inputBg} ${currentTheme.inputBorder} mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:${currentTheme.inputFocus} ${
+                      errors.confirmPassword ? "border-red-500" : ""
+                    }`}
+                    placeholder="Must match new password"
+                    disabled={isLoading}
+                  />
                 </div>
               </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row justify-between items-center pt-6 gap-4">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`${currentTheme.btnPrimary} w-full sm:w-auto px-6 py-2 rounded-md font-medium transition-all duration-200 flex items-center justify-center ${
+                  isLoading ? 'opacity-70 cursor-not-allowed' : ''
+                }`}
+              >
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Updating...
+                  </>
+                ) : (
+                  'Update Profile'
+                )}
+              </button>
               
-              <div className="flex justify-between pt-4">
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? "Updating..." : "Update Profile"}
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={handleDeleteAccount}
-                  className="text-red-600 hover:text-red-800 text-sm font-medium"
-                >
-                  Delete Account
-                </button>
-              </div>
-            </form>
-          ) : (
-            <p>Loading profile...</p>
-          )}
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={isLoading}
+                className={`${currentTheme.btnAccent} text-red-600 hover:text-red-700 px-4 py-2 rounded-md font-medium transition-colors ${
+                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                Delete Account
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
