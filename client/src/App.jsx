@@ -23,6 +23,9 @@ import "react-toastify/dist/ReactToastify.css";
 import { useEffect, useContext, useState } from "react";
 import { ThemeProvider } from './context/ThemeProvider';
 import About from './pages/About';
+import ForgotPassword from "./pages/ForgotPassword";
+
+
 
 
 
@@ -54,6 +57,7 @@ function App() {
               isAuthenticated ? <Dashboard /> : <Home />
             }
           />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/about" element={<About />} />
           <Route path="/features" element={<Features />} />
           <Route path="/pricing" element={<Pricing />} />
