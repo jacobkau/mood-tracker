@@ -138,4 +138,39 @@ router.delete('/profile', protect, async (req, res) => {
   }
 });
 
+// Update user profile
+router.put('/profile', protect, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Only allow specific fields to be updated
+    const updates = (({ username, email, firstName, lastName, phone, address }) => 
+      ({ username, email, firstName, lastName, phone, address }))(req.body);
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      user: updatedUser
+    });
+
+  } catch (err) {
+    console.error("Update profile error:", err);
+    res.status(500).json({ 
+      error: "Failed to update profile",
+      details: process.env.NODE_ENV === 'development' ? err.message : null
+    });
+  }
+});
+
+
 module.exports = router;
