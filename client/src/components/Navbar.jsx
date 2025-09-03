@@ -127,6 +127,12 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                         {/* Protected pages (auth required) */}
                         <NavLink to="/dashboard" icon={<FiGrid size={18} />} text="Dashboard" requiresAuth={true} />
                         <NavLink to="/stats" icon={<FiBarChart2 size={18} />} text="Statistics" requiresAuth={true} />
+                      
+{user && user.role === 'admin' && (
+  <Link to="/admin" className="text-red-600 hover:text-red-700">
+    Admin Panel
+  </Link>
+)}
                         <NavLink to="/profile" icon={<FiUser size={18} />} text="Profile" requiresAuth={true} />
                         
                         {/* Always visible pages */}
