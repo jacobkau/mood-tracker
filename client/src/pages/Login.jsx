@@ -43,9 +43,8 @@ export default function Login({ setIsAuthenticated }) {
   };
 
   return (
-   <div
-  className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen flex justify-center sm:items-center py-6 sm:py-8 lg:py-12 px-4 sm:px-6 lg:px-8`}
->
+  <div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen flex justify-center items-start sm:items-center px-4 sm:px-6 lg:px-8 py-6`}>
+
   <div
     className={`${currentTheme.cardBg} ${currentTheme.cardBorder} ${currentTheme.cardShadow} p-6 sm:p-8 rounded-lg w-full max-w-md border`}
   >
