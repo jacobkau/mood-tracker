@@ -1,9 +1,7 @@
-
-import { useContext } from 'react';
 import { useTheme } from '../context/useTheme';
 
 export default function Privacy() {
-  const { theme, themes } = useContext(ThemeContext);
+  const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
 
   return (
