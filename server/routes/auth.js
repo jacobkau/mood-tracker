@@ -138,14 +138,20 @@ router.delete('/profile', protect, async (req, res) => {
   }
 });
 
+// Update user profile
 router.put('/profile', protect, async (req, res) => {
   try {
     const userId = req.user.id;
-    const { currentPassword, newPassword, ...updates } = req.body;
+    const { currentPassword, newPassword, confirmPassword, ...profileUpdates } = req.body;
 
-    if (newPassword) {
-      if (!currentPassword) {
-        return res.status(400).json({ error: "Current password is required" });
+    // If changing password, validate all password fields
+    if (newPassword || currentPassword || confirmPassword) {
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        return res.status(400).json({ error: "All password fields are required to change password" });
+      }
+      
+      if (newPassword !== confirmPassword) {
+        return res.status(400).json({ error: "New passwords do not match" });
       }
       
       const user = await User.findById(userId).select('+password');
@@ -155,13 +161,13 @@ router.put('/profile', protect, async (req, res) => {
         return res.status(401).json({ error: "Current password is incorrect" });
       }
       
-      // Hash new password
-      updates.password = await bcrypt.hash(newPassword, 12);
+      // Hash new password and add to updates
+      profileUpdates.password = await bcrypt.hash(newPassword, 12);
     }
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { $set: updates },
+      { $set: profileUpdates },
       { new: true, runValidators: true }
     ).select('-password');
 
@@ -177,12 +183,27 @@ router.put('/profile', protect, async (req, res) => {
 
   } catch (err) {
     console.error("Update profile error:", err);
+    
+    // Handle duplicate username/email errors
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyValue)[0];
+      return res.status(400).json({ 
+        error: `${field} already exists` 
+      });
+    }
+    
+    // Handle validation errors
+    if (err.name === 'ValidationError') {
+      const errors = Object.values(err.errors).map(e => e.message);
+      return res.status(400).json({ 
+        error: errors.join(', ') 
+      });
+    }
+    
     res.status(500).json({ 
       error: "Failed to update profile",
       details: process.env.NODE_ENV === 'development' ? err.message : null
     });
   }
 });
-
-
 module.exports = router;
