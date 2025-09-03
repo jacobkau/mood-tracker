@@ -17,6 +17,8 @@ router.post('/contact', async (req, res) => {
       });
     }
 
+    
+
     const supportTicket = new SupportTicket({
       name,
       email,
