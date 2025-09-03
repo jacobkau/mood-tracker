@@ -4,7 +4,7 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { protect } = require('../middleware/authMiddleware');
-const { sendVerificationEmail } = require("../services/emailService");
+const { sendVerificationEmail } = require("../utils/emailService");
 
 // Register new user
 const crypto = require("crypto");
