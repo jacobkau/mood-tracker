@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { useTheme } from '../context/useTheme';
-import { useContext } from 'react';
+
 const Home = () => {
-  const { theme, themes } = useContext(ThemeContext);
+ const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
 
   return (
