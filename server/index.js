@@ -11,7 +11,6 @@ const contentRoutes = require('./routes/content');
 const subscriptionRoutes = require('./routes/subscription');
 const contactRoutes = require('./routes/contact');
 const adminRoutes = require('./routes/admin');
-const express = require('express');
 const path = require('path');
 
 
