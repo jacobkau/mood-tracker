@@ -1,10 +1,13 @@
 import { useState } from "react";
 import axios from "axios";
+import { useTheme } from '../context/useTheme';
 
 export default function MoodEntry({ setMoods }) {
   const [mood, setMood] = useState("");
   const [notes, setNotes] = useState("");
   const [showRecommendations, setShowRecommendations] = useState(false);
+  const { theme, themes } = useTheme();
+  const currentTheme = themes[theme];
 
   const moodRecommendations = {
     Happy: {
@@ -89,15 +92,15 @@ export default function MoodEntry({ setMoods }) {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">Log Your Mood</h2>
+    <div className={`p-6 rounded-lg shadow-md ${currentTheme.cardBg}`}>
+      <h2 className={`text-xl font-semibold mb-4 ${currentTheme.bodyText}`}>Log Your Mood</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Mood</label>
+          <label className={`block text-sm font-medium ${currentTheme.labelText}`}>Mood</label>
           <select
             value={mood}
             onChange={handleMoodChange}
-            className="mt-1 p-2 w-full border rounded-md focus:ring-blue-500 focus:border-blue-500"
+            className={`mt-1 p-2 w-full rounded-md focus:outline-none ${currentTheme.inputBg} ${currentTheme.inputBorder} ${currentTheme.inputFocus}`}
             required
           >
             <option value="">Select a mood</option>
@@ -110,30 +113,30 @@ export default function MoodEntry({ setMoods }) {
         </div>
         
         {showRecommendations && mood && (
-          <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
-            <h3 className="font-medium text-blue-800 mb-2">{moodRecommendations[mood].advice}</h3>
-            <h4 className="text-sm font-semibold text-blue-700 mb-1">Suggestions:</h4>
-            <ul className="list-disc list-inside text-sm text-blue-700 space-y-1">
+          <div className={`p-4 rounded-md border ${currentTheme.highlight}`}>
+            <h3 className={`font-medium mb-2 ${currentTheme.bodyAccent}`}>{moodRecommendations[mood].advice}</h3>
+            <h4 className={`text-sm font-semibold mb-1 ${currentTheme.bodySecondary}`}>Suggestions:</h4>
+            <ul className="list-disc list-inside text-sm space-y-1">
               {moodRecommendations[mood].recommendations.map((item, index) => (
-                <li key={index}>{item}</li>
+                <li key={index} className={currentTheme.bodyText}>{item}</li>
               ))}
             </ul>
           </div>
         )}
         
         <div>
-          <label className="block text-sm font-medium text-gray-700">Notes</label>
+          <label className={`block text-sm font-medium ${currentTheme.labelText}`}>Notes</label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="mt-1 p-2 w-full border rounded-md focus:ring-blue-500 focus:border-blue-500"
+            className={`mt-1 p-2 w-full rounded-md focus:outline-none ${currentTheme.inputBg} ${currentTheme.inputBorder} ${currentTheme.inputFocus}`}
             rows="3"
             placeholder="Add any additional thoughts about your mood..."
           />
         </div>
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
+          className={`w-full text-white py-2 px-4 rounded-md transition ${currentTheme.btnPrimary}`}
         >
           Add Mood
         </button>
