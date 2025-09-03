@@ -10,17 +10,76 @@ const Pricing = () => {
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(null);
   const navigate = useNavigate();
-   const { theme, themes } = useTheme();
+  const { theme, themes } = useTheme();
   const currentTheme = themes[theme]; 
 
   useEffect(() => {
     const fetchPlans = async () => {
       try {
+        setLoading(true);
         const response = await getSubscriptionPlans();
         setPlans(response.data);
       } catch (error) {
         console.error('Failed to fetch plans:', error);
-        toast.error('Failed to load pricing plans');
+        
+        // Show fallback plans if API is unavailable
+        if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
+          toast.error('Cannot connect to server. Showing demo plans.');
+          setPlans([
+            {
+              id: 'free',
+              name: 'Free',
+              price: 0,
+              description: 'Perfect for getting started with mood tracking',
+              features: [
+                'Basic mood tracking',
+                '7-day history',
+                'Standard charts',
+                'Email support',
+                'Basic analytics'
+              ],
+              popular: false,
+              period: 'month'
+            },
+            {
+              id: 'pro',
+              name: 'Pro',
+              price: 4.99,
+              period: 'month',
+              description: 'For those who want deeper insights',
+              features: [
+                'Unlimited mood tracking',
+                '90-day history',
+                'Advanced analytics',
+                'Custom reminders',
+                'Data export',
+                'Priority support',
+                'Trend analysis'
+              ],
+              popular: true
+            },
+            {
+              id: 'premium',
+              name: 'Premium',
+              price: 49.99,
+              period: 'year',
+              description: 'Best value for committed users',
+              features: [
+                'Everything in Pro',
+                '365-day history',
+                'Trend predictions',
+                'Personalized insights',
+                'Therapist sharing',
+                '24/7 support',
+                'Custom reports',
+                'Advanced patterns'
+              ],
+              popular: false
+            }
+          ]);
+        } else {
+          toast.error('Failed to load pricing plans');
+        }
       } finally {
         setLoading(false);
       }
