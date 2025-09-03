@@ -52,12 +52,7 @@ function App() {
         <Navbar setIsAuthenticated={setIsAuthenticated} isAuthenticated={isAuthenticated} />
         
         <Routes>
-          <Route
-            path="/"
-            element={
-              isAuthenticated ? <Dashboard /> : <Home />
-            }
-          />
+          <Route path="/" element={<Home />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ResetPassword />} />
           <Route path="/about" element={<About />} />
