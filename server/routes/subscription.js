@@ -21,7 +21,8 @@ router.get('/plans', async (req, res) => {
         ],
         popular: false,
         maxMoodEntries: 50,
-        maxNotesLength: 100
+        maxNotesLength: 100,
+        period: 'month'
       },
       {
         id: 'pro',
