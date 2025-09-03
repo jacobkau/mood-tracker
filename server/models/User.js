@@ -15,21 +15,21 @@ const UserSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     trim: true,
-    match: [/^\S+@\S+\.\S+$/, "Invalid email format"]
+    match: [/^\S+@\S+\.\S+$/, "Invalid email address"]
   },
+  firstName: { type: String, trim: true },
+  lastName: { type: String, trim: true },
+  phone: { type: String, trim: true },
+  address: { type: String, trim: true },
+
   password: {
     type: String,
     required: [true, "Password is required"],
     minlength: 6
   },
-  fullName: { type: String, trim: true },
-  bio: { type: String, trim: true },
-  phone: { type: String, trim: true },
-  address: { type: String, trim: true },
-  dateOfBirth: { type: Date },
 
   // Email verification
-  isVerified: { type: Boolean, default: false },
+  emailVerified: { type: Boolean, default: false },
   verificationToken: { type: String },
   verificationTokenExpires: { type: Date }
 }, { timestamps: true });
