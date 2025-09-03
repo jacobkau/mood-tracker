@@ -1,4 +1,3 @@
-// components/Navbar.jsx
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
   FiLogOut, 
@@ -45,8 +44,8 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                 to={to}
                 className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${
                     isActive 
-                        ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200' 
-                        : `${currentTheme.text} ${currentTheme.hover}`
+                        ? `${currentTheme.navActive} ${currentTheme.navBg} bg-opacity-20` 
+                        : `${currentTheme.navText} ${currentTheme.navHover}`
                 } transition-colors`}
                 aria-current={isActive ? "page" : undefined}
             >
@@ -66,8 +65,8 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                 to={to}
                 className={`flex flex-col items-center text-xs p-2 rounded-md ${
                     isActive 
-                        ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200' 
-                        : `${currentTheme.text} ${currentTheme.hover}`
+                        ? `${currentTheme.navActive} ${currentTheme.navBg} bg-opacity-20` 
+                        : `${currentTheme.navText} ${currentTheme.navHover}`
                 }`}
                 aria-current={isActive ? "page" : undefined}
             >
@@ -85,14 +84,14 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
     };
 
     return (
-      <nav className={`sticky top-0 z-50 ${currentTheme.navBg} shadow-lg`}>
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav className={`sticky top-0 z-50 ${currentTheme.navBg} shadow-lg`}>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
                     {/* Logo */}
                     <div className="flex items-center">
                         <Link
                             to="/"
-                            className={`flex items-center text-xl font-bold ${currentTheme.text} hover:opacity-80`}
+                            className={`flex items-center text-xl font-bold ${currentTheme.navText} hover:opacity-80`}
                         >
                             <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-2">
                                 <span className="text-indigo-600 font-bold text-lg"> 😊</span>
@@ -125,7 +124,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                     <div className="flex items-center space-x-3">
                         <button
                             onClick={toggleTheme}
-                            className={`p-2 rounded-full ${currentTheme.text} ${currentTheme.hover}`}
+                            className={`p-2 rounded-full ${currentTheme.navText} ${currentTheme.navHover}`}
                             aria-label={`Toggle theme - switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
                         >
                             {theme === 'dark' ? <FiSun size={18} /> : <FiMoon size={18} />}
@@ -134,7 +133,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                         {isAuthenticated ? (
                             <button
                                 onClick={handleLogout}
-                                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentTheme.text} hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900 dark:hover:text-red-200 transition-colors`}
+                                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentTheme.navText} hover:bg-red-100 hover:text-red-700 transition-colors`}
                                 aria-label="Logout"
                             >
                                 <FiLogOut className="mr-1" size={18} />
@@ -144,7 +143,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                             <div className="flex space-x-2">
                                 <Link
                                     to="/login"
-                                    className={`px-3 py-2 rounded-md text-sm font-medium ${currentTheme.text} ${currentTheme.hover}`}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium ${currentTheme.navText} ${currentTheme.navHover}`}
                                 >
                                     Login
                                 </Link>
@@ -161,7 +160,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
             </div>
 
             {/* Mobile Menu */}
-            <div className={`md:hidden ${currentTheme.mobileBg} px-2 pt-2 pb-3 space-y-1`}>
+            <div className={`md:hidden ${currentTheme.mobileNavBg} px-2 pt-2 pb-3 space-y-1`}>
                 <div className="grid grid-cols-4 gap-2">
                     {/* Public pages */}
                     <MobileNavLink to="/" icon={<FiHome size={20} />} text="Home" />
