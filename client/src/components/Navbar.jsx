@@ -15,17 +15,34 @@ import {
   FiFileText,
   FiGrid,
   FiMenu,
-  FiX
+  FiX,
+  FiChevronDown,
+  FiChevronUp
 } from "react-icons/fi";
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '../context/useTheme';
 
-export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
+export default function Navbar({ setIsAuthenticated, isAuthenticated, user }) {
     const navigate = useNavigate();
     const location = useLocation();
     const { theme, setTheme, themes } = useTheme();
     const currentTheme = themes[theme];
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setDropdownOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     const handleLogout = () => {
         try {
@@ -109,7 +126,8 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                             <div className="w-10 h-10 rounded-full bg-white bg-opacity-20 flex items-center justify-center mr-2">
                                 <span className="text-white font-bold text-lg">😊</span>
                             </div>
-                            <span className="hidden sm:inline">Witty MoodTracker</span>
+                            {/* Always show the title, even on small screens */}
+                            <span className="inline">Witty MoodTracker</span>
                         </Link>
                     </div>
 
@@ -117,22 +135,76 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                     <div className="hidden md:flex items-center space-x-1">
                         {/* Public pages (no auth required) */}
                         <NavLink to="/" icon={<FiHome size={18} />} text="Home" />
-                        <NavLink to="/features" icon={<FiFeather size={18} />} text="Features" />
+                        
+                        {/* Dropdown for Features, Testimonials, Blog, Guides */}
+                        <div className="relative" ref={dropdownRef}>
+                            <button
+                                onClick={() => setDropdownOpen(!dropdownOpen)}
+                                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentTheme.navText} ${currentTheme.navHover} transition-colors`}
+                                aria-expanded={dropdownOpen}
+                            >
+                                <FiGrid size={18} className="mr-1" />
+                                <span>More</span>
+                                {dropdownOpen ? <FiChevronUp size={16} className="ml-1" /> : <FiChevronDown size={16} className="ml-1" />}
+                            </button>
+                            
+                            {dropdownOpen && (
+                                <div className={`absolute top-full left-0 mt-1 w-48 rounded-md shadow-lg ${currentTheme.dropdownBg} ${currentTheme.dropdownBorder} border ring-1 ring-black ring-opacity-5`}>
+                                    <div className="py-1">
+                                        <Link
+                                            to="/features"
+                                            className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
+                                            onClick={() => setDropdownOpen(false)}
+                                        >
+                                            <FiFeather size={16} className="inline mr-2" />
+                                            Features
+                                        </Link>
+                                        <Link
+                                            to="/testimonials"
+                                            className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
+                                            onClick={() => setDropdownOpen(false)}
+                                        >
+                                            <FiStar size={16} className="inline mr-2" />
+                                            Testimonials
+                                        </Link>
+                                        <Link
+                                            to="/blog"
+                                            className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
+                                            onClick={() => setDropdownOpen(false)}
+                                        >
+                                            <FiBook size={16} className="inline mr-2" />
+                                            Blog
+                                        </Link>
+                                        <Link
+                                            to="/guides"
+                                            className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
+                                            onClick={() => setDropdownOpen(false)}
+                                        >
+                                            <FiFileText size={16} className="inline mr-2" />
+                                            Guides
+                                        </Link>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        
                         <NavLink to="/pricing" icon={<FiDollarSign size={18} />} text="Pricing" />
-                        <NavLink to="/testimonials" icon={<FiStar size={18} />} text="Testimonials" />
-                        <NavLink to="/blog" icon={<FiBook size={18} />} text="Blog" />
-                        <NavLink to="/guides" icon={<FiFileText size={18} />} text="Guides" />
                         <NavLink to="/faq" icon={<FiHelpCircle size={18} />} text="FAQ" />
                         
                         {/* Protected pages (auth required) */}
                         <NavLink to="/dashboard" icon={<FiGrid size={18} />} text="Dashboard" requiresAuth={true} />
                         <NavLink to="/stats" icon={<FiBarChart2 size={18} />} text="Statistics" requiresAuth={true} />
-                      
-{user && user.role === 'admin' && (
-  <Link to="/admin" className="text-red-600 hover:text-red-700">
-    Admin Panel
-  </Link>
-)}
+                        
+                        {/* Admin Panel Link */}
+                        {user && user.role === 'admin' && (
+                            <Link
+                                to="/admin"
+                                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium text-red-400 hover:text-red-300 transition-colors`}
+                            >
+                                Admin Panel
+                            </Link>
+                        )}
+                        
                         <NavLink to="/profile" icon={<FiUser size={18} />} text="Profile" requiresAuth={true} />
                         
                         {/* Always visible pages */}
@@ -196,16 +268,28 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                         {/* Public pages */}
                         <MobileNavLink to="/" icon={<FiHome size={20} />} text="Home" />
                         <MobileNavLink to="/features" icon={<FiFeather size={20} />} text="Features" />
-                        <MobileNavLink to="/pricing" icon={<FiDollarSign size={20} />} text="Pricing" />
                         <MobileNavLink to="/testimonials" icon={<FiStar size={20} />} text="Testimonials" />
+                        <MobileNavLink to="/blog" icon={<FiBook size={20} />} text="Blog" />
+                        <MobileNavLink to="/guides" icon={<FiFileText size={20} />} text="Guides" />
+                        <MobileNavLink to="/pricing" icon={<FiDollarSign size={20} />} text="Pricing" />
+                        <MobileNavLink to="/faq" icon={<FiHelpCircle size={20} />} text="FAQ" />
                         
                         {/* Protected pages */}
                         <MobileNavLink to="/dashboard" icon={<FiGrid size={20} />} text="Dashboard" requiresAuth={true} />
                         <MobileNavLink to="/stats" icon={<FiBarChart2 size={20} />} text="Stats" requiresAuth={true} />
-                        <MobileNavLink to="/blog" icon={<FiBook size={20} />} text="Blog" />
-                        <MobileNavLink to="/guides" icon={<FiFileText size={20} />} text="Guides" />
                         
-                        <MobileNavLink to="/faq" icon={<FiHelpCircle size={20} />} text="FAQ" />
+                        {/* Admin Panel Link for Mobile */}
+                        {user && user.role === 'admin' && (
+                            <Link
+                                to="/admin"
+                                className={`flex flex-col items-center text-xs p-2 rounded-md text-red-400 hover:text-red-300`}
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                <FiGrid size={20} />
+                                <span className="mt-1">Admin</span>
+                            </Link>
+                        )}
+                        
                         <MobileNavLink to="/contact" icon={<FiPhone size={20} />} text="Contact" />
                         
                         {isAuthenticated && (
