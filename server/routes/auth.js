@@ -4,33 +4,73 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { protect } = require('../middleware/authMiddleware');
-const sendEmail = require("../utils/emailservice");
+const { sendVerificationEmail } = require("../services/emailService");
 
 // Register new user
-// routes/auth.js
+const crypto = require("crypto");
+const { sendVerificationEmail } = require("../services/emailService");
+
 router.post("/register", async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, firstName, lastName, phone, address } = req.body;
 
-    if (!username || !email || !password) {
-      return res.status(400).json({ error: "All fields are required" });
-    }
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ error: "Email already registered" });
 
-    const existingUser = await User.findOne({ $or: [{ username }, { email }] });
-    if (existingUser) {
-      return res.status(400).json({ error: "Username or email already taken" });
-    }
+    // Create verification token
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationTokenExpires = Date.now() + 60 * 60 * 1000; // 1 hour
 
-    const user = new User({ username, email, password });
+    const user = new User({
+      username,
+      email,
+      password,
+      firstName,
+      lastName,
+      phone,
+      address,
+      verificationToken,
+      verificationTokenExpires
+    });
+
     await user.save();
 
-    res.status(201).json({ message: "User created successfully" });
+    // Send email verification
+    const verifyLink = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}&email=${email}`;
+    await sendVerificationEmail(email, verifyLink);
+
+    res.status(201).json({ message: "User created. Please check your email to verify your account." });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// routes/auth.js
+router.get("/verify-email", async (req, res) => {
+  try {
+    const { token, email } = req.query;
+
+    const user = await User.findOne({
+      email,
+      verificationToken: token,
+      verificationTokenExpires: { $gt: Date.now() }
+    });
+
+    if (!user) return res.status(400).json({ error: "Invalid or expired token" });
+
+    user.emailVerified = true;
+    user.verificationToken = undefined;
+    user.verificationTokenExpires = undefined;
+    await user.save();
+
+    res.json({ message: "Email verified successfully. You can now log in." });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 router.post('/request-reset', async (req, res) => {
   const { email } = req.body;
   // lookup user and send email logic here
