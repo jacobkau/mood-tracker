@@ -1,9 +1,50 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from '../context/useTheme';
+import { useState, useEffect } from 'react';
 
 const Home = () => {
- const { theme, themes } = useTheme();
+  const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user is authenticated
+    const token = localStorage.getItem("token");
+    if (token) {
+      setIsAuthenticated(true);
+      // Optionally fetch user data if needed
+      const userData = localStorage.getItem("user");
+      if (userData) {
+        setUser(JSON.parse(userData));
+      }
+    }
+  }, []);
+
+  const handleGetStarted = (e) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      navigate('/register');
+    }
+    // If authenticated, the Link will handle navigation naturally
+  };
+
+  const handleSupportClick = (e) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      navigate('/login');
+    }
+    // If authenticated, proceed to contact page with user data
+  };
+
+  const handleProtectedAction = (path) => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: path } });
+    } else {
+      navigate(path);
+    }
+  };
 
   return (
     <div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen flex flex-col`}>
@@ -21,18 +62,29 @@ const Home = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                to="/register"
-                className={`${currentTheme.btnPrimary} font-medium py-3 px-8 rounded-lg transition-all duration-200 text-lg text-center`}
-              >
-                Get Started Free
-              </Link>
-              <Link
-                to="/login"
-                className={`${currentTheme.btnAccent} font-medium py-3 px-8 rounded-lg transition-all duration-200 text-lg text-center`}
-              >
-                Sign In
-              </Link>
+              {isAuthenticated ? (
+                <Link
+                  to="/dashboard"
+                  className={`${currentTheme.btnPrimary} font-medium py-3 px-8 rounded-lg transition-all duration-200 text-lg text-center`}
+                >
+                  Go to Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    to="/register"
+                    className={`${currentTheme.btnPrimary} font-medium py-3 px-8 rounded-lg transition-all duration-200 text-lg text-center`}
+                  >
+                    Get Started Free
+                  </Link>
+                  <Link
+                    to="/login"
+                    className={`${currentTheme.btnAccent} font-medium py-3 px-8 rounded-lg transition-all duration-200 text-lg text-center`}
+                  >
+                    Sign In
+                  </Link>
+                </>
+              )}
             </div>
             
             <div className="mt-8 flex items-center opacity-80">
@@ -113,20 +165,12 @@ const Home = () => {
               <p className="mb-4 opacity-90">
                 Log your mood in seconds with our intuitive interface. Add notes, tags, and context to each entry for richer insights.
               </p>
-              <ul className="space-y-2 opacity-90">
-                <li className="flex items-start">
-                  <span className={`${currentTheme.bodyAccent} mr-2`}>✓</span>
-                  <span>One-tap mood selection</span>
-                </li>
-                <li className="flex items-start">
-                  <span className={`${currentTheme.bodyAccent} mr-2`}>✓</span>
-                  <span>Customizable tags and categories</span>
-                </li>
-                <li className="flex items-start">
-                  <span className={`${currentTheme.bodyAccent} mr-2`}>✓</span>
-                  <span>Daily reminders and prompts</span>
-                </li>
-              </ul>
+              <button
+                onClick={() => handleProtectedAction('/dashboard')}
+                className={`${currentTheme.btnPrimary} w-full py-2 rounded-md transition-colors`}
+              >
+                {isAuthenticated ? 'Track Mood' : 'Start Tracking'}
+              </button>
             </div>
             
             <div className={`${currentTheme.cardBg} p-6 rounded-xl ${currentTheme.cardShadow} ${currentTheme.cardBorder} border hover:shadow-lg transition-all duration-300`}>
@@ -139,20 +183,12 @@ const Home = () => {
               <p className="mb-4 opacity-90">
                 Visualize your emotional patterns with beautiful charts and graphs. Identify triggers, trends, and correlations in your mood data.
               </p>
-              <ul className="space-y-2 opacity-90">
-                <li className="flex items-start">
-                  <span className={`${currentTheme.bodyAccent} mr-2`}>✓</span>
-                  <span>Weekly and monthly trends</span>
-                </li>
-                <li className="flex items-start">
-                  <span className={`${currentTheme.bodyAccent} mr-2`}>✓</span>
-                  <span>Mood correlation analysis</span>
-                </li>
-                <li className="flex items-start">
-                  <span className={`${currentTheme.bodyAccent} mr-2`}>✓</span>
-                  <span>Exportable reports</span>
-                </li>
-              </ul>
+              <button
+                onClick={() => handleProtectedAction('/stats')}
+                className={`${currentTheme.btnPrimary} w-full py-2 rounded-md transition-colors`}
+              >
+                {isAuthenticated ? 'View Analytics' : 'See Insights'}
+              </button>
             </div>
             
             <div className={`${currentTheme.cardBg} p-6 rounded-xl ${currentTheme.cardShadow} ${currentTheme.cardBorder} border hover:shadow-lg transition-all duration-300`}>
@@ -161,24 +197,16 @@ const Home = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-center">Private & Secure</h3>
+              <h3 className="text-xl font-semibold mb-3 text-center">Support Resources</h3>
               <p className="mb-4 opacity-90">
-                Your emotional data is sensitive. We use bank-level encryption and never share your information with third parties.
+                Access helpful resources, guides, and support to help you on your mental wellness journey.
               </p>
-              <ul className="space-y-2 opacity-90">
-                <li className="flex items-start">
-                  <span className={`${currentTheme.bodyAccent} mr-2`}>✓</span>
-                  <span>End-to-end encryption</span>
-                </li>
-                <li className="flex items-start">
-                  <span className={`${currentTheme.bodyAccent} mr-2`}>✓</span>
-                  <span>Biometric authentication</span>
-                </li>
-                <li className="flex items-start">
-                  <span className={`${currentTheme.bodyAccent} mr-2`}>✓</span>
-                  <span>Local data storage option</span>
-                </li>
-              </ul>
+              <button
+                onClick={() => handleProtectedAction('/contact')}
+                className={`${currentTheme.btnPrimary} w-full py-2 rounded-md transition-colors`}
+              >
+                {isAuthenticated ? 'Get Support' : 'Learn More'}
+              </button>
             </div>
           </div>
         </div>
@@ -281,24 +309,48 @@ const Home = () => {
       {/* Final CTA Section */}
       <section className={`py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r ${currentTheme.headerGradient}`}>
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Start Your Journey to Emotional Wellness Today</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+            {isAuthenticated ? 'Continue Your Wellness Journey' : 'Start Your Journey to Emotional Wellness Today'}
+          </h2>
           <p className="text-xl mb-10 opacity-90">
-            Join thousands of users who have discovered the power of mood tracking
+            {isAuthenticated 
+              ? `Welcome back${user ? `, ${user.username}` : ''}! Keep tracking your progress.`
+              : 'Join thousands of users who have discovered the power of mood tracking'
+            }
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/register"
-              className="bg-white text-gray-800 hover:bg-gray-50 font-medium py-3 px-8 rounded-lg transition-all duration-200 text-lg shadow-md hover:shadow-lg"
-            >
-              Create Your Account
-            </Link>
-            <Link
-              to="/login"
-              className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-gray-800 font-medium py-3 px-8 rounded-lg transition-all duration-200 text-lg"
-            >
-              Sign In
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="bg-white text-gray-800 hover:bg-gray-50 font-medium py-3 px-8 rounded-lg transition-all duration-200 text-lg shadow-md hover:shadow-lg"
+                >
+                  Go to Dashboard
+                </Link>
+                <Link
+                  to="/stats"
+                  className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-gray-800 font-medium py-3 px-8 rounded-lg transition-all duration-200 text-lg"
+                >
+                  View Analytics
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/register"
+                  className="bg-white text-gray-800 hover:bg-gray-50 font-medium py-3 px-8 rounded-lg transition-all duration-200 text-lg shadow-md hover:shadow-lg"
+                >
+                  Create Your Account
+                </Link>
+                <Link
+                  to="/login"
+                  className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-gray-800 font-medium py-3 px-8 rounded-lg transition-all duration-200 text-lg"
+                >
+                  Sign In
+                </Link>
+              </>
+            )}
           </div>
           
           <p className="mt-8 opacity-80">No credit card required • Free forever plan</p>
