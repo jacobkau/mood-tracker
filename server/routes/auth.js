@@ -4,6 +4,7 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { protect } = require('../middleware/authMiddleware');
+const sendEmail = require("../utils/emailservice");
 
 // Register new user
 // routes/auth.js
