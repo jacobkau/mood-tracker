@@ -6,6 +6,7 @@ export default function MoodEntry({ setMoods }) {
   const [mood, setMood] = useState("");
   const [notes, setNotes] = useState("");
   const [showRecommendations, setShowRecommendations] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Added loading state
   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
 
@@ -63,6 +64,12 @@ export default function MoodEntry({ setMoods }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Prevent double submission
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true); // Set loading state
+    
     try {
       const token = localStorage.getItem("token");
 
@@ -83,6 +90,8 @@ export default function MoodEntry({ setMoods }) {
       setShowRecommendations(false);
     } catch (err) {
       console.error("Failed to add mood", err);
+    } finally {
+      setIsSubmitting(false); // Reset loading state
     }
   };
 
@@ -102,6 +111,7 @@ export default function MoodEntry({ setMoods }) {
             onChange={handleMoodChange}
             className={`mt-1 p-2 w-full rounded-md focus:outline-none ${currentTheme.inputBg} ${currentTheme.inputBorder} ${currentTheme.inputFocus}`}
             required
+            disabled={isSubmitting} // Disable when submitting
           >
             <option value="">Select a mood</option>
             <option value="Happy">😊 Happy</option>
@@ -132,13 +142,29 @@ export default function MoodEntry({ setMoods }) {
             className={`mt-1 p-2 w-full rounded-md focus:outline-none ${currentTheme.inputBg} ${currentTheme.inputBorder} ${currentTheme.inputFocus}`}
             rows="3"
             placeholder="Add any additional thoughts about your mood..."
+            disabled={isSubmitting} // Disable when submitting
           />
         </div>
         <button
           type="submit"
-          className={`w-full text-white py-2 px-4 rounded-md transition ${currentTheme.btnPrimary}`}
+          disabled={isSubmitting} // Disable when submitting
+          className={`w-full py-2 px-4 rounded-md transition ${
+            isSubmitting 
+              ? 'bg-gray-400 cursor-not-allowed opacity-70' 
+              : currentTheme.btnPrimary
+          } flex items-center justify-center`}
         >
-          Add Mood
+          {isSubmitting ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Adding Mood...
+            </>
+          ) : (
+            'Add Mood'
+          )}
         </button>
       </form>
     </div>
