@@ -1,8 +1,11 @@
 import axios from "axios";
 import { useState } from "react";
+import { useTheme } from '../context/useTheme';
 
 export default function MoodList({ moods, setMoods }) {
   const [expandedMoodId, setExpandedMoodId] = useState(null);
+  const { theme, themes } = useTheme();
+  const currentTheme = themes[theme];
 
   const moodRecommendations = {
     Happy: {
@@ -56,71 +59,56 @@ export default function MoodList({ moods, setMoods }) {
     }
   };
 
-const handleDelete = async (id) => {
-  console.log("[FRONTEND] Deleting mood ID:", id, typeof id); // Check ID type
-  
-  try {
-    const token = localStorage.getItem("token");
-    console.log("[FRONTEND] Token exists:", !!token); // Verify token
+  const handleDelete = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
 
-    const response = await axios.delete(
-      `${import.meta.env.VITE_API_BASE_URL}/api/moods/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    
-    console.log("[FRONTEND] Delete response:", response.data); // Log response
-    
-    setMoods((prevMoods) => {
-      const updatedMoods = prevMoods.filter((mood) => mood._id !== id);
-      console.log("[FRONTEND] Moods after deletion:", updatedMoods); // Verify state update
-      return updatedMoods;
-    });
-
-  } catch (err) {
-    console.error("[FRONTEND] Delete error:", {
-      message: err.message,
-      response: err.response?.data,
-      status: err.response?.status,
-    });
-    alert(`Failed to delete mood: ${err.response?.data?.error || err.message}`);
-  }
-};
-
+      await axios.delete(
+        `${import.meta.env.VITE_API_BASE_URL}/api/moods/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      setMoods((prevMoods) => prevMoods.filter((mood) => mood._id !== id));
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert(`Failed to delete mood: ${err.response?.data?.error || err.message}`);
+    }
+  };
 
   const toggleRecommendations = (id) => {
     setExpandedMoodId(expandedMoodId === id ? null : id);
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">Your Mood History</h2>
+    <div className={`p-6 rounded-lg shadow-md ${currentTheme.cardBg}`}>
+      <h2 className={`text-xl font-semibold mb-4 ${currentTheme.bodyText}`}>Your Mood History</h2>
       {moods.length === 0 ? (
-        <p className="text-gray-500">No moods logged yet.</p>
+        <p className={currentTheme.bodySecondary}>No moods logged yet.</p>
       ) : (
         <ul className="space-y-3">
           {moods.map((mood) => (
             <li
               key={mood._id}
-              className="border rounded-md hover:bg-gray-50 overflow-hidden"
+              className={`border rounded-md overflow-hidden ${currentTheme.cardBorder}`}
             >
               <div className="flex justify-between items-center p-3">
                 <div>
-                  <span className="font-medium">{mood.mood}</span>
+                  <span className={`font-medium ${currentTheme.bodyText}`}>{mood.mood}</span>
                   {mood.notes && (
-                    <p className="text-sm text-gray-600 mt-1">{mood.notes}</p>
+                    <p className={`text-sm mt-1 ${currentTheme.bodySecondary}`}>{mood.notes}</p>
                   )}
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className={`text-xs mt-1 ${currentTheme.bodySecondary}`}>
                     {new Date(mood.date).toLocaleString()}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => toggleRecommendations(mood._id)}
-                    className="text-blue-500 hover:text-blue-700 text-sm"
+                    className={`text-sm ${currentTheme.bodyAccent} hover:${currentTheme.bodySecondary}`}
                   >
                     {expandedMoodId === mood._id ? "Hide Tips" : "Show Tips"}
                   </button>
@@ -134,13 +122,13 @@ const handleDelete = async (id) => {
               </div>
               
               {expandedMoodId === mood._id && (
-                <div className="bg-blue-50 p-4 border-t">
-                  <h3 className="font-medium text-blue-800 mb-2">
+                <div className={`p-4 border-t ${currentTheme.highlight}`}>
+                  <h3 className={`font-medium mb-2 ${currentTheme.bodyAccent}`}>
                     {moodRecommendations[mood.mood]?.advice || "Tips for this mood:"}
                   </h3>
-                  <ul className="list-disc list-inside text-sm text-blue-700 space-y-1">
+                  <ul className="list-disc list-inside text-sm space-y-1">
                     {moodRecommendations[mood.mood]?.recommendations.map((item, index) => (
-                      <li key={index}>{item}</li>
+                      <li key={index} className={currentTheme.bodyText}>{item}</li>
                     ))}
                   </ul>
                 </div>
