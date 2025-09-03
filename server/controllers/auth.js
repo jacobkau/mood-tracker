@@ -1,18 +1,25 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require("crypto");
 
 const register = async (req, res) => {
   try {
     console.log("Registration request received:", req.body); // Log incoming data
     
-    const { username, password } = req.body;
-    
-    // Validate input
-    if (!username || !password) {
-      console.log("Validation failed: Missing fields");
-      return res.status(400).json({ error: "All fields are required" });
-    }
+    const { username, email, password } = req.body;
+
+if (!username || !email || !password) {
+  return res.status(400).json({ error: "All fields are required" });
+}
+
+const emailExists = await User.findOne({ email });
+if (emailExists) {
+  return res.status(409).json({ error: "Email already registered" });
+}
+
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+const verificationTokenExpires = Date.now() + 60 * 60 * 1000;
 
     console.log("Checking for existing user...");
     const userExists = await User.findOne({ username });
@@ -23,10 +30,16 @@ const register = async (req, res) => {
 
     console.log("Creating new user...");
     const hashedPassword = await bcrypt.hash(password, 12);
-    const user = await User.create({ 
-      username, 
-      password: hashedPassword 
-    });
+   const user = await User.create({
+  username,
+  email,
+  password: hashedPassword,
+  verificationToken,
+  verificationTokenExpires,
+});
+
+    const verifyLink = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}&email=${email}`;
+await sendVerificationEmail(email, verifyLink);
 
     console.log("User created successfully:", user._id);
     res.status(201).json({ 
@@ -111,4 +124,31 @@ const deleteProfile = async (req, res) => {
   }
 };
 
-module.exports = { register, login,  deleteProfile  };
+const verifyEmail = async (req, res) => {
+  try {
+    const { token, email } = req.query;
+
+    const user = await User.findOne({
+      email,
+      verificationToken: token,
+      verificationTokenExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: "Invalid or expired token" });
+    }
+
+    user.emailVerified = true;
+    user.verificationToken = undefined;
+    user.verificationTokenExpires = undefined;
+    await user.save();
+
+    res.json({ message: "Email verified successfully. You can now log in." });
+
+  } catch (err) {
+    res.status(500).json({ error: "Email verification failed" });
+  }
+};
+
+
+module.exports = { register, login, deleteProfile, verifyEmail };
