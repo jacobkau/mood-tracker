@@ -1,4 +1,4 @@
-import { useTheme } from "../../context/UseTheme";
+import { useTheme } from "../../context/useTheme";
 
 
 export default function MoodStats({ moods }) {
