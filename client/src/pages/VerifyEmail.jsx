@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useTheme } from "../context/useTheme";
 
 export default function VerifyEmail() {
+  const { theme, themes } = useTheme();
+  const currentTheme = themes[theme];
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState("Verifying...");
@@ -37,9 +40,23 @@ export default function VerifyEmail() {
   }, [searchParams, navigate]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="bg-white shadow-md rounded-lg p-6 text-center">
-        <h1 className="text-xl font-bold mb-4">Email Verification</h1>
+    <div
+      className="flex items-center justify-center min-h-screen"
+      style={{ backgroundColor: currentTheme.background }}
+    >
+      <div
+        className="shadow-md rounded-lg p-6 text-center"
+        style={{
+          backgroundColor: currentTheme.cardBg,
+          color: currentTheme.text,
+        }}
+      >
+        <h1
+          className="text-xl font-bold mb-4"
+          style={{ color: currentTheme.primary }}
+        >
+          Email Verification
+        </h1>
         <p>{status}</p>
       </div>
     </div>
