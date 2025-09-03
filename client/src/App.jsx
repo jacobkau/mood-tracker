@@ -89,7 +89,8 @@ function App() {
               isAuthenticated ? <Dashboard /> : <Navigate to="/login" replace />
             }
           />
-          <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/admin" element={
+              isAuthenticated ? <AdminPanel /> : <Navigate to="/login" replace /> } />
           <Route
             path="/login"
             element={
