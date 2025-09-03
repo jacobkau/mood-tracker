@@ -22,6 +22,9 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useEffect, useContext, useState } from "react";
 import { ThemeProvider } from './context/ThemeProvider';
+import About from './pages/About';
+
+
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -51,6 +54,7 @@ function App() {
               isAuthenticated ? <Dashboard /> : <Home />
             }
           />
+          <Route path="/about" element={<About />} />
           <Route path="/features" element={<Features />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/testimonials" element={<Testimonials />} />
