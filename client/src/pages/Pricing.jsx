@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
-import { getSubscriptionPlans, subscribeToPlan } from '../services/api';
+import { getSubscriptionPlans, subscribeToPlan,extractPlansFromResponse  } from '../services/api';
 import { toast } from 'react-toastify';
 import { useTheme } from '../context/useTheme';
 
@@ -13,19 +13,23 @@ const Pricing = () => {
   const { theme, themes } = useTheme();
   const currentTheme = themes[theme]; 
 
-  useEffect(() => {
-    const fetchPlans = async () => {
-      try {
-        setLoading(true);
-        const response = await getSubscriptionPlans();
-        setPlans(response.data);
-      } catch (error) {
-        console.error('Failed to fetch plans:', error);
-        
-        // Show fallback plans if API is unavailable
-        if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
-          toast.error('Cannot connect to server. Showing demo plans.');
-          setPlans([
+useEffect(() => {
+  const fetchPlans = async () => {
+    try {
+      setLoading(true);
+      const response = await getSubscriptionPlans();
+      
+      // Use the helper function to extract plans from different response formats
+      const plansData = extractPlansFromResponse(response);
+      
+      setPlans(plansData);
+    } catch (error) {
+      console.error('Failed to fetch plans:', error);
+      
+      // Show fallback plans if API is unavailable
+      if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
+        toast.error('Cannot connect to server. Showing demo plans.');
+        setPlans([
             {
               id: 'free',
               name: 'Free',
@@ -79,6 +83,7 @@ const Pricing = () => {
           ]);
         } else {
           toast.error('Failed to load pricing plans');
+        setPlans([]);
         }
       } finally {
         setLoading(false);
