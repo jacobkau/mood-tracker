@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
 import { useTheme } from '../context/useTheme';
 
-export default function Login() {
+export default function Login({ setIsAuthenticated }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -27,6 +27,12 @@ export default function Login() {
           headers: { "Content-Type": "application/json" },
         }
       );
+
+      localStorage.setItem("token", res.data.token);
+
+      // update auth state in App.jsx
+      setIsAuthenticated(true);
+
 
       console.log("Login successful:", res.data);
       toast.success("Login successful!");
