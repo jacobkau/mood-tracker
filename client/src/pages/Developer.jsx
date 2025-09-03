@@ -1,10 +1,12 @@
 import { FiGithub, FiTwitter, FiLinkedin, FiGlobe } from 'react-icons/fi';
 import { useTheme } from '../context/useTheme';
+
 export default function Developer() {
    const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
+  
   return (
-    <div className={'${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8'}>
+    <div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen py-12 px-4 sm:px-6 lg:px-8`}>
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">About the Developer</h1>
@@ -13,15 +15,15 @@ export default function Developer() {
           </p>
         </div>
 
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className={`shadow rounded-lg overflow-hidden ${currentTheme.cardBg}`}>
           <div className="p-8">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-              <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center text-4xl">
+              <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center">
                 <img 
-    src="/logo.png" 
-    alt="MoodTracker Logo"
-    className="h-20 w-25"
-  />
+                  src="/logo.png" 
+                  alt="MoodTracker Logo"
+                  className="h-20 w-25"
+                />
               </div>
               
               <div className="flex-1">
@@ -40,7 +42,7 @@ export default function Developer() {
                     href="https://github.com/jacobkau" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center text-gray-700 hover:text-blue-600"
+                    className={`flex items-center ${currentTheme.bodyAccent} hover:${currentTheme.bodySecondary}`}
                   >
                     <FiGithub className="mr-2" /> GitHub
                   </a>
@@ -48,7 +50,7 @@ export default function Developer() {
                     href="https://x.com/jacob_witty4" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center text-gray-700 hover:text-blue-600"
+                    className={`flex items-center ${currentTheme.bodyAccent} hover:${currentTheme.bodySecondary}`}
                   >
                     <FiTwitter className="mr-2" /> Twitter
                   </a>
@@ -56,7 +58,7 @@ export default function Developer() {
                     href="https://www.linkedin.com/in/jacob-mwambwa-8b7296362/" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center text-gray-700 hover:text-blue-600"
+                    className={`flex items-center ${currentTheme.bodyAccent} hover:${currentTheme.bodySecondary}`}
                   >
                     <FiLinkedin className="mr-2" /> LinkedIn
                   </a>
@@ -64,7 +66,7 @@ export default function Developer() {
                     href="https://jacobwittyp.netlify.app/" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center text-gray-700 hover:text-blue-600"
+                    className={`flex items-center ${currentTheme.bodyAccent} hover:${currentTheme.bodySecondary}`}
                   >
                     <FiGlobe className="mr-2" /> Portfolio
                   </a>
@@ -75,7 +77,7 @@ export default function Developer() {
             <div className="mt-12">
               <h3 className="text-xl font-semibold text-gray-800 mb-4">System Technical Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gray-50 p-4 rounded-lg">
+                <div className={`p-4 rounded-lg ${currentTheme.highlight}`}>
                   <h4 className="font-medium text-gray-900 mb-2">Frontend</h4>
                   <ul className="text-gray-600 space-y-1">
                     <li>React</li>
@@ -84,7 +86,7 @@ export default function Developer() {
                     <li>React Router</li>
                   </ul>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
+                <div className={`p-4 rounded-lg ${currentTheme.highlight}`}>
                   <h4 className="font-medium text-gray-900 mb-2">Backend</h4>
                   <ul className="text-gray-600 space-y-1">
                     <li>Node.js</li>
