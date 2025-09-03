@@ -4,8 +4,6 @@ import { useTheme } from '../context/useTheme';
 export default function Footer() {
   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
-  console.log("Footer theme:", theme, currentTheme);
-  
 
   return (
     <footer className={`${currentTheme.footerBg} ${currentTheme.footerText} py-8 px-4 sm:px-6 lg:px-8`}>
