@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import { getSubscriptionPlans, subscribeToPlan, extractPlansFromResponse } from '../services/api';
 import { toast } from 'react-toastify';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../context/useTheme';
 
 const Pricing = () => {
   const [plans, setPlans] = useState([]);
