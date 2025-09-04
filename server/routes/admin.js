@@ -270,19 +270,28 @@ router.get('/emails', protect, admin, async (req, res) => {
 // Bulk email
 router.post('/emails/bulk', protect, admin, async (req, res) => {
   try {
-    const { subject, content } = req.body; // Create email record
-    const email = new Email({
+    const { subject, content } = req.body;
+    if (!subject || !content) {
+      return res.status(400).json({ error: "Subject and content required" });
+    }
+
+    // Fetch all subscribed emails
+    const subscribers = await Email.find({ subscribed: true }).select("email");
+    const BulkEmail = require("../models/BulkEmail");
+    const record = new BulkEmail({
       subject,
       content,
-      sentBy: req.user.id,
-      sentAt: new Date()
+      sentBy: req.user.id
     });
-    await email.save();
-    res.json({ message: 'Bulk email sent successfully' });
+    await record.save();
+
+    res.json({ message: "Bulk email queued", recipients: subscribers.length });
   } catch (err) {
+    console.error("Bulk email error:", err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 
