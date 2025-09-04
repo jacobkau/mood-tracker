@@ -18,7 +18,12 @@ import {
   FiCheck,
   FiX,
   FiSend,
-  FiDownload
+  FiDownload,
+  FiPlus,
+  FiBook,
+  FiHelpCircle,
+  FiDollarSign,
+  FiBox
 } from "react-icons/fi";
 
 export default function AdminPanel() {
@@ -28,14 +33,33 @@ export default function AdminPanel() {
   const [contacts, setContacts] = useState([]);
   const [pages, setPages] = useState([]);
   const [emails, setEmails] = useState([]);
+  const [blogs, setBlogs] = useState([]);
+  const [features, setFeatures] = useState([]);
+  const [faqs, setFaqs] = useState([]);
+  const [pricingPlans, setPricingPlans] = useState([]);
+  const [guides, setGuides] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reviewResponse, setReviewResponse] = useState("");
   const [selectedReview, setSelectedReview] = useState(null);
   const [emailContent, setEmailContent] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
+
+  // Form states for different sections
+  const [pageForm, setPageForm] = useState({ title: '', slug: '', content: '' });
+  const [blogForm, setBlogForm] = useState({ title: '', content: '', category: '' });
+  const [featureForm, setFeatureForm] = useState({ title: '', description: '', icon: '' });
+  const [faqForm, setFaqForm] = useState({ question: '', answer: '', category: 'general' });
+  const [pricingForm, setPricingForm] = useState({ 
+    name: '', 
+    description: '', 
+    monthlyPrice: '', 
+    yearlyPrice: '' 
+  });
+  const [guideForm, setGuideForm] = useState({ title: '', content: '', category: 'getting-started' });
 
   useEffect(() => {
     fetchStats();
@@ -44,6 +68,11 @@ export default function AdminPanel() {
     if (activeTab === 'contacts') fetchContacts();
     if (activeTab === 'pages') fetchPages();
     if (activeTab === 'emails') fetchEmails();
+    if (activeTab === 'blogs') fetchBlogs();
+    if (activeTab === 'features') fetchFeatures();
+    if (activeTab === 'faqs') fetchFaqs();
+    if (activeTab === 'pricing') fetchPricingPlans();
+    if (activeTab === 'guides') fetchGuides();
   }, [activeTab]);
 
   const fetchStats = async () => {
@@ -143,6 +172,86 @@ export default function AdminPanel() {
     }
   };
 
+  const fetchBlogs = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/blogs`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setBlogs(data);
+    } catch (err) {
+      console.error("Failed to fetch blogs", err);
+      toast.error("Failed to load blogs");
+    }
+  };
+
+  const fetchFeatures = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/features`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setFeatures(data);
+    } catch (err) {
+      console.error("Failed to fetch features", err);
+      toast.error("Failed to load features");
+    }
+  };
+
+  const fetchFaqs = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/faqs`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setFaqs(data);
+    } catch (err) {
+      console.error("Failed to fetch FAQs", err);
+      toast.error("Failed to load FAQs");
+    }
+  };
+
+  const fetchPricingPlans = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setPricingPlans(data);
+    } catch (err) {
+      console.error("Failed to fetch pricing plans", err);
+      toast.error("Failed to load pricing plans");
+    }
+  };
+
+  const fetchGuides = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setGuides(data);
+    } catch (err) {
+      console.error("Failed to fetch guides", err);
+      toast.error("Failed to load guides");
+    }
+  };
+
   const updateUserRole = async (userId, newRole) => {
     try {
       const token = localStorage.getItem("token");
@@ -198,6 +307,25 @@ export default function AdminPanel() {
     }
   };
 
+  const deleteReview = async (reviewId) => {
+    if (window.confirm("Are you sure you want to delete this review?")) {
+      try {
+        const token = localStorage.getItem("token");
+        await axios.delete(
+          `${import.meta.env.VITE_API_BASE_URL}/api/admin/reviews/${reviewId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        toast.success("Review deleted successfully");
+        fetchReviews();
+      } catch (err) {
+        console.error("Failed to delete review", err);
+        toast.error("Failed to delete review");
+      }
+    }
+  };
+
   const sendReviewResponse = async () => {
     if (!reviewResponse.trim()) {
       toast.error("Please enter a response message");
@@ -205,6 +333,7 @@ export default function AdminPanel() {
     }
 
     try {
+      setIsSubmitting(true);
       const token = localStorage.getItem("token");
       await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/admin/reviews/${selectedReview._id}/response`,
@@ -220,6 +349,8 @@ export default function AdminPanel() {
     } catch (err) {
       console.error("Failed to send response", err);
       toast.error("Failed to send response");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -241,6 +372,33 @@ export default function AdminPanel() {
     }
   };
 
+  const createPage = async (e) => {
+    e.preventDefault();
+    try {
+      setIsSubmitting(true);
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/pages`,
+        pageForm,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      toast.success("Page created successfully");
+      setPageForm({ title: '', slug: '', content: '' });
+      fetchPages();
+    } catch (err) {
+      console.error("Failed to create page", err);
+      if (err.response?.status === 409) {
+        toast.error("A page with this slug already exists");
+      } else {
+        toast.error("Failed to create page");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const updatePageStatus = async (pageId, isPublished) => {
     try {
       const token = localStorage.getItem("token");
@@ -259,6 +417,25 @@ export default function AdminPanel() {
     }
   };
 
+  const deletePage = async (pageId) => {
+    if (window.confirm("Are you sure you want to delete this page?")) {
+      try {
+        const token = localStorage.getItem("token");
+        await axios.delete(
+          `${import.meta.env.VITE_API_BASE_URL}/api/admin/pages/${pageId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        toast.success("Page deleted successfully");
+        fetchPages();
+      } catch (err) {
+        console.error("Failed to delete page", err);
+        toast.error("Failed to delete page");
+      }
+    }
+  };
+
   const sendBulkEmail = async () => {
     if (!emailSubject.trim() || !emailContent.trim()) {
       toast.error("Please enter subject and content");
@@ -266,6 +443,7 @@ export default function AdminPanel() {
     }
 
     try {
+      setIsSubmitting(true);
       const token = localStorage.getItem("token");
       await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/admin/emails/bulk`,
@@ -277,9 +455,134 @@ export default function AdminPanel() {
       toast.success("Bulk email sent successfully");
       setEmailSubject("");
       setEmailContent("");
+      fetchEmails();
     } catch (err) {
       console.error("Failed to send bulk email", err);
       toast.error("Failed to send email");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const createBlog = async (e) => {
+    e.preventDefault();
+    try {
+      setIsSubmitting(true);
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/blogs`,
+        blogForm,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      toast.success("Blog created successfully");
+      setBlogForm({ title: '', content: '', category: '' });
+      fetchBlogs();
+    } catch (err) {
+      console.error("Failed to create blog", err);
+      toast.error("Failed to create blog");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const createFeature = async (e) => {
+    e.preventDefault();
+    try {
+      setIsSubmitting(true);
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/features`,
+        featureForm,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      toast.success("Feature created successfully");
+      setFeatureForm({ title: '', description: '', icon: '' });
+      fetchFeatures();
+    } catch (err) {
+      console.error("Failed to create feature", err);
+      toast.error("Failed to create feature");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const createFaq = async (e) => {
+    e.preventDefault();
+    try {
+      setIsSubmitting(true);
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/faqs`,
+        faqForm,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      toast.success("FAQ created successfully");
+      setFaqForm({ question: '', answer: '', category: 'general' });
+      fetchFaqs();
+    } catch (err) {
+      console.error("Failed to create FAQ", err);
+      toast.error("Failed to create FAQ");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const createPricingPlan = async (e) => {
+    e.preventDefault();
+    try {
+      setIsSubmitting(true);
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing`,
+        {
+          name: pricingForm.name,
+          description: pricingForm.description,
+          price: {
+            monthly: parseFloat(pricingForm.monthlyPrice),
+            yearly: parseFloat(pricingForm.yearlyPrice)
+          }
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      toast.success("Pricing plan created successfully");
+      setPricingForm({ name: '', description: '', monthlyPrice: '', yearlyPrice: '' });
+      fetchPricingPlans();
+    } catch (err) {
+      console.error("Failed to create pricing plan", err);
+      toast.error("Failed to create pricing plan");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const createGuide = async (e) => {
+    e.preventDefault();
+    try {
+      setIsSubmitting(true);
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
+        guideForm,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      toast.success("Guide created successfully");
+      setGuideForm({ title: '', content: '', category: 'getting-started' });
+      fetchGuides();
+    } catch (err) {
+      console.error("Failed to create guide", err);
+      toast.error("Failed to create guide");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -351,6 +654,11 @@ export default function AdminPanel() {
           <TabButton name="reviews" icon={<FiStar />} label="Reviews" />
           <TabButton name="contacts" icon={<FiMessageSquare />} label="Contacts" />
           <TabButton name="pages" icon={<FiFileText />} label="Pages" />
+          <TabButton name="blogs" icon={<FiBook />} label="Blogs" />
+          <TabButton name="features" icon={<FiBox />} label="Features" />
+          <TabButton name="faqs" icon={<FiHelpCircle />} label="FAQs" />
+          <TabButton name="pricing" icon={<FiDollarSign />} label="Pricing" />
+          <TabButton name="guides" icon={<FiBook />} label="Guides" />
           <TabButton name="emails" icon={<FiMail />} label="Emails" />
           <TabButton name="settings" icon={<FiSettings />} label="Settings" />
         </div>
@@ -487,6 +795,12 @@ export default function AdminPanel() {
                     >
                       <FiMessageSquare />
                     </button>
+                    <button
+                      onClick={() => deleteReview(review._id)}
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      <FiTrash2 />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -528,7 +842,58 @@ export default function AdminPanel() {
         {/* Pages Tab */}
         {activeTab === 'pages' && (
           <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
-            <h2 className="text-xl font-semibold mb-4">Page Management</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Page Management</h2>
+              <button
+                onClick={() => exportData('pages')}
+                className={`${currentTheme.btnPrimary} flex items-center px-3 py-1 rounded`}
+              >
+                <FiDownload className="mr-1" /> Export
+              </button>
+            </div>
+
+            {/* Create Page Form */}
+            <div className="mb-6 p-4 border rounded-lg">
+              <h3 className="font-semibold mb-3">Create New Page</h3>
+              <form onSubmit={createPage}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                  <input
+                    type="text"
+                    placeholder="Page Title"
+                    value={pageForm.title}
+                    onChange={(e) => setPageForm({...pageForm, title: e.target.value})}
+                    className="w-full p-2 border rounded"
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Slug (URL-friendly)"
+                    value={pageForm.slug}
+                    onChange={(e) => setPageForm({...pageForm, slug: e.target.value})}
+                    className="w-full p-2 border rounded"
+                    required
+                  />
+                </div>
+                <textarea
+                  placeholder="Page Content"
+                  value={pageForm.content}
+                  onChange={(e) => setPageForm({...pageForm, content: e.target.value})}
+                  rows={4}
+                  className="w-full p-2 border rounded mb-3"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Creating...' : 'Create Page'}
+                </button>
+              </form>
+            </div>
+
+            {/* Pages List */}
+            <h3 className="font-semibold mb-3">Existing Pages</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {pages.map((page) => (
                 <div key={page._id} className="border rounded-lg p-4">
@@ -540,7 +905,7 @@ export default function AdminPanel() {
                       {page.isPublished ? 'Published' : 'Draft'}
                     </span>
                   </div>
-                  <p className="text-gray-600 mb-3">{page.slug}</p>
+                  <p className="text-gray-600 mb-3">/{page.slug}</p>
                   <div className="flex gap-2">
                     <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
                       <FiEdit />
@@ -550,6 +915,380 @@ export default function AdminPanel() {
                       className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm"
                     >
                       {page.isPublished ? 'Unpublish' : 'Publish'}
+                    </button>
+                    <button
+                      onClick={() => deletePage(page._id)}
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Blogs Tab */}
+        {activeTab === 'blogs' && (
+          <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
+            <h2 className="text-xl font-semibold mb-4">Blog Management</h2>
+            
+            {/* Create Blog Form */}
+            <div className="mb-6 p-4 border rounded-lg">
+              <h3 className="font-semibold mb-3">Create New Blog Post</h3>
+              <form onSubmit={createBlog}>
+                <input
+                  type="text"
+                  placeholder="Blog Title"
+                  value={blogForm.title}
+                  onChange={(e) => setBlogForm({...blogForm, title: e.target.value})}
+                  className="w-full p-2 border rounded mb-3"
+                  required
+                />
+                <select
+                  value={blogForm.category}
+                  onChange={(e) => setBlogForm({...blogForm, category: e.target.value})}
+                  className="w-full p-2 border rounded mb-3"
+                  required
+                >
+                  <option value="">Select Category</option>
+                  <option value="news">News</option>
+                  <option value="tutorials">Tutorials</option>
+                  <option value="updates">Updates</option>
+                  <option value="tips">Tips & Tricks</option>
+                </select>
+                <textarea
+                  placeholder="Blog Content"
+                  value={blogForm.content}
+                  onChange={(e) => setBlogForm({...blogForm, content: e.target.value})}
+                  rows={6}
+                  className="w-full p-2 border rounded mb-3"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Creating...' : 'Create Blog Post'}
+                </button>
+              </form>
+            </div>
+
+            {/* Blogs List */}
+            <h3 className="font-semibold mb-3">Blog Posts</h3>
+            <div className="space-y-4">
+              {blogs.map((blog) => (
+                <div key={blog._id} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <h4 className="font-semibold">{blog.title}</h4>
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      blog.status === 'published' ? 'bg-green-100 text-green-800' : 
+                      blog.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {blog.status}
+                    </span>
+                  </div>
+                  <p className="text-gray-600 mb-2">{blog.category}</p>
+                  <div className="flex gap-2">
+                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                      <FiEdit />
+                    </button>
+                    <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Features Tab */}
+        {activeTab === 'features' && (
+          <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
+            <h2 className="text-xl font-semibold mb-4">Feature Management</h2>
+            
+            {/* Create Feature Form */}
+            <div className="mb-6 p-4 border rounded-lg">
+              <h3 className="font-semibold mb-3">Add New Feature</h3>
+              <form onSubmit={createFeature}>
+                <input
+                  type="text"
+                  placeholder="Feature Title"
+                  value={featureForm.title}
+                  onChange={(e) => setFeatureForm({...featureForm, title: e.target.value})}
+                  className="w-full p-2 border rounded mb-3"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Icon (e.g., FiStar)"
+                  value={featureForm.icon}
+                  onChange={(e) => setFeatureForm({...featureForm, icon: e.target.value})}
+                  className="w-full p-2 border rounded mb-3"
+                  required
+                />
+                <textarea
+                  placeholder="Feature Description"
+                  value={featureForm.description}
+                  onChange={(e) => setFeatureForm({...featureForm, description: e.target.value})}
+                  rows={3}
+                  className="w-full p-2 border rounded mb-3"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Creating...' : 'Add Feature'}
+                </button>
+              </form>
+            </div>
+
+            {/* Features List */}
+            <h3 className="font-semibold mb-3">Features</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {features.map((feature) => (
+                <div key={feature._id} className="border rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <span className="text-2xl mr-2">{feature.icon}</span>
+                    <h4 className="font-semibold">{feature.title}</h4>
+                  </div>
+                  <p className="text-gray-600 mb-3">{feature.description}</p>
+                  <div className="flex gap-2">
+                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                      <FiEdit />
+                    </button>
+                    <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* FAQs Tab */}
+        {activeTab === 'faqs' && (
+          <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
+            <h2 className="text-xl font-semibold mb-4">FAQ Management</h2>
+            
+            {/* Create FAQ Form */}
+            <div className="mb-6 p-4 border rounded-lg">
+              <h3 className="font-semibold mb-3">Add New FAQ</h3>
+              <form onSubmit={createFaq}>
+                <select
+                  value={faqForm.category}
+                  onChange={(e) => setFaqForm({...faqForm, category: e.target.value})}
+                  className="w-full p-2 border rounded mb-3"
+                  required
+                >
+                  <option value="general">General</option>
+                  <option value="account">Account</option>
+                  <option value="billing">Billing</option>
+                  <option value="technical">Technical</option>
+                  <option value="features">Features</option>
+                  <option value="other">Other</option>
+                </select>
+                <input
+                  type="text"
+                  placeholder="Question"
+                  value={faqForm.question}
+                  onChange={(e) => setFaqForm({...faqForm, question: e.target.value})}
+                  className="w-full p-2 border rounded mb-3"
+                  required
+                />
+                <textarea
+                  placeholder="Answer"
+                  value={faqForm.answer}
+                  onChange={(e) => setFaqForm({...faqForm, answer: e.target.value})}
+                  rows={3}
+                  className="w-full p-2 border rounded mb-3"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Creating...' : 'Add FAQ'}
+                </button>
+              </form>
+            </div>
+
+            {/* FAQs List */}
+            <h3 className="font-semibold mb-3">FAQs</h3>
+            <div className="space-y-4">
+              {faqs.map((faq) => (
+                <div key={faq._id} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <h4 className="font-semibold">{faq.question}</h4>
+                    <span className={`px-2 py-1 rounded text-xs bg-gray-100 text-gray-800`}>
+                      {faq.category}
+                    </span>
+                  </div>
+                  <p className="text-gray-600 mt-2">{faq.answer}</p>
+                  <div className="flex gap-2 mt-3">
+                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                      <FiEdit />
+                    </button>
+                    <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Pricing Tab */}
+        {activeTab === 'pricing' && (
+          <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
+            <h2 className="text-xl font-semibold mb-4">Pricing Management</h2>
+            
+            {/* Create Pricing Plan Form */}
+            <div className="mb-6 p-4 border rounded-lg">
+              <h3 className="font-semibold mb-3">Add New Pricing Plan</h3>
+              <form onSubmit={createPricingPlan}>
+                <input
+                  type="text"
+                  placeholder="Plan Name"
+                  value={pricingForm.name}
+                  onChange={(e) => setPricingForm({...pricingForm, name: e.target.value})}
+                  className="w-full p-2 border rounded mb-3"
+                  required
+                />
+                <textarea
+                  placeholder="Plan Description"
+                  value={pricingForm.description}
+                  onChange={(e) => setPricingForm({...pricingForm, description: e.target.value})}
+                  rows={2}
+                  className="w-full p-2 border rounded mb-3"
+                  required
+                />
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <input
+                    type="number"
+                    placeholder="Monthly Price"
+                    value={pricingForm.monthlyPrice}
+                    onChange={(e) => setPricingForm({...pricingForm, monthlyPrice: e.target.value})}
+                    className="w-full p-2 border rounded"
+                    required
+                  />
+                  <input
+                    type="number"
+                    placeholder="Yearly Price"
+                    value={pricingForm.yearlyPrice}
+                    onChange={(e) => setPricingForm({...pricingForm, yearlyPrice: e.target.value})}
+                    className="w-full p-2 border rounded"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Creating...' : 'Add Pricing Plan'}
+                </button>
+              </form>
+            </div>
+
+            {/* Pricing Plans List */}
+            <h3 className="font-semibold mb-3">Pricing Plans</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {pricingPlans.map((plan) => (
+                <div key={plan._id} className="border rounded-lg p-4">
+                  <h4 className="font-semibold text-lg mb-2">{plan.name}</h4>
+                  <p className="text-gray-600 mb-3">{plan.description}</p>
+                  <div className="mb-3">
+                    <span className="text-2xl font-bold">${plan.price.monthly}</span>
+                    <span className="text-gray-600">/month</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                      <FiEdit />
+                    </button>
+                    <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Guides Tab */}
+        {activeTab === 'guides' && (
+          <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
+            <h2 className="text-xl font-semibold mb-4">Guide Management</h2>
+            
+            {/* Create Guide Form */}
+            <div className="mb-6 p-4 border rounded-lg">
+              <h3 className="font-semibold mb-3">Create New Guide</h3>
+              <form onSubmit={createGuide}>
+                <input
+                  type="text"
+                  placeholder="Guide Title"
+                  value={guideForm.title}
+                  onChange={(e) => setGuideForm({...guideForm, title: e.target.value})}
+                  className="w-full p-2 border rounded mb-3"
+                  required
+                />
+                <select
+                  value={guideForm.category}
+                  onChange={(e) => setGuideForm({...guideForm, category: e.target.value})}
+                  className="w-full p-2 border rounded mb-3"
+                  required
+                >
+                  <option value="getting-started">Getting Started</option>
+                  <option value="tutorials">Tutorials</option>
+                  <option value="tips">Tips & Tricks</option>
+                  <option value="troubleshooting">Troubleshooting</option>
+                  <option value="advanced">Advanced</option>
+                </select>
+                <textarea
+                  placeholder="Guide Content"
+                  value={guideForm.content}
+                  onChange={(e) => setGuideForm({...guideForm, content: e.target.value})}
+                  rows={6}
+                  className="w-full p-2 border rounded mb-3"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Creating...' : 'Create Guide'}
+                </button>
+              </form>
+            </div>
+
+            {/* Guides List */}
+            <h3 className="font-semibold mb-3">Guides</h3>
+            <div className="space-y-4">
+              {guides.map((guide) => (
+                <div key={guide._id} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <h4 className="font-semibold">{guide.title}</h4>
+                    <span className={`px-2 py-1 rounded text-xs bg-gray-100 text-gray-800`}>
+                      {guide.category}
+                    </span>
+                  </div>
+                  <p className="text-gray-600 mb-2">{guide.excerpt || guide.content.substring(0, 100)}...</p>
+                  <div className="flex gap-2">
+                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                      <FiEdit />
+                    </button>
+                    <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                      <FiTrash2 />
                     </button>
                   </div>
                 </div>
@@ -582,9 +1321,10 @@ export default function AdminPanel() {
               />
               <button
                 onClick={sendBulkEmail}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                disabled={isSubmitting}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
               >
-                <FiSend className="inline mr-1" /> Send to All Users
+                {isSubmitting ? 'Sending...' : 'Send to All Users'}
               </button>
             </div>
 
@@ -669,9 +1409,10 @@ export default function AdminPanel() {
                 </button>
                 <button
                   onClick={sendReviewResponse}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                  disabled={isSubmitting}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
                 >
-                  Send Response
+                  {isSubmitting ? 'Sending...' : 'Send Response'}
                 </button>
               </div>
             </div>
