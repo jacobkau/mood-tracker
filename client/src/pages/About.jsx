@@ -8,6 +8,7 @@ const About = () => {
   const currentTheme = themes[theme];
   
   const teamMembers = [
+    
     {
       name: "Dr. Sarah Chen",
       role: "Clinical Psychologist",
