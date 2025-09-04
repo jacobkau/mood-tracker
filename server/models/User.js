@@ -36,6 +36,10 @@ const UserSchema = new mongoose.Schema({
     required: [true, "Password is required"],
     minlength: 6
   },
+   emailSubscribed: {
+    type: Boolean,
+    default: true
+  },
 
   // Email verification
   emailVerified: { type: Boolean, default: false },
