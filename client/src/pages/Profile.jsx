@@ -22,7 +22,6 @@ export default function Profile() {
   const [previewImage, setPreviewImage] = useState("");
 
 const [serverImage, setServerImage] = useState("");
-const [previewImage, setPreviewImage] = useState("");
   
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
