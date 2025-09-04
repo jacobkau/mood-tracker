@@ -184,7 +184,7 @@ export default function AdminPanel() {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/api/admin/reviews/${reviewId}/status`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/reviews/admin/${reviewId}/status`,
         { status },
         {
           headers: { Authorization: `Bearer ${token}` },
