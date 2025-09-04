@@ -111,66 +111,66 @@ export default function Profile() {
     }
   };
 
-  const removeImage = async () => {
-    setIsRemovingImage(true);
-    try {
-      const token = localStorage.getItem("token");
-      
-      // Call API to remove profile image
-      await axios.delete(
-        `${import.meta.env.VITE_API_BASE_URL}/api/auth/remove-profile-image`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      
-      setProfileImage(null);
-      setPreviewImage("");
-      
-      // Update user data
-      setUser(prev => prev ? {...prev, profileImage: null} : null);
-      
-      toast.success("Profile image removed successfully");
-    } catch (err) {
-      console.error("Failed to remove image", err);
-      toast.error(err.response?.data?.error || "Failed to remove profile image");
-    } finally {
-      setIsRemovingImage(false);
-    }
-  };
-
-  const uploadProfileImage = async () => {
-    if (!profileImage) return null;
+const removeImage = async () => {
+  setIsRemovingImage(true);
+  try {
+    const token = localStorage.getItem("token");
     
-    setIsUploading(true);
-    try {
-      const token = localStorage.getItem("token");
-      const uploadFormData = new FormData();
-      uploadFormData.append('profileImage', profileImage);
-      
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/auth/upload-profile-image`,
-        uploadFormData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-      
-      toast.success("Profile image updated successfully");
-      return response.data.profileImagePath;
-    } catch (err) {
-      console.error("Failed to upload image", err);
-      toast.error(err.response?.data?.error || "Failed to upload profile image");
-      return null;
-    } finally {
-      setIsUploading(false);
-    }
-  };
+    // Call API to remove profile image
+    await axios.delete(
+      `${import.meta.env.VITE_API_BASE_URL}/api/upload/profile-image`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    
+    setProfileImage(null);
+    setPreviewImage("");
+    
+    // Update user data
+    setUser(prev => prev ? {...prev, profileImage: null} : null);
+    
+    toast.success("Profile image removed successfully");
+  } catch (err) {
+    console.error("Failed to remove image", err);
+    toast.error(err.response?.data?.error || "Failed to remove profile image");
+  } finally {
+    setIsRemovingImage(false);
+  }
+};
+
+const uploadProfileImage = async () => {
+  if (!profileImage) return null;
+  
+  setIsUploading(true);
+  try {
+    const token = localStorage.getItem("token");
+    const uploadFormData = new FormData();
+    uploadFormData.append('profileImage', profileImage);
+    
+    const response = await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/api/upload/profile-image`,
+      uploadFormData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    
+    toast.success("Profile image uploaded successfully");
+    return response.data.profileImagePath;
+  } catch (err) {
+    console.error("Failed to upload image", err);
+    toast.error(err.response?.data?.error || "Failed to upload profile image");
+    return null;
+  } finally {
+    setIsUploading(false);
+  }
+};
 
   const validateForm = () => {
     const newErrors = {};
