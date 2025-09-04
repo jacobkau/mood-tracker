@@ -12,6 +12,12 @@ router.get("/", protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
       .select("-password -__v");
+    
+    // Convert profileImage to full URL if it's a local path
+    if (user.profileImage && !user.profileImage.startsWith('http')) {
+      user.profileImage = `${process.env.SERVER_BASE_URL || process.env.API_BASE_URL}/${user.profileImage}`;
+    }
+    
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -53,19 +59,51 @@ router.put("/", protect, async (req, res) => {
       user.password = await bcrypt.hash(newPassword, 12);
     }
 
+    // Check if username is already taken by another user
+    if (username && username !== user.username) {
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
+        return res.status(400).json({ error: "Username already taken" });
+      }
+      user.username = username;
+    }
+
     // Update user fields
-    if (username !== undefined) user.username = username;
     if (firstName !== undefined) user.firstName = firstName;
     if (lastName !== undefined) user.lastName = lastName;
     if (phone !== undefined) user.phone = phone;
     if (address !== undefined) user.address = address;
-    if (profileImage !== undefined) user.profileImage = profileImage;
+    
+    // Handle profile image update
+    if (profileImage !== undefined) {
+      // If profileImage is empty string, user wants to remove the image
+      if (profileImage === "") {
+        // Delete old profile image file if exists
+        if (user.profileImage && !user.profileImage.startsWith('http')) {
+          const oldImagePath = path.join(__dirname, '..', user.profileImage);
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+          }
+        }
+        user.profileImage = null;
+      } 
+      // If profileImage is a string path (not a URL), update it
+      else if (profileImage && !profileImage.startsWith('http')) {
+        user.profileImage = profileImage;
+      }
+      // If it's a URL (from social login), keep it as is
+    }
     
     await user.save();
     
     // Return updated user data without password
     const updatedUser = await User.findById(req.user.id)
       .select("-password -__v");
+    
+    // Convert profileImage to full URL if it's a local path
+    if (updatedUser.profileImage && !updatedUser.profileImage.startsWith('http')) {
+      updatedUser.profileImage = `${process.env.SERVER_BASE_URL || process.env.API_BASE_URL}/${updatedUser.profileImage}`;
+    }
       
     res.json({ 
       message: "Profile updated successfully",
