@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get all pricing plans (admin only)
-router.get('/admin/pricing', auth, adminAuth, async (req, res) => {
+router.get('/admin/pricing', protect, admin, async (req, res) => {
   try {
     const pricingPlans = await PricingPlan.find().sort({ order: 1 });
     res.json(pricingPlans);
@@ -40,7 +40,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new pricing plan (admin only)
-router.post('/admin/pricing', auth, adminAuth, async (req, res) => {
+router.post('/admin/pricing', protect, admin, async (req, res) => {
   try {
     const { name, description, price, features, isActive, isPopular, order, trialPeriod } = req.body;
 
@@ -74,7 +74,7 @@ router.post('/admin/pricing', auth, adminAuth, async (req, res) => {
 });
 
 // Update pricing plan (admin only)
-router.put('/admin/pricing/:id', auth, adminAuth, async (req, res) => {
+router.put('/admin/pricing/:id', protect, admin, async (req, res) => {
   try {
     const { name, description, price, features, isActive, isPopular, order, trialPeriod } = req.body;
 
@@ -116,7 +116,7 @@ router.put('/admin/pricing/:id', auth, adminAuth, async (req, res) => {
 });
 
 // Delete pricing plan (admin only)
-router.delete('/admin/pricing/:id', auth, adminAuth, async (req, res) => {
+router.delete('/admin/pricing/:id', protect, admin, async (req, res) => {
   try {
     const pricingPlan = await PricingPlan.findById(req.params.id);
     if (!pricingPlan) {
@@ -132,7 +132,7 @@ router.delete('/admin/pricing/:id', auth, adminAuth, async (req, res) => {
 });
 
 // Toggle plan active status (admin only)
-router.patch('/admin/pricing/:id/active', auth, adminAuth, async (req, res) => {
+router.patch('/admin/pricing/:id/active', protect, admin, async (req, res) => {
   try {
     const pricingPlan = await PricingPlan.findById(req.params.id);
     if (!pricingPlan) {
@@ -150,7 +150,7 @@ router.patch('/admin/pricing/:id/active', auth, adminAuth, async (req, res) => {
 });
 
 // Toggle popular status (admin only)
-router.patch('/admin/pricing/:id/popular', auth, adminAuth, async (req, res) => {
+router.patch('/admin/pricing/:id/popular', protect, admin, async (req, res) => {
   try {
     const pricingPlan = await PricingPlan.findById(req.params.id);
     if (!pricingPlan) {
@@ -168,7 +168,7 @@ router.patch('/admin/pricing/:id/popular', auth, adminAuth, async (req, res) => 
 });
 
 // Update plan order (admin only)
-router.patch('/admin/pricing/:id/order', auth, adminAuth, async (req, res) => {
+router.patch('/admin/pricing/:id/order', protect, admin, async (req, res) => {
   try {
     const { order } = req.body;
     const pricingPlan = await PricingPlan.findById(req.params.id);
