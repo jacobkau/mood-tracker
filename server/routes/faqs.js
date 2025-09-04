@@ -1,7 +1,6 @@
 const express = require('express');
 const FAQ = require('../models/FAQ');
-const auth = require('../middleware/auth');
-const adminAuth = require('../middleware/adminAuth');
+const { protect, admin } = require("../middleware/authMiddleware");
 const router = express.Router();
 
 // Get all FAQs
