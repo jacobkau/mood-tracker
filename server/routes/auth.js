@@ -10,7 +10,6 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require("crypto");
 
-
 // IMAGE UPLOAD CONFIGURATION
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -52,8 +51,8 @@ router.post('/upload-profile-image', protect, upload.single('profileImage'), asy
 
     const user = await User.findById(req.user.id);
     
-    // Delete old profile image if exists
-    if (user.profileImage && user.profileImage !== req.file.path) {
+    // Delete old profile image if exists (and it's not a URL)
+    if (user.profileImage && !user.profileImage.startsWith('http')) {
       const oldImagePath = path.join(__dirname, '..', user.profileImage);
       if (fs.existsSync(oldImagePath)) {
         fs.unlinkSync(oldImagePath);
@@ -225,7 +224,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// Get current user profile
+// Get current user profile (for backward compatibility)
 router.get('/me', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
@@ -236,119 +235,6 @@ router.get('/me', protect, async (req, res) => {
   } catch (err) {
     console.error("Get user error:", err);
     res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Update user profile
-router.put('/profile', protect, async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { currentPassword, newPassword, confirmPassword, profileImage, ...profileUpdates } = req.body;
-
-    // If changing password, validate all password fields
-    if (newPassword || currentPassword || confirmPassword) {
-      if (!currentPassword || !newPassword || !confirmPassword) {
-        return res.status(400).json({ error: "All password fields are required to change password" });
-      }
-      
-      if (newPassword !== confirmPassword) {
-        return res.status(400).json({ error: "New passwords do not match" });
-      }
-      
-      if (newPassword.length < 6) {
-        return res.status(400).json({ error: "Password must be at least 6 characters long" });
-      }
-      
-      const user = await User.findById(userId).select('+password');
-      const isMatch = await bcrypt.compare(currentPassword, user.password);
-      
-      if (!isMatch) {
-        return res.status(401).json({ error: "Current password is incorrect" });
-      }
-      
-      // Hash new password and add to updates
-      profileUpdates.password = await bcrypt.hash(newPassword, 12);
-    }
-
-    // Handle profile image update if provided
-    if (profileImage) {
-      profileUpdates.profileImage = profileImage;
-    }
-
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { $set: profileUpdates },
-      { new: true, runValidators: true }
-    ).select('-password');
-
-    if (!updatedUser) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    res.json({
-      success: true,
-      message: "Profile updated successfully",
-      user: updatedUser
-    });
-
-  } catch (err) {
-    console.error("Update profile error:", err);
-    
-    // Handle duplicate username/email errors
-    if (err.code === 11000) {
-      const field = Object.keys(err.keyValue)[0];
-      return res.status(400).json({ 
-        error: `${field} already exists` 
-      });
-    }
-    
-    // Handle validation errors
-    if (err.name === 'ValidationError') {
-      const errors = Object.values(err.errors).map(e => e.message);
-      return res.status(400).json({ 
-        error: errors.join(', ') 
-      });
-    }
-    
-    res.status(500).json({ 
-      error: "Failed to update profile",
-      details: process.env.NODE_ENV === 'development' ? err.message : null
-    });
-  }
-});
-
-// Delete user profile
-router.delete('/profile', protect, async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const user = await User.findById(userId);
-    
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    
-    // Delete profile image if exists
-    if (user.profileImage) {
-      const imagePath = path.join(__dirname, '..', user.profileImage);
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
-      }
-    }
-    
-    // Delete user
-    await User.findByIdAndDelete(userId);
-    
-    res.status(200).json({ 
-      success: true,
-      message: "Account deleted successfully",
-      deletedUserId: userId
-    });
-  } catch (err) {
-    console.error("Delete profile error:", err);
-    res.status(500).json({ 
-      error: "Failed to delete account",
-      details: process.env.NODE_ENV === 'development' ? err.message : null
-    });
   }
 });
 
