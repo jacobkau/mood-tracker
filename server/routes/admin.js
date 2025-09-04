@@ -79,6 +79,7 @@ router.get('/reviews', protect, admin, async (req, res) => {
       .sort({ createdAt: -1 });
     res.json({ reviews });
   } catch (err) {
+            console.error("Error in /api/admin/stats:", error); 
     res.status(500).json({ error: err.message });
   }
 });
@@ -157,6 +158,7 @@ router.get('/stats', protect, admin, async (req, res) => {
       emailsSent
     });
   } catch (err) {
+        console.error("Error in /api/admin/stats:", error); 
     res.status(500).json({ error: err.message });
   }
 });
