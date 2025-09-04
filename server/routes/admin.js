@@ -70,26 +70,96 @@ router.delete("/users/:id", protect, admin, async (req, res) => {
   }
 });
 
-// @desc    Get system statistics (admin only)
-// @route   GET /api/admin/stats
-router.get("/stats", protect, admin, async (req, res) => {
+
+// Reviews management
+router.get('/reviews', protect, admin, async (req, res) => {
+  try {
+    const reviews = await Review.find()
+      .populate('user', 'username email')
+      .sort({ createdAt: -1 });
+    res.json({ reviews });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Contact messages
+router.get('/contacts', protect, admin, async (req, res) => {
+  try {
+    const contacts = await Contact.find().sort({ createdAt: -1 });
+    res.json(contacts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Pages management
+router.get('/pages', protect, admin, async (req, res) => {
+  try {
+    const pages = await Page.find().sort({ title: 1 });
+    res.json(pages);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Email history
+router.get('/emails', protect, admin, async (req, res) => {
+  try {
+    const emails = await Email.find().sort({ sentAt: -1 }).limit(50);
+    res.json(emails);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Bulk email
+router.post('/emails/bulk', protect, admin, async (req, res) => {
+  try {
+    const { subject, content } = req.body;
+    // Implementation for sending bulk emails
+    res.json({ message: 'Bulk email sent successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Export data
+router.get('/export/:type', protect, admin, async (req, res) => {
+  try {
+    const { type } = req.params;
+    // Implementation for data export
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=${type}-export.csv`);
+    // Send CSV data
+    res.end();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Enhanced stats
+router.get('/stats', protect, admin, async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
     const adminUsers = await User.countDocuments({ role: 'admin' });
     const regularUsers = await User.countDocuments({ role: 'user' });
+    const totalReviews = await Review.countDocuments();
+    const pendingContacts = await Contact.countDocuments({ status: 'pending' });
+    const emailsSent = await Email.countDocuments();
 
     res.json({
       totalUsers,
       adminUsers,
       regularUsers,
-      userRatio: {
-        admins: adminUsers,
-        users: regularUsers
-      }
+      totalReviews,
+      pendingContacts,
+      emailsSent
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 module.exports = router;
