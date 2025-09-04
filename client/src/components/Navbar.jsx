@@ -160,7 +160,10 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                             </button>
                             
                             {dropdownOpen && (
-                                <div className={`absolute top-full left-0 mt-1 w-48 rounded-md shadow-lg ${currentTheme.dropdownBg} ${currentTheme.dropdownBorder} border ring-1 ring-black ring-opacity-5`}>
+                               <div 
+  className={`absolute top-full left-0 mt-1 w-48 rounded-md shadow-lg border ring-1 ring-black ring-opacity-5 bg-white dark:bg-gray-800 ${currentTheme.dropdownBorder}`}
+>
+
                                     <div className="py-1">
                                         <Link
                                             to="/features"
@@ -194,13 +197,21 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                                             <FiFileText size={16} className="inline mr-2" />
                                             Guides
                                         </Link>
+                                      <link to="/pricing" className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`} onClick={() => setDropdownOpen(false)}>
+                                      <FiDollarSign size={16} className="inline mr-2"/>
+                                        Pricing
+                                      </link>
+
+                                       <link to="/faq" className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`} onClick={() => setDropdownOpen(false)}>
+                                      <FiHelpCircle size={16} className="inline mr-2"/>
+                                       FAQ
+                                      </link>
+                                      
                                     </div>
                                 </div>
                             )}
                         </div>
                         
-                        <NavLink to="/pricing" icon={<FiDollarSign size={18} />} text="Pricing" />
-                        <NavLink to="/faq" icon={<FiHelpCircle size={18} />} text="FAQ" />
                         
                         {/* Protected pages (auth required) */}
                         <NavLink to="/dashboard" icon={<FiGrid size={18} />} text="Dashboard" requiresAuth={true} />
@@ -208,13 +219,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                         
                         {/* Admin Panel Link */}
                         {user && user.role === 'admin' && (
-                            <Link
-                                to="/admin"
-                                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium text-red-400 hover:text-red-300 transition-colors`}
-                            >
-                                <FiSettings size={18} className="mr-1" />
-                                Admin Panel
-                            </Link>
+                            <NavLink to="/admin" icon={<FiSettings size={18}  />} text="Admin Panel" requiresAuth={true} />
                         )}
                         
                         <NavLink to="/profile" icon={<FiUser size={18} />} text="Profile" requiresAuth={true} />
