@@ -79,10 +79,11 @@ router.get('/reviews', protect, admin, async (req, res) => {
       .sort({ createdAt: -1 });
     res.json({ reviews });
   } catch (err) {
-            console.error("Error in /api/admin/stats:", error); 
+    console.error("Error in /api/admin/reviews:", err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // Contact messages
 router.get('/contacts', protect, admin, async (req, res) => {
@@ -158,10 +159,11 @@ router.get('/stats', protect, admin, async (req, res) => {
       emailsSent
     });
   } catch (err) {
-        console.error("Error in /api/admin/stats:", error); 
+    console.error("Error in /api/admin/stats:", err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 module.exports = router;
