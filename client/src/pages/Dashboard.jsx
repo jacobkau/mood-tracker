@@ -5,6 +5,7 @@ import MoodList from "../components/mood/MoodList";
 import MoodStats from "../components/mood/MoodStats";
 import { useTheme } from '../context/useTheme';
 
+
 export default function Dashboard() {
     const [user, setUser] = useState(null);
   const [moods, setMoods] = useState([]);
