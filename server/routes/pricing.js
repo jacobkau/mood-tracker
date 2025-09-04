@@ -1,7 +1,6 @@
 const express = require('express');
 const PricingPlan = require('../models/Pricing');
-const auth = require('../middleware/auth');
-const adminAuth = require('../middleware/adminAuth');
+const { protect, admin } = require("../middleware/authMiddleware");
 const router = express.Router();
 
 // Get all pricing plans
