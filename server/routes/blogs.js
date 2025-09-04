@@ -4,7 +4,7 @@ const { protect, admin } = require("../middleware/authMiddleware");
 const router = express.Router();
 
 // Get all blogs (admin only)
-router.get('/admin/blogs', auth, adminAuth, async (req, res) => {
+router.get('/admin/blogs',  protect, admin, async (req, res) => {
   try {
     const blogs = await Blog.find()
       .populate('author', 'username email')
@@ -68,7 +68,7 @@ router.get('/', async (req, res) => {
 });
 
 // Create new blog (admin only)
-router.post('/admin/blogs', auth, adminAuth, async (req, res) => {
+router.post('/admin/blogs',  protect, admin, async (req, res) => {
   try {
     const { title, content, excerpt, categories, tags, status, metaTitle, metaDescription } = req.body;
 
@@ -108,7 +108,7 @@ router.post('/admin/blogs', auth, adminAuth, async (req, res) => {
 });
 
 // Update blog (admin only)
-router.put('/admin/blogs/:id', auth, adminAuth, async (req, res) => {
+router.put('/admin/blogs/:id',  protect, admin, async (req, res) => {
   try {
     const { title, content, excerpt, categories, tags, status, metaTitle, metaDescription } = req.body;
 
@@ -143,7 +143,7 @@ router.put('/admin/blogs/:id', auth, adminAuth, async (req, res) => {
 });
 
 // Delete blog (admin only)
-router.delete('/admin/blogs/:id', auth, adminAuth, async (req, res) => {
+router.delete('/admin/blogs/:id',  protect, admin, async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
     if (!blog) {
@@ -159,7 +159,7 @@ router.delete('/admin/blogs/:id', auth, adminAuth, async (req, res) => {
 });
 
 // Toggle featured status (admin only)
-router.patch('/admin/blogs/:id/featured', auth, adminAuth, async (req, res) => {
+router.patch('/admin/blogs/:id/featured',  protect, admin, async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
     if (!blog) {
@@ -177,7 +177,7 @@ router.patch('/admin/blogs/:id/featured', auth, adminAuth, async (req, res) => {
 });
 
 // Add comment to blog
-router.post('/:id/comments', auth, async (req, res) => {
+router.post('/:id/comments',  protect, async (req, res) => {
   try {
     const { content } = req.body;
     const blog = await Blog.findById(req.params.id);
@@ -202,7 +202,7 @@ router.post('/:id/comments', auth, async (req, res) => {
 });
 
 // Like/unlike blog
-router.post('/:id/like', auth, async (req, res) => {
+router.post('/:id/like', protect, async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
     if (!blog) {
