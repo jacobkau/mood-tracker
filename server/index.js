@@ -56,6 +56,20 @@ app.use((req, res, next) => {
   next();
 });
 
+console.log({
+  authRoutes,
+  moodRoutes,
+  statsRoutes,
+  profileRoutes,
+  supportRoutes,
+  contentRoutes,
+  subscriptionRoutes,
+  contactRoutes,
+  adminRoutes,
+  reviewRoutes
+});
+
+
 // Routes (keep the rest of your code the same)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/api/auth", authRoutes);
