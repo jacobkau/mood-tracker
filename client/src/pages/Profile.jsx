@@ -24,11 +24,12 @@ export default function Profile() {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const [isRemovingImage, setIsRemovingImage] = useState(false);
   const navigate = useNavigate();
   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
 
-  // Helper function to get image URL
+  // Helper function to get proper image URL
   const getImageUrl = (imagePath) => {
     if (!imagePath) return "";
     
@@ -110,9 +111,34 @@ export default function Profile() {
     }
   };
 
-  const removeImage = () => {
-    setProfileImage(null);
-    setPreviewImage(""); // Clear preview
+  const removeImage = async () => {
+    setIsRemovingImage(true);
+    try {
+      const token = localStorage.getItem("token");
+      
+      // Call API to remove profile image
+      await axios.delete(
+        `${import.meta.env.VITE_API_BASE_URL}/api/auth/remove-profile-image`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      setProfileImage(null);
+      setPreviewImage("");
+      
+      // Update user data
+      setUser(prev => prev ? {...prev, profileImage: null} : null);
+      
+      toast.success("Profile image removed successfully");
+    } catch (err) {
+      console.error("Failed to remove image", err);
+      toast.error(err.response?.data?.error || "Failed to remove profile image");
+    } finally {
+      setIsRemovingImage(false);
+    }
   };
 
   const uploadProfileImage = async () => {
@@ -140,7 +166,7 @@ export default function Profile() {
     } catch (err) {
       console.error("Failed to upload image", err);
       toast.error(err.response?.data?.error || "Failed to upload profile image");
-      throw err; // Re-throw to handle in the main submit function
+      return null;
     } finally {
       setIsUploading(false);
     }
@@ -182,9 +208,15 @@ export default function Profile() {
       let profileImagePath = null;
       if (profileImage) {
         profileImagePath = await uploadProfileImage();
+        if (!profileImagePath) {
+          // If image upload failed, stop the process
+          return;
+        }
       }
       
-      // Prepare payload
+      console.log("Profile image path to send:", profileImagePath);
+      
+      // Only include password fields if new password is provided
       const payload = {
         username: formData.username,
         firstName: formData.firstName,
@@ -193,15 +225,11 @@ export default function Profile() {
         address: formData.address,
       };
       
-      // Handle profile image in payload
+      // Only add profileImage to payload if we have a new image
       if (profileImagePath) {
-        // New image was uploaded
         payload.profileImage = profileImagePath;
-      } else if (!previewImage && user?.profileImage) {
-        // User removed the image
-        payload.profileImage = "";
       }
-      // If neither condition is met, profileImage won't be included in payload
+      // Note: We're not handling image removal here as it's handled by removeImage()
       
       if (formData.newPassword) {
         payload.currentPassword = formData.currentPassword;
@@ -220,6 +248,7 @@ export default function Profile() {
         }
       );
       
+      console.log("Update response:", response.data);
       toast.success("Profile updated successfully");
       
       // Clear password fields only if password was changed
@@ -239,7 +268,7 @@ export default function Profile() {
       // Update user data with the response
       if (response.data.user) {
         setUser(response.data.user);
-        // Update preview image
+        // Update preview image with the new path from backend
         if (response.data.user.profileImage) {
           setPreviewImage(getImageUrl(response.data.user.profileImage));
         } else {
@@ -319,7 +348,6 @@ export default function Profile() {
       </div>
     );
   }
-
   return (
     <div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen py-8 px-4 md:px-8`}>
       <div className="max-w-4xl mx-auto">
@@ -362,12 +390,11 @@ export default function Profile() {
                 />
               </label>
               
-              {(previewImage || user.profileImage) && (
+              {previewImage && profileImage && (
                 <button
                   onClick={removeImage}
                   className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
                   disabled={isLoading || isUploading}
-                  type="button"
                 >
                   <FiX className="w-3 h-3" />
                 </button>
