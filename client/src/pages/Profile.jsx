@@ -30,19 +30,16 @@ export default function Profile() {
   const currentTheme = themes[theme];
 
   // Helper function to get proper image URL
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return "";
-    
-    if (imagePath.startsWith('http')) {
-      return imagePath;
-    } else {
-      // Remove any leading slash to avoid double slashes in URL
-      const cleanPath = imagePath.startsWith('/') 
-        ? imagePath.substring(1) 
-        : imagePath;
-      return `${import.meta.env.VITE_API_BASE_URL}/${cleanPath}`;
-    }
-  };
+ const getImageUrl = (imagePath) => {
+  if (!imagePath) return "";
+  if (imagePath.startsWith('http')) {
+    return imagePath;
+  }
+  if (imagePath.startsWith('/')) {
+    return `${import.meta.env.VITE_API_BASE_URL}${imagePath}`;
+  }
+  return `${import.meta.env.VITE_API_BASE_URL}/${imagePath}`;
+};
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -68,9 +65,11 @@ export default function Profile() {
           address: data.address || "",
         }));
         
-        // Set profile image if exists
+       // Set profile image if exists
         if (data.profileImage) {
-          setPreviewImage(getImageUrl(data.profileImage));
+          const imageUrl = getImageUrl(data.profileImage);
+          console.log("Loading profile image from:", imageUrl);
+          setPreviewImage(imageUrl);
         }
       } catch (err) {
         console.error("Failed to fetch user", err);
