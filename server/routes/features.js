@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get all features (admin only)
-router.get('/admin/features', auth, adminAuth, async (req, res) => {
+router.get('/admin/features', protect, admin, async (req, res) => {
   try {
     const features = await Feature.find().sort({ order: 1, createdAt: -1 });
     res.json(features);
@@ -45,7 +45,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new feature (admin only)
-router.post('/admin/features', auth, adminAuth, async (req, res) => {
+router.post('/admin/features', protect, admin, async (req, res) => {
   try {
     const { title, description, icon, image, status, order, isPremium, tags } = req.body;
 
@@ -75,7 +75,7 @@ router.post('/admin/features', auth, adminAuth, async (req, res) => {
 });
 
 // Update feature (admin only)
-router.put('/admin/features/:id', auth, adminAuth, async (req, res) => {
+router.put('/admin/features/:id', protect, admin, async (req, res) => {
   try {
     const { title, description, icon, image, status, order, isPremium, tags } = req.body;
 
@@ -113,7 +113,7 @@ router.put('/admin/features/:id', auth, adminAuth, async (req, res) => {
 });
 
 // Delete feature (admin only)
-router.delete('/admin/features/:id', auth, adminAuth, async (req, res) => {
+router.delete('/admin/features/:id', protect, admin, async (req, res) => {
   try {
     const feature = await Feature.findById(req.params.id);
     if (!feature) {
@@ -129,7 +129,7 @@ router.delete('/admin/features/:id', auth, adminAuth, async (req, res) => {
 });
 
 // Update feature order (admin only)
-router.patch('/admin/features/:id/order', auth, adminAuth, async (req, res) => {
+router.patch('/admin/features/:id/order', protect, admin, async (req, res) => {
   try {
     const { order } = req.body;
     const feature = await Feature.findById(req.params.id);
@@ -149,7 +149,7 @@ router.patch('/admin/features/:id/order', auth, adminAuth, async (req, res) => {
 });
 
 // Update feature status (admin only)
-router.patch('/admin/features/:id/status', auth, adminAuth, async (req, res) => {
+router.patch('/admin/features/:id/status', protect, admin, async (req, res) => {
   try {
     const { status } = req.body;
     const feature = await Feature.findById(req.params.id);
