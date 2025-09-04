@@ -149,7 +149,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated, user }) {
                             </button>
                             
                             {dropdownOpen && (
-                                <div className={`absolute top-full left-0 mt-1 w-48 rounded-md shadow-lg ${currentTheme.dropdownBg} ${currentTheme.dropdownBorder} border ring-1 ring-black ring-opacity-5`}>
+                                <div className={`absolute top-full left-0 mt-1 w-48 rounded-md shadow-lg ${currentTheme.dropdownBg} border ${currentTheme.dropdownBorder} ring-1 ring-black ring-opacity-5 z-50`}>
                                     <div className="py-1">
                                         <Link
                                             to="/features"
@@ -167,24 +167,22 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated, user }) {
                                             <FiStar size={16} className="inline mr-2" />
                                             Testimonials
                                         </Link>
-                                    <Link
-  to="/reviews"
-  className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
-  onClick={() => setDropdownOpen(false)}
->
-  <FiStar size={18} className="inline mr-2" />
-  Reviews
-</Link>
-
-<Link
-  to="/blog"
-  className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
-  onClick={() => setDropdownOpen(false)}
->
-  <FiBook size={16} className="inline mr-2" />
-  Blog
-</Link>
-
+                                        <Link
+                                            to="/reviews"
+                                            className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
+                                            onClick={() => setDropdownOpen(false)}
+                                        >
+                                            <FiStar size={18} className="inline mr-2" />
+                                            Reviews
+                                        </Link>
+                                        <Link
+                                            to="/blog"
+                                            className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
+                                            onClick={() => setDropdownOpen(false)}
+                                        >
+                                            <FiBook size={16} className="inline mr-2" />
+                                            Blog
+                                        </Link>
                                         <Link
                                             to="/guides"
                                             className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
@@ -193,12 +191,21 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated, user }) {
                                             <FiFileText size={16} className="inline mr-2" />
                                             Guides
                                         </Link>
+                                        {/* Added Pricing link to dropdown */}
+                                        <Link
+                                            to="/pricing"
+                                            className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
+                                            onClick={() => setDropdownOpen(false)}
+                                        >
+                                            <FiDollarSign size={16} className="inline mr-2" />
+                                            Pricing
+                                        </Link>
                                     </div>
                                 </div>
                             )}
                         </div>
                         
-                        <NavLink to="/pricing" icon={<FiDollarSign size={18} />} text="Pricing" />
+                        {/* Removed standalone Pricing link from navbar since it's now in dropdown */}
                         <NavLink to="/faq" icon={<FiHelpCircle size={18} />} text="FAQ" />
                         
                         {/* Protected pages (auth required) */}
