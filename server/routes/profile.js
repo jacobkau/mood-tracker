@@ -120,9 +120,11 @@ router.put("/", protect, async (req, res) => {
       .select("-password -__v");
     
     // Convert profileImage to full URL if it's a local path
-    if (updatedUser.profileImage && !updatedUser.profileImage.startsWith('http')) {
-      updatedUser.profileImage = `${process.env.SERVER_BASE_URL || process.env.API_BASE_URL}/${updatedUser.profileImage}`;
-    }
+  if (updatedUser.profileImage && !updatedUser.profileImage.startsWith('http')) {
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
+  updatedUser.profileImage = `${baseUrl}/${updatedUser.profileImage}`;
+}
+
       
     res.json({ 
       message: "Profile updated successfully",
