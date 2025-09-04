@@ -75,18 +75,100 @@ router.delete("/users/:id", protect, admin, async (req, res) => {
 });
 
 
-// Reviews management
-router.get('/reviews', protect, admin, async (req, res) => {
+router.get('/reviews', auth, adminAuth, async (req, res) => {
   try {
     const reviews = await Review.find()
       .populate('user', 'username email')
       .sort({ createdAt: -1 });
+    
     res.json({ reviews });
-  } catch (err) {
-    console.error("Error in /api/admin/reviews:", err);
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error('Error fetching reviews:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
+
+// Delete review (admin)
+router.delete('/reviews/:id', auth, adminAuth, async (req, res) => {
+  try {
+    const review = await Review.findById(req.params.id);
+    
+    if (!review) {
+      return res.status(404).json({ error: 'Review not found' });
+    }
+
+    await Review.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Review deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting review:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update review status (admin)
+router.put('/reviews/:id/status', auth, adminAuth, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const review = await Review.findById(req.params.id);
+
+    if (!review) {
+      return res.status(404).json({ error: 'Review not found' });
+    }
+
+    review.status = status;
+    await review.save();
+
+    res.json({ status: review.status });
+  } catch (error) {
+    console.error('Error updating review status:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Toggle featured status (admin)
+router.put('/reviews/:id/featured', auth, adminAuth, async (req, res) => {
+  try {
+    const review = await Review.findById(req.params.id);
+
+    if (!review) {
+      return res.status(404).json({ error: 'Review not found' });
+    }
+
+    review.isFeatured = !review.isFeatured;
+    await review.save();
+
+    res.json({ isFeatured: review.isFeatured });
+  } catch (error) {
+    console.error('Error toggling featured status:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Add response to review (admin)
+router.post('/reviews/:id/response', auth, adminAuth, async (req, res) => {
+  try {
+    const { message } = req.body;
+    const review = await Review.findById(req.params.id);
+
+    if (!review) {
+      return res.status(404).json({ error: 'Review not found' });
+    }
+
+    review.response = {
+      message,
+      respondedBy: req.user.id,
+      respondedAt: new Date()
+    };
+
+    await review.save();
+    res.json({ message: 'Response added successfully' });
+  } catch (error) {
+    console.error('Error adding response:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+module.exports = router;
 
 
 // Contact messages
