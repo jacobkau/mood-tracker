@@ -29,16 +29,47 @@ export default function Profile() {
   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
 
-  // Helper function to get proper image URL
- const getImageUrl = (imagePath) => {
+// Ultimate image URL helper with all fallbacks
+const getImageUrl = (imagePath) => {
   if (!imagePath) return "";
+  
+  // If already a full URL, return it
   if (imagePath.startsWith('http')) {
     return imagePath;
   }
-  if (imagePath.startsWith('/')) {
-    return `${import.meta.env.VITE_API_BASE_URL}${imagePath}`;
+  
+  // Debug logging
+  console.log('Building URL for image path:', imagePath);
+  console.log('VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+  
+  // Determine base URL with multiple fallbacks
+  let baseUrl;
+  
+  if (import.meta.env.VITE_API_BASE_URL && import.meta.env.VITE_API_BASE_URL !== 'undefined') {
+    baseUrl = import.meta.env.VITE_API_BASE_URL;
+  } else if (window.location.origin.includes('localhost')) {
+    // Development fallback
+    baseUrl = 'https://moodtracker-api.onrender.com';
+  } else {
+    // Production fallback - use current origin (vercel.app)
+    baseUrl = window.location.origin;
   }
-  return `${import.meta.env.VITE_API_BASE_URL}/${imagePath}`;
+  
+  // Clean the path
+  let cleanPath = imagePath;
+  if (cleanPath.startsWith('/')) {
+    cleanPath = cleanPath.substring(1);
+  }
+  
+  // Remove any "uploads/" prefix if already in base URL
+  if (baseUrl.includes('moodtracker-api')) {
+    cleanPath = cleanPath.replace('uploads/', '');
+  }
+  
+  const finalUrl = `${baseUrl}/${cleanPath}`;
+  console.log('Final image URL:', finalUrl);
+  
+  return finalUrl;
 };
 
   useEffect(() => {
