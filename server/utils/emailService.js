@@ -226,7 +226,7 @@ const sendVerificationEmail = async (to, link) => {
 
 const sendReviewNotificationEmail = async (review) => {
   try {
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@yourdomain.com';
+    const adminEmail = process.env.ADMIN_EMAIL || 'kaujacob4@gmail.com';
     
     const mailOptions = {
       from: process.env.EMAIL_FROM,
