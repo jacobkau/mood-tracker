@@ -275,26 +275,79 @@ router.post('/emails/bulk', protect, admin, async (req, res) => {
       return res.status(400).json({ error: "Subject and content required" });
     }
 
-    // Fetch all subscribed emails
-    const subscribers = await Email.find({ subscribed: true }).select("email");
+    // Fetch all subscribed users (not from Email model)
+    const subscribers = await User.find({ emailSubscribed: true }).select("email");
+    
+    // Create bulk email record
     const BulkEmail = require("../models/BulkEmail");
     const record = new BulkEmail({
       subject,
       content,
-      sentBy: req.user.id
+      sentBy: req.user.id,
+      recipients: subscribers.length
     });
     await record.save();
 
-    res.json({ message: "Bulk email queued", recipients: subscribers.length });
+    // Send emails to all subscribers
+    const { transporter, hasEmailCredentials } = require("../utils/emailService");
+    
+    if (!hasEmailCredentials()) {
+      return res.status(500).json({ error: "Email service not configured" });
+    }
+
+    // Send emails to each subscriber
+    const emailPromises = subscribers.map(async (subscriber) => {
+      try {
+        const mailOptions = {
+          from: `Witty MoodTracker <${process.env.EMAIL_USER}>`,
+          to: subscriber.email,
+          subject: subject,
+          html: content // You might want to use your email template here
+        };
+        
+        await transporter.sendMail(mailOptions);
+        
+        // Update email history
+        const Email = require("../models/Email");
+        const emailRecord = new Email({
+          email: subscriber.email,
+          subject,
+          content,
+          type: 'bulk',
+          status: 'sent'
+        });
+        await emailRecord.save();
+        
+      } catch (error) {
+        console.error(`Failed to send email to ${subscriber.email}:`, error);
+        
+        // Record failed attempt
+        const Email = require("../models/Email");
+        const emailRecord = new Email({
+          email: subscriber.email,
+          subject,
+          content,
+          type: 'bulk',
+          status: 'failed',
+          error: error.message
+        });
+        await emailRecord.save();
+      }
+    });
+
+    // Wait for all emails to be processed
+    await Promise.all(emailPromises);
+
+    res.json({ 
+      message: "Bulk email sent successfully", 
+      recipients: subscribers.length,
+      success: true
+    });
   } catch (err) {
     console.error("Bulk email error:", err);
     res.status(500).json({ error: err.message });
   }
 });
-
-
-
-
 
 
 // Blog management
