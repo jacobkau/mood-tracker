@@ -29,48 +29,32 @@ export default function Profile() {
   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
 
-// Ultimate image URL helper with all fallbacks
 const getImageUrl = (imagePath) => {
   if (!imagePath) return "";
-  
-  // If already a full URL, return it
-  if (imagePath.startsWith('http')) {
+
+  // Already a full URL
+  if (imagePath.startsWith("http")) {
     return imagePath;
   }
-  
-  // Debug logging
-  console.log('Building URL for image path:', imagePath);
-  console.log('VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
-  
-  // Determine base URL with multiple fallbacks
-  let baseUrl;
-  
-  if (import.meta.env.VITE_API_BASE_URL && import.meta.env.VITE_API_BASE_URL !== 'undefined') {
-    baseUrl = import.meta.env.VITE_API_BASE_URL;
-  } else if (window.location.origin.includes('localhost')) {
-    // Development fallback
-    baseUrl = 'https://moodtracker-api.onrender.com';
-  } else {
-    // Production fallback - use current origin (vercel.app)
-    baseUrl = window.location.origin;
-  }
-  
-  // Clean the path
-  let cleanPath = imagePath;
-  if (cleanPath.startsWith('/')) {
-    cleanPath = cleanPath.substring(1);
-  }
-  
-  // Remove any "uploads/" prefix if already in base URL
-  if (baseUrl.includes('moodtracker-api')) {
-    cleanPath = cleanPath.replace('uploads/', '');
-  }
-  
+
+  console.log("Building URL for image path:", imagePath);
+  console.log("VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
+
+  // Base URL
+  let baseUrl =
+    import.meta.env.VITE_API_BASE_URL && import.meta.env.VITE_API_BASE_URL !== "undefined"
+      ? import.meta.env.VITE_API_BASE_URL
+      : window.location.origin;
+
+  // Normalize path (remove leading slash if exists)
+  let cleanPath = imagePath.startsWith("/") ? imagePath.slice(1) : imagePath;
+
   const finalUrl = `${baseUrl}/${cleanPath}`;
-  console.log('Final image URL:', finalUrl);
-  
+  console.log("Final image URL:", finalUrl);
+
   return finalUrl;
 };
+
 
   useEffect(() => {
     const fetchUser = async () => {
