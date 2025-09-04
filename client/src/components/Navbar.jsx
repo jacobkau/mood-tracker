@@ -167,18 +167,24 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated, user }) {
                                             <FiStar size={16} className="inline mr-2" />
                                             Testimonials
                                         </Link>
-                                      <Link to="/reviews" 
-                                        className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
-                                          onClick={() => setDropdownOpen(false)}
-                                        <FiStar size={18}  className="inline mr-2" />
-                                        <Link
-                                            to="/blog"
-                                            className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
-                                            onClick={() => setDropdownOpen(false)}
-                                        >
-                                            <FiBook size={16} className="inline mr-2" />
-                                            Blog
-                                        </Link>
+                                    <Link
+  to="/reviews"
+  className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
+  onClick={() => setDropdownOpen(false)}
+>
+  <FiStar size={18} className="inline mr-2" />
+  Reviews
+</Link>
+
+<Link
+  to="/blog"
+  className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
+  onClick={() => setDropdownOpen(false)}
+>
+  <FiBook size={16} className="inline mr-2" />
+  Blog
+</Link>
+
                                         <Link
                                             to="/guides"
                                             className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
