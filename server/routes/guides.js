@@ -35,7 +35,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get all guides (admin only)
-router.get('/admin/guides', auth, adminAuth, async (req, res) => {
+router.get('/admin/guides', protect, admin, async (req, res) => {
   try {
     const guides = await Guide.find()
       .populate('author', 'username email')
@@ -96,7 +96,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new guide (admin only)
-router.post('/admin/guides', auth, adminAuth, async (req, res) => {
+router.post('/admin/guides', protect, admin, async (req, res) => {
   try {
     const { title, content, excerpt, category, difficulty, featuredImage, tags, relatedGuides } = req.body;
 
@@ -136,7 +136,7 @@ router.post('/admin/guides', auth, adminAuth, async (req, res) => {
 });
 
 // Update guide (admin only)
-router.put('/admin/guides/:id', auth, adminAuth, async (req, res) => {
+router.put('/admin/guides/:id', protect, admin, async (req, res) => {
   try {
     const { title, content, excerpt, category, difficulty, featuredImage, tags, relatedGuides, status } = req.body;
 
@@ -173,7 +173,7 @@ router.put('/admin/guides/:id', auth, adminAuth, async (req, res) => {
 });
 
 // Delete guide (admin only)
-router.delete('/admin/guides/:id', auth, adminAuth, async (req, res) => {
+router.delete('/admin/guides/:id', protect, admin, async (req, res) => {
   try {
     const guide = await Guide.findById(req.params.id);
     if (!guide) {
@@ -189,7 +189,7 @@ router.delete('/admin/guides/:id', auth, adminAuth, async (req, res) => {
 });
 
 // Update guide status (admin only)
-router.patch('/admin/guides/:id/status', auth, adminAuth, async (req, res) => {
+router.patch('/admin/guides/:id/status',  protect, admin, async (req, res) => {
   try {
     const { status } = req.body;
     const guide = await Guide.findById(req.params.id);
