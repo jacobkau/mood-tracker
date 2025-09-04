@@ -75,7 +75,7 @@ router.delete("/users/:id", protect, admin, async (req, res) => {
 });
 
 
-router.get('/reviews', auth, adminAuth, async (req, res) => {
+router.get('/reviews', protect, admin, async (req, res) => {
   try {
     const reviews = await Review.find()
       .populate('user', 'username email')
@@ -89,7 +89,7 @@ router.get('/reviews', auth, adminAuth, async (req, res) => {
 });
 
 // Delete review (admin)
-router.delete('/reviews/:id', auth, adminAuth, async (req, res) => {
+router.delete('/reviews/:id', protect, admin, async (req, res) => {
   try {
     const review = await Review.findById(req.params.id);
     
@@ -106,7 +106,7 @@ router.delete('/reviews/:id', auth, adminAuth, async (req, res) => {
 });
 
 // Update review status (admin)
-router.put('/reviews/:id/status', auth, adminAuth, async (req, res) => {
+router.put('/reviews/:id/status',  protect, admin, async (req, res) => {
   try {
     const { status } = req.body;
     const review = await Review.findById(req.params.id);
@@ -126,7 +126,7 @@ router.put('/reviews/:id/status', auth, adminAuth, async (req, res) => {
 });
 
 // Toggle featured status (admin)
-router.put('/reviews/:id/featured', auth, adminAuth, async (req, res) => {
+router.put('/reviews/:id/featured', protect, admin, async (req, res) => {
   try {
     const review = await Review.findById(req.params.id);
 
@@ -145,7 +145,7 @@ router.put('/reviews/:id/featured', auth, adminAuth, async (req, res) => {
 });
 
 // Add response to review (admin)
-router.post('/reviews/:id/response', auth, adminAuth, async (req, res) => {
+router.post('/reviews/:id/response', protect, admin, async (req, res) => {
   try {
     const { message } = req.body;
     const review = await Review.findById(req.params.id);
