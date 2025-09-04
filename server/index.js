@@ -18,19 +18,24 @@ const reviewRoutes = require('./routes/reviews');
 dotenv.config();
 const app = express();
 
-// Handle preflight requests
+const allowedOrigins = [
+  "https://mood-tracker-bice.vercel.app",
+  "https://mood-tracker-git-main-jacobkaus-projects.vercel.app",
+  "https://mood-tracker-ajgohvyua-jacobkaus-projects.vercel.app",
+  "http://localhost:3000"
+];
+
 app.options('*', cors({
-  origin: ["https://mood-tracker-bice.vercel.app","https://mood-tracker-git-main-jacobkaus-projects.vercel.app","https://mood-tracker-ajgohvyua-jacobkaus-projects.vercel.app", "http://localhost:3000"],
+  origin: allowedOrigins,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
+
 app.use(cors({
   origin: (origin, callback) => {
     console.log('Incoming origin:', origin);
-    console.log('Allowed origins:', allowedOrigins);
-    
     if (!origin || allowedOrigins.includes(origin)) {
       console.log('Origin allowed');
       callback(null, true);
