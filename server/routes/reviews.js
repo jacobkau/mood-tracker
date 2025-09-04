@@ -5,7 +5,7 @@ const User = require("../models/User");
 const { protect, admin } = require("../middleware/authMiddleware");
 const { sendReviewNotificationEmail, sendReviewResponseEmail } = require("../utils/emailService");
 // Get all reviews (admin only)
-router.get('/admin/reviews', auth, adminAuth, async (req, res) => {
+router.get('/admin/reviews', protect, admin, async (req, res) => {
   try {
     const reviews = await Review.find()
       .populate('user', 'username email')
@@ -36,7 +36,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new review
-router.post('/', auth, async (req, res) => {
+router.post('/', protect, async (req, res) => {
   try {
     const { rating, title, comment } = req.body;
 
@@ -64,7 +64,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 // Update review status (admin only)
-router.put('/admin/:id/status', auth, adminAuth, async (req, res) => {
+router.put('/admin/:id/status', protect, admin, async (req, res) => {
   try {
     const { status } = req.body;
     const review = await Review.findById(req.params.id);
@@ -84,7 +84,7 @@ router.put('/admin/:id/status', auth, adminAuth, async (req, res) => {
 });
 
 // Toggle featured status (admin only)
-router.put('/admin/:id/featured', auth, adminAuth, async (req, res) => {
+router.put('/admin/:id/featured', protect, admin, async (req, res) => {
   try {
     const review = await Review.findById(req.params.id);
 
@@ -103,7 +103,7 @@ router.put('/admin/:id/featured', auth, adminAuth, async (req, res) => {
 });
 
 // Delete review (admin only)
-router.delete('/admin/:id', auth, adminAuth, async (req, res) => {
+router.delete('/admin/:id', protect, admin, async (req, res) => {
   try {
     const review = await Review.findById(req.params.id);
     
@@ -120,7 +120,7 @@ router.delete('/admin/:id', auth, adminAuth, async (req, res) => {
 });
 
 // Add response to review (admin only)
-router.post('/admin/:id/response', auth, adminAuth, async (req, res) => {
+router.post('/admin/:id/response', protect, admin, async (req, res) => {
   try {
     const { message } = req.body;
     const review = await Review.findById(req.params.id);
@@ -144,7 +144,7 @@ router.post('/admin/:id/response', auth, adminAuth, async (req, res) => {
 });
 
 // Get user's review
-router.get('/user/me', auth, async (req, res) => {
+router.get('/user/me', protect, async (req, res) => {
   try {
     const review = await Review.findOne({ user: req.user.id })
       .populate('user', 'username email');
