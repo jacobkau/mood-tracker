@@ -20,7 +20,7 @@ const contactSchema = new mongoose.Schema({
   type: {
     type: String,
     enum: ['contact', 'partnership'],
-    default: 'contact'
+    required: true
   },
   status: {
     type: String,
@@ -38,9 +38,7 @@ const contactSchema = new mongoose.Schema({
       ref: 'User'
     },
     respondedAt: Date
-  },
-  ipAddress: String,
-  userAgent: String
+  }
 }, {
   timestamps: true
 });
@@ -48,23 +46,5 @@ const contactSchema = new mongoose.Schema({
 // Index for better query performance
 contactSchema.index({ email: 1, createdAt: -1 });
 contactSchema.index({ status: 1, type: 1 });
-
-// Static method to get contact statistics
-contactSchema.statics.getStats = function() {
-  return this.aggregate([
-    {
-      $group: {
-        _id: '$type',
-        total: { $sum: 1 },
-        new: {
-          $sum: { $cond: [{ $eq: ['$status', 'new'] }, 1, 0] }
-        },
-        replied: {
-          $sum: { $cond: [{ $eq: ['$status', 'replied'] }, 1, 0] }
-        }
-      }
-    }
-  ]);
-};
 
 module.exports = mongoose.model('Contact', contactSchema);
