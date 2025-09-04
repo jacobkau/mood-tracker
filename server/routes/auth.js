@@ -10,6 +10,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require("crypto");
 
+
 // IMAGE UPLOAD CONFIGURATION
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
