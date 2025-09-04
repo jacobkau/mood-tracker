@@ -10,9 +10,9 @@ const supportRoutes = require('./routes/support');
 const contentRoutes = require('./routes/content');
 const subscriptionRoutes = require('./routes/subscription');
 const contactRoutes = require('./routes/contact');
-const adminRoutes = require('./routes/admin');
+//const adminRoutes = require('./routes/admin');
 const path = require('path');
-const reviewRoutes = require('./routes/reviews');
+//const reviewRoutes = require('./routes/reviews');
 
 
 dotenv.config();
@@ -71,17 +71,17 @@ console.log({
 
 
 // Routes (keep the rest of your code the same)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use("/api/auth", authRoutes);
-app.use("/api/moods", moodRoutes);
+//app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+ app.use("/api/auth", authRoutes);
+ app.use("/api/moods", moodRoutes);
 app.use("/api/stats", statsRoutes); 
-app.use("/api/profile", profileRoutes);
-app.use('/api/contact', contactRoutes)
-app.use("/api/support", supportRoutes);
-app.use("/api/content", contentRoutes);
-app.use("/api/subscription", subscriptionRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/reviews', reviewRoutes);
+ app.use("/api/profile", profileRoutes);
+ app.use('/api/contact', contactRoutes)
+ app.use("/api/support", supportRoutes);
+ app.use("/api/content", contentRoutes);
+ app.use("/api/subscription", subscriptionRoutes);
+// app.use('/api/admin', adminRoutes);
+// app.use('/api/reviews', reviewRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
