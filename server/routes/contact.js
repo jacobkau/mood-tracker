@@ -1,43 +1,148 @@
-// server/routes/contact.js
 const express = require('express');
+const Contact = require('../models/Contact');
+const { sendContactEmail } = require('../utils/emailService');
 const router = express.Router();
-const nodemailer = require('nodemailer'); // For sending emails
-
-// Configure email transporter (example using Gmail)
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
-
 
 // @desc    Handle contact form submission
 // @route   POST /api/contact
 router.post('/', async (req, res) => {
   try {
-    const { name, email, message } = req.body;
+    const { name, email, message, type = 'contact' } = req.body;
 
     // Validate input
     if (!name || !email || !message) {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
-    // Send email (example)
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: 'kaujacob4@gmail.com',
-      subject: `New Contact Form Submission from ${name}`,
-      text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`
-    };
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Please provide a valid email address' });
+    }
 
-    await transporter.sendMail(mailOptions);
+    // Create contact record in database
+    const contact = new Contact({
+      name,
+      email,
+      message,
+      type
+    });
 
-    res.status(200).json({ message: 'Message sent successfully' });
+    await contact.save();
+
+    // Send email notification
+    const emailSent = await sendContactEmail({
+      name,
+      email,
+      subject: type === 'contact' ? 'Contact Form Submission' : 'Partnership Inquiry',
+      message,
+      type
+    });
+
+    if (!emailSent) {
+      console.warn('Email notification failed to send, but contact was saved to database');
+    }
+
+    res.status(200).json({ 
+      message: 'Message sent successfully',
+      contactId: contact._id 
+    });
   } catch (err) {
     console.error('Contact form error:', err);
-    res.status(500).json({ error: 'Failed to send message' });
+    
+    // Handle duplicate submissions or validation errors
+    if (err.name === 'ValidationError') {
+      const errors = Object.values(err.errors).map(e => e.message);
+      return res.status(400).json({ error: errors.join(', ') });
+    }
+    
+    if (err.code === 11000) {
+      return res.status(400).json({ error: 'Duplicate submission detected' });
+    }
+    
+    res.status(500).json({ error: 'Failed to send message. Please try again later.' });
+  }
+});
+
+// @desc    Get all contacts (admin only)
+// @route   GET /api/contact
+router.get('/', async (req, res) => {
+  try {
+    const { page = 1, limit = 10, type, status } = req.query;
+    
+    const query = {};
+    if (type) query.type = type;
+    if (status) query.status = status;
+
+    const contacts = await Contact.find(query)
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const total = await Contact.countDocuments(query);
+
+    res.json({
+      contacts,
+      totalPages: Math.ceil(total / limit),
+      currentPage: parseInt(page),
+      total
+    });
+  } catch (err) {
+    console.error('Error fetching contacts:', err);
+    res.status(500).json({ error: 'Failed to fetch contacts' });
+  }
+});
+
+// @desc    Update contact status (admin only)
+// @route   PUT /api/contact/:id/status
+router.put('/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    
+    const contact = await Contact.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+
+    if (!contact) {
+      return res.status(404).json({ error: 'Contact not found' });
+    }
+
+    res.json({ message: 'Contact status updated', contact });
+  } catch (err) {
+    console.error('Error updating contact status:', err);
+    res.status(500).json({ error: 'Failed to update contact status' });
+  }
+});
+
+// @desc    Add response to contact (admin only)
+// @route   POST /api/contact/:id/response
+router.post('/:id/response', async (req, res) => {
+  try {
+    const { message } = req.body;
+    
+    const contact = await Contact.findByIdAndUpdate(
+      req.params.id,
+      {
+        responded: true,
+        response: {
+          message,
+          respondedAt: new Date()
+        },
+        status: 'replied'
+      },
+      { new: true }
+    );
+
+    if (!contact) {
+      return res.status(404).json({ error: 'Contact not found' });
+    }
+
+    res.json({ message: 'Response added successfully', contact });
+  } catch (err) {
+    console.error('Error adding response:', err);
+    res.status(500).json({ error: 'Failed to add response' });
   }
 });
 
