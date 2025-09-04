@@ -18,29 +18,13 @@ const reviewRoutes = require('./routes/reviews');
 dotenv.config();
 const app = express();
 
-const allowedOrigins = [
-  "https://mood-tracker-bice.vercel.app",
-  "https://mood-tracker-git-main-jacobkaus-projects.vercel.app",
-  "https://mood-tracker-ajgohvyua-jacobkaus-projects.vercel.app",
-  "http://localhost:3000"
-];
-
-app.options('*', cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
-
+const allowedOrigins = process.env.CLIENT_URLS.split(",").map(url => url.trim());
 
 app.use(cors({
   origin: (origin, callback) => {
-    console.log('Incoming origin:', origin);
     if (!origin || allowedOrigins.includes(origin)) {
-      console.log('Origin allowed');
       callback(null, true);
     } else {
-      console.log('Origin blocked');
       callback(new Error("Not allowed by CORS"));
     }
   },
@@ -56,32 +40,18 @@ app.use((req, res, next) => {
   next();
 });
 
-console.log({
-  authRoutes,
-  moodRoutes,
-  statsRoutes,
-  profileRoutes,
-  supportRoutes,
-  contentRoutes,
-  subscriptionRoutes,
-  contactRoutes,
-  adminRoutes,
-  reviewRoutes
-});
-
-
-Routes (keep the rest of your code the same)
+// Routes (keep the rest of your code the same)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
- app.use("/api/auth", authRoutes);
- app.use("/api/moods", moodRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/moods", moodRoutes);
 app.use("/api/stats", statsRoutes); 
- app.use("/api/profile", profileRoutes);
- app.use('/api/contact', contactRoutes)
- app.use("/api/support", supportRoutes);
- app.use("/api/content", contentRoutes);
- app.use("/api/subscription", subscriptionRoutes);
- app.use('/api/admin', adminRoutes);
- app.use('/api/reviews', reviewRoutes);
+app.use("/api/profile", profileRoutes);
+app.use('/api/contact', contactRoutes)
+app.use("/api/support", supportRoutes);
+app.use("/api/content", contentRoutes);
+app.use("/api/subscription", subscriptionRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
