@@ -3,6 +3,7 @@ import axios from "axios";
 import MoodEntry from "../components/mood/MoodEntry";
 import MoodList from "../components/mood/MoodList";
 import MoodStats from "../components/mood/MoodStats";
+import PageHeader from "../components/PageHeader";
 import { useTheme } from '../context/useTheme';
 
 
