@@ -596,6 +596,21 @@ const sendReviewResponseEmail = async (review, adminMessage) => {
   }
 };
 
+const sendBulkEmail = async (to, subject, content) => {
+  if (!transporter) {
+    throw new Error("Email transporter not configured");
+  }
+
+  const mailOptions = {
+    from: `Witty MoodTracker <${process.env.EMAIL_USER}>`,
+    to: to,
+    subject: subject,
+    html: content
+  };
+
+  return transporter.sendMail(mailOptions);
+};
+
 module.exports = {
   transporter,
   hasEmailCredentials,
@@ -603,6 +618,7 @@ module.exports = {
   sendSupportConfirmation,
   sendContactEmail,
   sendNewsletterWelcome,
+  sendBulkEmail,
   sendVerificationEmail,
   sendReviewNotificationEmail,
   sendReviewResponseEmail
