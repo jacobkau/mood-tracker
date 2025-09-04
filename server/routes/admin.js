@@ -4,7 +4,12 @@ const User = require("../models/User");
 const Review = require("../models/Review");   
 const Contact = require("../models/Contact"); 
 const Page = require("../models/Page");       
-const Email = require("../models/Email");    
+const Email = require("../models/Email");
+const Blog = require('../models/Blog');
+const Feature = require('../models/Feature');
+const FAQ = require('../models/FAQ');
+const PricingPlan = require('../models/Pricing');
+const Guide = require('../models/Guide');
 const { protect, admin } = require("../middleware/authMiddleware");
 
 // @desc    Get all users (admin only)
@@ -176,39 +181,310 @@ router.get('/contacts', protect, admin, async (req, res) => {
   try {
     const contacts = await Contact.find().sort({ createdAt: -1 });
     res.json(contacts);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error('Error fetching contacts:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
 // Pages management
 router.get('/pages', protect, admin, async (req, res) => {
   try {
-    const pages = await Page.find().sort({ title: 1 });
+    const pages = await Page.find().sort({ createdAt: -1 });
     res.json(pages);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error('Error fetching pages:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
+router.get('/pages', protect, admin, async (req, res) => {
+  try {
+    const { title, slug, content } = req.body;
+
+    // Check if page with same slug exists
+    const existingPage = await Page.findOne({ slug });
+    if (existingPage) {
+      return res.status(409).json({ error: 'Page with this slug already exists' });
+    }
+
+    const page = new Page({
+      title,
+      slug,
+      content,
+      author: req.user.id
+    });
+
+    await page.save();
+    res.status(201).json(page);
+  } catch (error) {
+    console.error('Error creating page:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+router.put('/pages/:id/status', protect, admin, async (req, res) => {
+  try {
+    const { isPublished } = req.body;
+    const page = await Page.findById(req.params.id);
+
+    if (!page) {
+      return res.status(404).json({ error: 'Page not found' });
+    }
+
+    page.isPublished = isPublished;
+    await page.save();
+
+    res.json({ isPublished: page.isPublished });
+  } catch (error) {
+    console.error('Error updating page status:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+router.delete('/pages/:id', protect, admin, async (req, res) => {
+  try {
+    const page = await Page.findById(req.params.id);
+    
+    if (!page) {
+      return res.status(404).json({ error: 'Page not found' });
+    }
+
+    await Page.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Page deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting page:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 
 // Email history
 router.get('/emails', protect, admin, async (req, res) => {
   try {
-    const emails = await Email.find().sort({ sentAt: -1 }).limit(50);
+    const emails = await Email.find().sort({ createdAt: -1 });
     res.json(emails);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error('Error fetching emails:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
 // Bulk email
 router.post('/emails/bulk', protect, admin, async (req, res) => {
   try {
-    const { subject, content } = req.body;
-    // Implementation for sending bulk emails
+    const { subject, content } = req.body; // Create email record
+    const email = new Email({
+      subject,
+      content,
+      sentBy: req.user.id,
+      sentAt: new Date()
+    });
+    await email.save();
     res.json({ message: 'Bulk email sent successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+
+
+// Blog management
+router.get('/blogs',protect, admin, async (req, res) => {
+  try {
+    const blogs = await Blog.find()
+      .populate('author', 'username email')
+      .sort({ createdAt: -1 });
+    res.json(blogs);
+  } catch (error) {
+    console.error('Error fetching blogs:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/blogs', protect, admin, async (req, res) => {
+  try {
+    const { title, content, category } = req.body;
+
+    // Generate slug from title
+    const slug = title.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
+    // Check if blog with same slug exists
+    const existingBlog = await Blog.findOne({ slug });
+    if (existingBlog) {
+      return res.status(409).json({ error: 'Blog with this title already exists' });
+    }
+
+    const blog = new Blog({
+      title,
+      slug,
+      content,
+      category: category || 'news',
+      author: req.user.id,
+      readTime: Math.ceil(content.split(/\s+/).length / 200)
+    });
+
+    await blog.save();
+    await blog.populate('author', 'username email');
+
+    res.status(201).json(blog);
+  } catch (error) {
+    console.error('Error creating blog:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Feature management
+router.get('/features', protect, admin, async (req, res) => {
+  try {
+    const features = await Feature.find().sort({ order: 1, createdAt: -1 });
+    res.json(features);
+  } catch (error) {
+    console.error('Error fetching features:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/features',protect, admin, async (req, res) => {
+  try {
+    const { title, description, icon } = req.body;
+
+    // Check if feature with same title exists
+    const existingFeature = await Feature.findOne({ title });
+    if (existingFeature) {
+      return res.status(409).json({ error: 'Feature with this title already exists' });
+    }
+
+    const feature = new Feature({
+      title,
+      description,
+      icon,
+      status: 'active'
+    });
+
+    await feature.save();
+    res.status(201).json(feature);
+  } catch (error) {
+    console.error('Error creating feature:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// FAQ management
+router.get('/faqs', protect, admin, async (req, res) => {
+  try {
+    const faqs = await FAQ.find().sort({ order: 1, createdAt: -1 });
+    res.json(faqs);
+  } catch (error) {
+    console.error('Error fetching FAQs:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/faqs', protect, admin, async (req, res) => {
+  try {
+    const { question, answer, category } = req.body;
+
+    const faq = new FAQ({
+      question,
+      answer,
+      category: category || 'general',
+      status: 'active'
+    });
+
+    await faq.save();
+    res.status(201).json(faq);
+  } catch (error) {
+    console.error('Error creating FAQ:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Pricing management
+router.get('/pricing', protect, admin, async (req, res) => {
+  try {
+    const pricingPlans = await PricingPlan.find().sort({ order: 1 });
+    res.json(pricingPlans);
+  } catch (error) {
+    console.error('Error fetching pricing plans:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/pricing', protect, admin, async (req, res) => {
+  try {
+    const { name, description, monthlyPrice, yearlyPrice } = req.body;
+
+    // Check if plan with same name exists
+    const existingPlan = await PricingPlan.findOne({ name });
+    if (existingPlan) {
+      return res.status(409).json({ error: 'Pricing plan with this name already exists' });
+    }
+
+    const pricingPlan = new PricingPlan({
+      name,
+      description,
+      price: {
+        monthly: parseFloat(monthlyPrice),
+        yearly: parseFloat(yearlyPrice),
+        currency: 'USD'
+      },
+      isActive: true
+    });
+
+    await pricingPlan.save();
+    res.status(201).json(pricingPlan);
+  } catch (error) {
+    console.error('Error creating pricing plan:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Guide management
+router.get('/guides', protect, admin, async (req, res) => {
+  try {
+    const guides = await Guide.find()
+      .populate('author', 'username email')
+      .sort({ createdAt: -1 });
+    res.json(guides);
+  } catch (error) {
+    console.error('Error fetching guides:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/guides', protect, admin, async (req, res) => {
+  try {
+    const { title, content, category } = req.body;
+
+    // Generate slug from title
+    const slug = title.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
+    // Check if guide with same slug exists
+    const existingGuide = await Guide.findOne({ slug });
+    if (existingGuide) {
+      return res.status(409).json({ error: 'Guide with this title already exists' });
+    }
+
+    const guide = new Guide({
+      title,
+      slug,
+      content,
+      category: category || 'getting-started',
+      author: req.user.id,
+      readTime: Math.ceil(content.split(/\s+/).length / 200)
+    });
+
+    await guide.save();
+    await guide.populate('author', 'username email');
+
+    res.status(201).json(guide);
+  } catch (error) {
+    console.error('Error creating guide:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -216,37 +492,81 @@ router.post('/emails/bulk', protect, admin, async (req, res) => {
 router.get('/export/:type', protect, admin, async (req, res) => {
   try {
     const { type } = req.params;
-    // Implementation for data export
+    let data = [];
+    let filename = '';
+
+    switch (type) {
+      case 'users':
+        data = await User.find().select('-password');
+        filename = 'users';
+        break;
+      case 'reviews':
+        data = await Review.find().populate('user', 'username email');
+        filename = 'reviews';
+        break;
+      case 'contacts':
+        data = await Contact.find();
+        filename = 'contacts';
+        break;
+      case 'pages':
+        data = await Page.find();
+        filename = 'pages';
+        break;
+      default:
+        return res.status(400).json({ error: 'Invalid export type' });
+    }
+
+    // Convert to CSV (simplified)
+    const csv = data.map(item => {
+      return Object.values(item.toObject()).join(',');
+    }).join('\n');
+
     res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', `attachment; filename=${type}-export.csv`);
-    // Send CSV data
-    res.end();
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}-export.csv`);
+    res.send(csv);
+  } catch (error) {
+    console.error('Error exporting data:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
-
-// Enhanced stats
 router.get('/stats', protect, admin, async (req, res) => {
   try {
-    const totalUsers = await User.countDocuments();
-    const adminUsers = await User.countDocuments({ role: 'admin' });
-    const regularUsers = await User.countDocuments({ role: 'user' });
-    const totalReviews = await Review.countDocuments();
-    const pendingContacts = await Contact.countDocuments({ status: 'pending' });
-    const emailsSent = await Email.countDocuments();
+    const [
+      totalUsers,
+      totalReviews,
+      pendingContacts,
+      emailsSent,
+      totalBlogs,
+      totalFeatures,
+      totalFaqs,
+      totalPricingPlans,
+      totalGuides
+    ] = await Promise.all([
+      User.countDocuments(),
+      Review.countDocuments(),
+      Contact.countDocuments({ status: 'pending' }),
+      Email.countDocuments(),
+      Blog.countDocuments(),
+      Feature.countDocuments(),
+      FAQ.countDocuments(),
+      PricingPlan.countDocuments(),
+      Guide.countDocuments()
+    ]);
 
     res.json({
       totalUsers,
-      adminUsers,
-      regularUsers,
       totalReviews,
       pendingContacts,
-      emailsSent
+      emailsSent,
+      totalBlogs,
+      totalFeatures,
+      totalFaqs,
+      totalPricingPlans,
+      totalGuides
     });
-  } catch (err) {
-    console.error("Error in /api/admin/stats:", err);
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
