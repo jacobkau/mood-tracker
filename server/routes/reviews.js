@@ -210,6 +210,7 @@ router.put("/admin/:id/featured", protect, admin, async (req, res) => {
 
 // Get review statistics (admin)
 router.get("/admin/stats", protect, admin, async (req, res) => {
+  
   try {
     const totalReviews = await Review.countDocuments();
     const approvedReviews = await Review.countDocuments({ status: "approved" });
