@@ -23,6 +23,7 @@ import {
 import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '../context/useTheme';
 
+
 export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
     const navigate = useNavigate();
     const location = useLocation();
