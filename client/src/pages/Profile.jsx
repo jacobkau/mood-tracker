@@ -34,7 +34,7 @@ export default function Profile() {
         const token = localStorage.getItem("token");
 
         const { data } = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/api/auth/me`,
+          `${import.meta.env.VITE_API_BASE_URL}/api/profile`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -52,13 +52,18 @@ export default function Profile() {
           address: data.address || "",
         }));
         
-        // Set profile image if exists - FIXED: Check if profileImage exists and construct URL properly
+        // Set profile image if exists
         if (data.profileImage) {
-          // Remove any leading slash to avoid double slashes in URL
-          const imagePath = data.profileImage.startsWith('/') 
-            ? data.profileImage.substring(1) 
-            : data.profileImage;
-          setPreviewImage(`${import.meta.env.VITE_API_BASE_URL}/${imagePath}`);
+          // Check if it's already a full URL
+          if (data.profileImage.startsWith('http')) {
+            setPreviewImage(data.profileImage);
+          } else {
+            // Remove any leading slash to avoid double slashes in URL
+            const imagePath = data.profileImage.startsWith('/') 
+              ? data.profileImage.substring(1) 
+              : data.profileImage;
+            setPreviewImage(`${import.meta.env.VITE_API_BASE_URL}/${imagePath}`);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch user", err);
@@ -103,10 +108,14 @@ export default function Profile() {
     setProfileImage(null);
     // Reset to original user image if it exists
     if (user?.profileImage) {
-      const imagePath = user.profileImage.startsWith('/') 
-        ? user.profileImage.substring(1) 
-        : user.profileImage;
-      setPreviewImage(`${import.meta.env.VITE_API_BASE_URL}/${imagePath}`);
+      if (user.profileImage.startsWith('http')) {
+        setPreviewImage(user.profileImage);
+      } else {
+        const imagePath = user.profileImage.startsWith('/') 
+          ? user.profileImage.substring(1) 
+          : user.profileImage;
+        setPreviewImage(`${import.meta.env.VITE_API_BASE_URL}/${imagePath}`);
+      }
     } else {
       setPreviewImage("");
     }
@@ -118,12 +127,12 @@ export default function Profile() {
     setIsUploading(true);
     try {
       const token = localStorage.getItem("token");
-      const formData = new FormData();
-      formData.append('profileImage', profileImage);
+      const uploadFormData = new FormData();
+      uploadFormData.append('profileImage', profileImage);
       
       const response = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/auth/upload-profile-image`,
-        formData,
+        uploadFormData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -206,7 +215,7 @@ export default function Profile() {
       }
       
       const response = await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/profile`,
         payload,
         { 
           headers: { 
@@ -237,10 +246,14 @@ export default function Profile() {
         setUser(response.data.user);
         // Update preview image with the new path from backend
         if (response.data.user.profileImage) {
-          const imagePath = response.data.user.profileImage.startsWith('/') 
-            ? response.data.user.profileImage.substring(1) 
-            : response.data.user.profileImage;
-          setPreviewImage(`${import.meta.env.VITE_API_BASE_URL}/${imagePath}`);
+          if (response.data.user.profileImage.startsWith('http')) {
+            setPreviewImage(response.data.user.profileImage);
+          } else {
+            const imagePath = response.data.user.profileImage.startsWith('/') 
+              ? response.data.user.profileImage.substring(1) 
+              : response.data.user.profileImage;
+            setPreviewImage(`${import.meta.env.VITE_API_BASE_URL}/${imagePath}`);
+          }
         } else {
           setPreviewImage("");
         }
@@ -284,7 +297,7 @@ export default function Profile() {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.delete(
-          `${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`,
+          `${import.meta.env.VITE_API_BASE_URL}/api/profile`,
           {
             headers: { 
               Authorization: `Bearer ${token}`,
@@ -381,7 +394,8 @@ export default function Profile() {
                 Uploading image...
               </div>
             )}
-          </div>   
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className={`block text-sm font-medium ${currentTheme.labelText}`}>Email</label>
