@@ -6,52 +6,83 @@ import MoodStats from "../components/mood/MoodStats";
 import PageHeader from "../components/PageHeader";
 import { useTheme } from '../context/useTheme';
 
-
 export default function Dashboard() {
-    const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null);
   const [moods, setMoods] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
 
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      // fetch moods
-      const moodsRes = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/moods`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        
+        if (!token) {
+          console.error("No token found");
+          setLoading(false);
+          return;
         }
-      );
-      setMoods(moodsRes.data);
 
-      // fetch profile
-      const profileRes = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/profile`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
+        // Fetch user profile first
+        const profileRes = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/api/auth/me`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setUser(profileRes.data);
+
+        // Then fetch moods
+        const moodsRes = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/api/moods`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setMoods(moodsRes.data);
+
+      } catch (err) {
+        console.error("Failed to fetch dashboard data", err);
+        if (err.response?.status === 401) {
+          // Token expired or invalid
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          window.location.href = '/login';
         }
-      );
-      setUser(profileRes.data); // profile should contain username/name
-    } catch (err) {
-      console.error("Failed to fetch dashboard data", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Store user data in localStorage when it's fetched
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
     }
-  };
+  }, [user]);
 
-  fetchData();
-}, []);
-
+  if (loading) {
+    return (
+      <div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen flex items-center justify-center`}>
+        <div className="text-center">
+          <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${currentTheme.bodyAccent} mx-auto`}></div>
+          <p className={`mt-4 ${currentTheme.bodyText}`}>Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen p-4 md:p-8`}>
       <PageHeader
-  title={`Welcome back, ${user?.username || "Friend"} 🌿`}
-  description="This is your personal space to reflect, track moods, and nurture your well-being each day."
-/>
+        title={`Welcome back, ${user?.username || user?.firstName || "Friend"} 🌿`}
+        description="This is your personal space to reflect, track moods, and nurture your well-being each day."
+      />
       <div className="max-w-4xl mx-auto">
-        <h1 className={`text-3xl font-bold bg-gradient-to-r ${currentTheme.headerGradient} bg-clip-text text-transparent`}>Mood Tracker</h1>
         <p className={`${currentTheme.bodySecondary}`}><i>Your personal companion for emotional wellness!</i></p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
