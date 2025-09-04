@@ -16,7 +16,7 @@ const featureRoutes = require('./routes/features');
 const faqRoutes = require('./routes/faqs');
 const pricingRoutes = require('./routes/pricing');
 const guideRoutes = require('./routes/guides');
-
+const uploadRoutes = require('./routes/upload');
 const path = require('path');
 const reviewRoutes = require('./routes/reviews');
 
@@ -51,7 +51,7 @@ app.use("/api/features", featureRoutes);
 app.use("/api/faqs", faqRoutes);
 app.use("/api/pricing", pricingRoutes);
 app.use("/api/guides", guideRoutes);
-// Routes (keep the rest of your code the same)
+app.use("/api/upload", uploadRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/api/auth", authRoutes);
 app.use("/api/moods", moodRoutes);
