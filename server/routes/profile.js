@@ -39,6 +39,7 @@ router.put("/", protect, async (req, res) => {
       newPassword,
       confirmPassword
     } = req.body;
+     console.log('Received profile update with image path:', profileImage);
     
     const user = await User.findById(req.user.id);
 
@@ -76,23 +77,41 @@ router.put("/", protect, async (req, res) => {
     
     // Handle profile image update
     if (profileImage !== undefined) {
-      // If profileImage is empty string, user wants to remove the image
+      console.log('Updating profile image to:', profileImage);
       if (profileImage === "") {
         // Delete old profile image file if exists
         if (user.profileImage && !user.profileImage.startsWith('http')) {
           const oldImagePath = path.join(__dirname, '..', user.profileImage);
           if (fs.existsSync(oldImagePath)) {
             fs.unlinkSync(oldImagePath);
+             console.log('Deleted old profile image:', oldImagePath);
           }
         }
         user.profileImage = null;
       } 
-      // If profileImage is a string path (not a URL), update it
-      else if (profileImage && !profileImage.startsWith('http')) {
+     else if (profileImage && typeof profileImage === 'string') {
+        // Verify the image file exists if it's a local path
+        if (!profileImage.startsWith('http')) {
+          const imagePath = path.join(__dirname, '..', profileImage);
+          if (!fs.existsSync(imagePath)) {
+            console.warn('Profile image file not found:', imagePath);
+            return res.status(400).json({ error: "Profile image file not found" });
+          }
+        }
+        
+        // Delete old profile image if it exists and is different
+        if (user.profileImage && user.profileImage !== profileImage && !user.profileImage.startsWith('http')) {
+          const oldImagePath = path.join(__dirname, '..', user.profileImage);
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+            console.log('Deleted previous profile image:', oldImagePath);
+          }
+        }
+        
         user.profileImage = profileImage;
       }
-      // If it's a URL (from social login), keep it as is
     }
+    
     
     await user.save();
     
