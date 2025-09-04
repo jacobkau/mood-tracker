@@ -20,6 +20,10 @@ export default function Profile() {
   });
   const [profileImage, setProfileImage] = useState(null);
   const [previewImage, setPreviewImage] = useState("");
+
+const [serverImage, setServerImage] = useState("");
+const [previewImage, setPreviewImage] = useState("");
+  
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -99,31 +103,50 @@ const getImageUrl = (imagePath) => {
     
     fetchUser();
   }, [navigate]);
+const handleImageChange = (e) => {
+  const file = e.target.files[0];
+  console.log('File selected:', file);
+  
+  if (!file) return;
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Validate file type and size
-      if (!file.type.startsWith('image/')) {
-        toast.error('Please select an image file');
-        return;
-      }
-      
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast.error('Image size must be less than 5MB');
-        return;
-      }
-      
-      setProfileImage(file);
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // Validate file type
+  if (!file.type.startsWith('image/')) {
+    toast.error('Please select an image file (JPEG, PNG, GIF, etc.)');
+    return;
+  }
+
+  // Validate file size (5MB limit)
+  if (file.size > 5 * 1024 * 1024) {
+    toast.error('Image size must be less than 5MB');
+    return;
+  }
+
+  setProfileImage(file);
+
+  // Clean up previous object URL if it exists
+  if (previewImage && previewImage.startsWith('blob:')) {
+    URL.revokeObjectURL(previewImage);
+  }
+
+  // Create object URL for instant preview (most efficient)
+  try {
+    const objectUrl = URL.createObjectURL(file);
+    console.log('Created object URL for preview');
+    setPreviewImage(objectUrl);
+  } catch (error) {
+    console.error('Error creating object URL:', error);
+    
+    // Fallback to FileReader
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setPreviewImage(event.target.result);
+    };
+    reader.onerror = () => {
+      toast.error('Failed to load image preview');
+    };
+    reader.readAsDataURL(file);
+  }
+};
 
 const removeImage = async () => {
   setIsRemovingImage(true);
@@ -378,18 +401,33 @@ const uploadProfileImage = async () => {
             <div className="relative">
               <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-200 flex items-center justify-center">
                 {previewImage ? (
-                  <img 
-                    src={previewImage} 
-                    alt="Profile" 
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      // If image fails to load, show placeholder
-                      e.target.style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <FiUser className="w-16 h-16 text-gray-400" />
-                )}
+    <img 
+      src={previewImage} 
+      alt="Profile preview" 
+      className="w-full h-full object-cover"
+      onError={(e) => {
+        console.error('Image failed to load:', previewImage);
+        e.target.style.display = 'none';
+        
+        // If it's a blob URL that failed, try FileReader as fallback
+        if (previewImage.startsWith('blob:') && profileImage) {
+          console.log('Trying FileReader fallback for blob URL');
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            if (reader.result) {
+              setPreviewImage(reader.result);
+            }
+          };
+          reader.readAsDataURL(profileImage);
+        }
+      }}
+      onLoad={(e) => {
+        console.log('Image loaded successfully');
+      }}
+    />
+  ) : (
+    <FiUser className="w-16 h-16 text-gray-400" />
+  )}
               </div>
               
               <label htmlFor="profileImage" className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full cursor-pointer hover:bg-blue-600 transition-colors">
