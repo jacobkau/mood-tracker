@@ -1,5 +1,6 @@
 import { FiGithub, FiTwitter, FiLinkedin, FiGlobe } from 'react-icons/fi';
 import { useTheme } from '../context/useTheme';
+import PageHeader from "../components/PageHeader";
 
 export default function Developer() {
    const { theme, themes } = useTheme();
