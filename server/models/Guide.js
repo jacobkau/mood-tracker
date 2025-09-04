@@ -5,65 +5,72 @@ const guideSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    maxlength: 100
+    maxlength: 200
   },
-  description: {
+  slug: {
     type: String,
     required: true,
-    maxlength: 200
+    unique: true,
+    trim: true,
+    lowercase: true
   },
   content: {
     type: String,
     required: true
   },
-  level: {
+  excerpt: {
     type: String,
-    enum: ['Beginner', 'Intermediate', 'Advanced'],
-    required: true
-  },
-  time: {
-    type: String,
-    required: true
+    trim: true,
+    maxlength: 300
   },
   category: {
     type: String,
     required: true,
-    enum: ['Getting Started', 'Analytics', 'Advanced', 'Therapy', 'Productivity', 'Relationships']
+    enum: ['getting-started', 'tutorials', 'tips', 'troubleshooting', 'advanced']
   },
-  order: {
+  difficulty: {
+    type: String,
+    enum: ['beginner', 'intermediate', 'advanced'],
+    default: 'beginner'
+  },
+  author: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['draft', 'published', 'archived'],
+    default: 'draft'
+  },
+  featuredImage: {
+    url: String,
+    alt: String
+  },
+  readTime: Number,
+  views: {
     type: Number,
     default: 0
   },
-  published: {
-    type: Boolean,
-    default: false
-  },
-  featured: {
-    type: Boolean,
-    default: false
-  },
-  steps: [{
-    title: String,
-    content: String,
-    imageUrl: String
+  relatedGuides: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Guide'
   }],
-  prerequisites: [{
-    type: String
-  }],
-  resources: [{
-    title: String,
-    url: String,
-    type: {
-      type: String,
-      enum: ['article', 'video', 'tool', 'book']
-    }
-  }]
+  tags: [String],
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
 }, {
   timestamps: true
 });
 
-// Index for better query performance
-guideSchema.index({ published: 1, level: 1, category: 1 });
-guideSchema.index({ featured: 1, published: 1 });
+guideSchema.index({ slug: 1 }, { unique: true });
+guideSchema.index({ category: 1 });
+guideSchema.index({ difficulty: 1 });
 
 module.exports = mongoose.model('Guide', guideSchema);
