@@ -197,15 +197,24 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                                             <FiFileText size={16} className="inline mr-2" />
                                             Guides
                                         </Link>
-                                      <link to="/pricing" className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`} onClick={() => setDropdownOpen(false)}>
-                                      <FiDollarSign size={16} className="inline mr-2"/>
-                                        Pricing
-                                      </link>
+                                    <Link 
+  to="/pricing" 
+  className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`} 
+  onClick={() => setDropdownOpen(false)}
+>
+  <FiDollarSign size={16} className="inline mr-2"/>
+  Pricing
+</Link>
 
-                                       <link to="/faq" className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`} onClick={() => setDropdownOpen(false)}>
-                                      <FiHelpCircle size={16} className="inline mr-2"/>
-                                       FAQ
-                                      </link>
+<Link 
+  to="/faq" 
+  className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`} 
+  onClick={() => setDropdownOpen(false)}
+>
+  <FiHelpCircle size={16} className="inline mr-2"/>
+  FAQ
+</Link>
+
                                       
                                     </div>
                                 </div>
