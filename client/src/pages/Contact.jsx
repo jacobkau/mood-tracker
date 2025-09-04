@@ -17,30 +17,33 @@ export default function Contact() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitMessage("");
     
     try {
-      const formEndpoint = activeTab === "contact" 
-        ? 'https://formspree.io/f/mnnzapdn' 
-        : 'https://formspree.io/f/xnnzaoya'; 
-      
-      const response = await fetch(formEndpoint, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          type: activeTab // Send the active tab as the type
+        }),
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        throw new Error(data.error || 'Failed to send message');
       }
       
       setSubmitMessage(activeTab === "contact" 
-        ? 'Thank you! Your message has been sent.' 
-        : 'Thank you for your partnership interest! We will contact you soon.');
+        ? 'Thank you! Your message has been sent. We will get back to you soon.' 
+        : 'Thank you for your partnership interest! We will contact you soon to discuss opportunities.');
       setFormData({ name: '', email: '', message: '' });
-    } catch {
-      setSubmitMessage('Error sending message. Please try again.');
+    } catch (error) {
+      console.error('Submission error:', error);
+      setSubmitMessage(error.message || 'Error sending message. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -75,7 +78,7 @@ export default function Contact() {
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center text-white justify-center gap-2">
                 <FiMail />
                 Contact Us
               </div>
@@ -107,7 +110,7 @@ export default function Contact() {
                     <div className="flex items-start">
                       <FiMail className={`${currentTheme.bodyAccent} mt-1 mr-4`} size={20} />
                       <div>
-                        <h3 className="font-medium text-gray-900">Email</h3>
+                        <h3 className={`block text-sm font-medium ${currentTheme.labelText}`}>Email</h3>
                         <p className="text-gray-600">kaujacob4@gmail.com</p>
                       </div>
                     </div>
@@ -115,7 +118,7 @@ export default function Contact() {
                     <div className="flex items-start">
                       <FiPhone className={`${currentTheme.bodyAccent} mt-1 mr-4`} size={20} />
                       <div>
-                        <h3 className="font-medium text-gray-900">Phone</h3>
+                        <h3  className={`block text-sm font-medium ${currentTheme.labelText}`}>Phone</h3>
                         <p className="text-gray-600">+(254) 768 374 497</p>
                       </div>
                     </div>
@@ -123,7 +126,7 @@ export default function Contact() {
                     <div className="flex items-start">
                       <FiMapPin className={`${currentTheme.bodyAccent} mt-1 mr-4`} size={20} />
                       <div>
-                        <h3 className="font-medium text-gray-900">Address</h3>
+                        <h3  className={`block text-sm font-medium ${currentTheme.labelText}`}>Address</h3>
                         <p className="text-gray-600">Kitui, Eastern Kenya.</p>
                       </div>
                     </div>
@@ -133,7 +136,7 @@ export default function Contact() {
                     <div className="flex items-start">
                       <FiBriefcase className={`${currentTheme.bodyAccent} mt-1 mr-4`} size={20} />
                       <div>
-                        <h3 className="font-medium text-gray-900">Business Partnerships</h3>
+                        <h3  className={`block text-sm font-medium ${currentTheme.labelText}`}>Business Partnerships</h3>
                         <p className="text-gray-600">Collaborate with us to expand mental health support</p>
                       </div>
                     </div>
@@ -141,7 +144,7 @@ export default function Contact() {
                     <div className="flex items-start">
                       <FiUsers className={`${currentTheme.bodyAccent} mt-1 mr-4`} size={20} />
                       <div>
-                        <h3 className="font-medium text-gray-900">Community Programs</h3>
+                        <h3  className={`block text-sm font-medium ${currentTheme.labelText}`}>Community Programs</h3>
                         <p className="text-gray-600">Join our initiatives to promote mental wellness</p>
                       </div>
                     </div>
@@ -149,7 +152,7 @@ export default function Contact() {
                     <div className="flex items-start">
                       <FiMail className={`${currentTheme.bodyAccent} mt-1 mr-4`} size={20} />
                       <div>
-                        <h3 className="font-medium text-gray-900">Sponsorships</h3>
+                        <h3  className={`block text-sm font-medium ${currentTheme.labelText}`}>Sponsorships</h3>
                         <p className="text-gray-600">Support our mission through sponsorships</p>
                       </div>
                     </div>
