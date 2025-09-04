@@ -168,7 +168,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                                     <div className="py-1">
                                         <Link
                                             to="/features"
-                                            className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
+                                             className={`block px-4 py-2 text-sm text-white hover:bg-gray-700`}
                                             onClick={() => setDropdownOpen(false)}
                                         >
                                             <FiFeather size={16} className="inline mr-2" />
@@ -176,7 +176,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                                         </Link>
                                         <Link
                                             to="/testimonials"
-                                            className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
+                                            className={`block px-4 py-2 text-sm text-white hover:bg-gray-700`}
                                             onClick={() => setDropdownOpen(false)}
                                         >
                                             <FiStar size={16} className="inline mr-2" />
@@ -184,7 +184,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                                         </Link>
                                         <Link
                                             to="/blog"
-                                            className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
+                                            className={`block px-4 py-2 text-sm text-white hover:bg-gray-700`}
                                             onClick={() => setDropdownOpen(false)}
                                         >
                                             <FiBook size={16} className="inline mr-2" />
@@ -192,7 +192,7 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                                         </Link>
                                         <Link
                                             to="/guides"
-                                            className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`}
+                                            className={`block px-4 py-2 text-sm text-white hover:bg-gray-700`}
                                             onClick={() => setDropdownOpen(false)}
                                         >
                                             <FiFileText size={16} className="inline mr-2" />
@@ -200,16 +200,24 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                                         </Link>
                                     <Link 
   to="/pricing" 
-  className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`} 
+   className={`block px-4 py-2 text-sm text-white hover:bg-gray-700`}
   onClick={() => setDropdownOpen(false)}
 >
   <FiDollarSign size={16} className="inline mr-2"/>
   Pricing
 </Link>
+                                      <Link 
+  to="/reviews" 
+  className={`block px-4 py-2 text-sm text-white hover:bg-gray-700`}
+  onClick={() => setDropdownOpen(false)}
+>
+  <FiStar size={16} className="inline mr-2"/>
+  Reviews
+</Link>
 
 <Link 
   to="/faq" 
-  className={`block px-4 py-2 text-sm ${currentTheme.dropdownText} hover:${currentTheme.dropdownHover}`} 
+ className={`block px-4 py-2 text-sm text-white hover:bg-gray-700`}
   onClick={() => setDropdownOpen(false)}
 >
   <FiHelpCircle size={16} className="inline mr-2"/>
