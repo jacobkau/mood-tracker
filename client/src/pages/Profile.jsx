@@ -28,6 +28,21 @@ export default function Profile() {
   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
 
+  // Helper function to get image URL
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return "";
+    
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    } else {
+      // Remove any leading slash to avoid double slashes in URL
+      const cleanPath = imagePath.startsWith('/') 
+        ? imagePath.substring(1) 
+        : imagePath;
+      return `${import.meta.env.VITE_API_BASE_URL}/${cleanPath}`;
+    }
+  };
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -54,16 +69,7 @@ export default function Profile() {
         
         // Set profile image if exists
         if (data.profileImage) {
-          // Check if it's already a full URL
-          if (data.profileImage.startsWith('http')) {
-            setPreviewImage(data.profileImage);
-          } else {
-            // Remove any leading slash to avoid double slashes in URL
-            const imagePath = data.profileImage.startsWith('/') 
-              ? data.profileImage.substring(1) 
-              : data.profileImage;
-            setPreviewImage(`${import.meta.env.VITE_API_BASE_URL}/${imagePath}`);
-          }
+          setPreviewImage(getImageUrl(data.profileImage));
         }
       } catch (err) {
         console.error("Failed to fetch user", err);
@@ -106,19 +112,7 @@ export default function Profile() {
 
   const removeImage = () => {
     setProfileImage(null);
-    // Reset to original user image if it exists
-    if (user?.profileImage) {
-      if (user.profileImage.startsWith('http')) {
-        setPreviewImage(user.profileImage);
-      } else {
-        const imagePath = user.profileImage.startsWith('/') 
-          ? user.profileImage.substring(1) 
-          : user.profileImage;
-        setPreviewImage(`${import.meta.env.VITE_API_BASE_URL}/${imagePath}`);
-      }
-    } else {
-      setPreviewImage("");
-    }
+    setPreviewImage(""); // Clear preview
   };
 
   const uploadProfileImage = async () => {
@@ -146,7 +140,7 @@ export default function Profile() {
     } catch (err) {
       console.error("Failed to upload image", err);
       toast.error(err.response?.data?.error || "Failed to upload profile image");
-      return null;
+      throw err; // Re-throw to handle in the main submit function
     } finally {
       setIsUploading(false);
     }
@@ -188,13 +182,9 @@ export default function Profile() {
       let profileImagePath = null;
       if (profileImage) {
         profileImagePath = await uploadProfileImage();
-        if (!profileImagePath) {
-          // If image upload failed, stop the process
-          return;
-        }
       }
       
-      // Only include password fields if new password is provided
+      // Prepare payload
       const payload = {
         username: formData.username,
         firstName: formData.firstName,
@@ -203,10 +193,15 @@ export default function Profile() {
         address: formData.address,
       };
       
-      // Only add profileImage to payload if we have a new image
+      // Handle profile image in payload
       if (profileImagePath) {
+        // New image was uploaded
         payload.profileImage = profileImagePath;
+      } else if (!previewImage && user?.profileImage) {
+        // User removed the image
+        payload.profileImage = "";
       }
+      // If neither condition is met, profileImage won't be included in payload
       
       if (formData.newPassword) {
         payload.currentPassword = formData.currentPassword;
@@ -244,16 +239,9 @@ export default function Profile() {
       // Update user data with the response
       if (response.data.user) {
         setUser(response.data.user);
-        // Update preview image with the new path from backend
+        // Update preview image
         if (response.data.user.profileImage) {
-          if (response.data.user.profileImage.startsWith('http')) {
-            setPreviewImage(response.data.user.profileImage);
-          } else {
-            const imagePath = response.data.user.profileImage.startsWith('/') 
-              ? response.data.user.profileImage.substring(1) 
-              : response.data.user.profileImage;
-            setPreviewImage(`${import.meta.env.VITE_API_BASE_URL}/${imagePath}`);
-          }
+          setPreviewImage(getImageUrl(response.data.user.profileImage));
         } else {
           setPreviewImage("");
         }
@@ -374,11 +362,12 @@ export default function Profile() {
                 />
               </label>
               
-              {previewImage && profileImage && (
+              {(previewImage || user.profileImage) && (
                 <button
                   onClick={removeImage}
                   className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
                   disabled={isLoading || isUploading}
+                  type="button"
                 >
                   <FiX className="w-3 h-3" />
                 </button>
