@@ -11,6 +11,12 @@ const contentRoutes = require('./routes/content');
 const subscriptionRoutes = require('./routes/subscription');
 const contactRoutes = require('./routes/contact');
 const adminRoutes = require('./routes/admin');
+const blogRoutes = require('./routes/blogs');
+const featureRoutes = require('./routes/features');
+const faqRoutes = require('./routes/faqs');
+const pricingRoutes = require('./routes/pricing');
+const guideRoutes = require('./routes/guides');
+
 const path = require('path');
 const reviewRoutes = require('./routes/reviews');
 
@@ -40,6 +46,11 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use("/api/blogs", blogRoutes);
+app.use("/api/features", featureRoutes);
+app.use("/api/faqs", faqRoutes);
+app.use("/api/pricing", pricingRoutes);
+app.use("/api/guides", guideRoutes);
 // Routes (keep the rest of your code the same)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/api/auth", authRoutes);
