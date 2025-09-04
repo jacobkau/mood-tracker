@@ -436,33 +436,39 @@ export default function AdminPanel() {
     }
   };
 
-  const sendBulkEmail = async () => {
-    if (!emailSubject.trim() || !emailContent.trim()) {
-      toast.error("Please enter subject and content");
-      return;
-    }
+const sendBulkEmail = async () => {
+  if (!emailSubject.trim() || !emailContent.trim()) {
+    toast.error("Please enter subject and content");
+    return;
+  }
 
-    try {
-      setIsSubmitting(true);
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/admin/emails/bulk`,
-        { subject: emailSubject, content: emailContent },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      toast.success("Bulk email sent successfully");
-      setEmailSubject("");
-      setEmailContent("");
-      fetchEmails();
-    } catch (err) {
-      console.error("Failed to send bulk email", err);
-      toast.error("Failed to send email");
-    } finally {
-      setIsSubmitting(false);
+  try {
+    setIsSubmitting(true);
+    const token = localStorage.getItem("token");
+    const response = await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/api/admin/emails/bulk`,
+      { subject: emailSubject, content: emailContent },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    
+    if (response.data.success) {
+      toast.success(`Bulk email sent to ${response.data.recipients} recipients`);
+    } else {
+      toast.error("Failed to send email: " + response.data.error);
     }
-  };
+    
+    setEmailSubject("");
+    setEmailContent("");
+    fetchEmails();
+  } catch (err) {
+    console.error("Failed to send bulk email", err);
+    toast.error("Failed to send email: " + (err.response?.data?.error || err.message));
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const createBlog = async (e) => {
     e.preventDefault();
