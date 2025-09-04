@@ -17,7 +17,8 @@ const ReviewList = () => {
   const fetchReviews = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/reviews?page=${page}&limit=5`
+        `${import.meta.env.VITE_API_BASE_URL}/api/reviews/public/approved?page=1&limit=5
+` 
       );
       setReviews(response.data.reviews);
       setTotalPages(response.data.totalPages);
