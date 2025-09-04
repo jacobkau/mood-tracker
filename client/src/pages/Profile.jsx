@@ -52,9 +52,13 @@ export default function Profile() {
           address: data.address || "",
         }));
         
-        // Set profile image if exists
+        // Set profile image if exists - FIXED: Check if profileImage exists and construct URL properly
         if (data.profileImage) {
-          setPreviewImage(`${import.meta.env.VITE_API_BASE_URL}${data.profileImage}`);
+          // Remove any leading slash to avoid double slashes in URL
+          const imagePath = data.profileImage.startsWith('/') 
+            ? data.profileImage.substring(1) 
+            : data.profileImage;
+          setPreviewImage(`${import.meta.env.VITE_API_BASE_URL}/${imagePath}`);
         }
       } catch (err) {
         console.error("Failed to fetch user", err);
@@ -97,7 +101,15 @@ export default function Profile() {
 
   const removeImage = () => {
     setProfileImage(null);
-    setPreviewImage(user?.profileImage ? `${import.meta.env.VITE_API_BASE_URL}${user.profileImage}` : "");
+    // Reset to original user image if it exists
+    if (user?.profileImage) {
+      const imagePath = user.profileImage.startsWith('/') 
+        ? user.profileImage.substring(1) 
+        : user.profileImage;
+      setPreviewImage(`${import.meta.env.VITE_API_BASE_URL}/${imagePath}`);
+    } else {
+      setPreviewImage("");
+    }
   };
 
   const uploadProfileImage = async () => {
@@ -167,6 +179,10 @@ export default function Profile() {
       let profileImagePath = null;
       if (profileImage) {
         profileImagePath = await uploadProfileImage();
+        if (!profileImagePath) {
+          // If image upload failed, stop the process
+          return;
+        }
       }
       
       // Only include password fields if new password is provided
@@ -178,6 +194,7 @@ export default function Profile() {
         address: formData.address,
       };
       
+      // Only add profileImage to payload if we have a new image
       if (profileImagePath) {
         payload.profileImage = profileImagePath;
       }
@@ -218,8 +235,14 @@ export default function Profile() {
       // Update user data with the response
       if (response.data.user) {
         setUser(response.data.user);
+        // Update preview image with the new path from backend
         if (response.data.user.profileImage) {
-          setPreviewImage(`${import.meta.env.VITE_API_BASE_URL}${response.data.user.profileImage}`);
+          const imagePath = response.data.user.profileImage.startsWith('/') 
+            ? response.data.user.profileImage.substring(1) 
+            : response.data.user.profileImage;
+          setPreviewImage(`${import.meta.env.VITE_API_BASE_URL}/${imagePath}`);
+        } else {
+          setPreviewImage("");
         }
       }
       
@@ -316,6 +339,10 @@ export default function Profile() {
                     src={previewImage} 
                     alt="Profile" 
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // If image fails to load, show placeholder
+                      e.target.style.display = 'none';
+                    }}
                   />
                 ) : (
                   <FiUser className="w-16 h-16 text-gray-400" />
@@ -334,7 +361,7 @@ export default function Profile() {
                 />
               </label>
               
-              {previewImage && (previewImage !== `${import.meta.env.VITE_API_BASE_URL}${user.profileImage}`) && (
+              {previewImage && profileImage && (
                 <button
                   onClick={removeImage}
                   className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
@@ -354,8 +381,7 @@ export default function Profile() {
                 Uploading image...
               </div>
             )}
-          </div>
-
+          </div>   
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className={`block text-sm font-medium ${currentTheme.labelText}`}>Email</label>
