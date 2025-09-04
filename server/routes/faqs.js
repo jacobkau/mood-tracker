@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get all FAQs (admin only)
-router.get('/admin/faqs', auth, adminAuth, async (req, res) => {
+router.get('/admin/faqs', protect, admin, async (req, res) => {
   try {
     const faqs = await FAQ.find().sort({ order: 1, createdAt: -1 });
     res.json(faqs);
@@ -61,7 +61,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new FAQ (admin only)
-router.post('/admin/faqs', auth, adminAuth, async (req, res) => {
+router.post('/admin/faqs', protect, admin, async (req, res) => {
   try {
     const { question, answer, category, status, order, tags } = req.body;
 
@@ -83,7 +83,7 @@ router.post('/admin/faqs', auth, adminAuth, async (req, res) => {
 });
 
 // Update FAQ (admin only)
-router.put('/admin/faqs/:id', auth, adminAuth, async (req, res) => {
+router.put('/admin/faqs/:id', protect, admin, async (req, res) => {
   try {
     const { question, answer, category, status, order, tags } = req.body;
 
@@ -111,7 +111,7 @@ router.put('/admin/faqs/:id', auth, adminAuth, async (req, res) => {
 });
 
 // Delete FAQ (admin only)
-router.delete('/admin/faqs/:id', auth, adminAuth, async (req, res) => {
+router.delete('/admin/faqs/:id', protect, admin, async (req, res) => {
   try {
     const faq = await FAQ.findById(req.params.id);
     if (!faq) {
@@ -151,7 +151,7 @@ router.post('/:id/helpful', async (req, res) => {
 });
 
 // Update FAQ order (admin only)
-router.patch('/admin/faqs/:id/order', auth, adminAuth, async (req, res) => {
+router.patch('/admin/faqs/:id/order', protect, admin, async (req, res) => {
   try {
     const { order } = req.body;
     const faq = await FAQ.findById(req.params.id);
@@ -171,7 +171,7 @@ router.patch('/admin/faqs/:id/order', auth, adminAuth, async (req, res) => {
 });
 
 // Update FAQ status (admin only)
-router.patch('/admin/faqs/:id/status', auth, adminAuth, async (req, res) => {
+router.patch('/admin/faqs/:id/status', protect, admin, async (req, res) => {
   try {
     const { status } = req.body;
     const faq = await FAQ.findById(req.params.id);
