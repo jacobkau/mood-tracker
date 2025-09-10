@@ -28,7 +28,6 @@ import VerifyEmail from "./pages/VerifyEmail";
 import AdminPanel from './components/AdminPanel';
 import ReviewsPage from './pages/ReviewsPage';
 import GuideDetail from "./pages/GuideDetail";
-import AdminReviewManager from './components/AdminReviewManager';
 
 
 
@@ -84,8 +83,7 @@ function App() {
             }
           />
           
-          <Route path="/admin/reviews"  element={
-              isAuthenticated ? <AdminReviewManager />  : <Navigate to="/login" replace /> } />
+         
           <Route
             path="/dashboard"
             element={
