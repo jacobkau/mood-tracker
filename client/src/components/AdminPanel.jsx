@@ -59,7 +59,14 @@ export default function AdminPanel() {
     monthlyPrice: '', 
     yearlyPrice: '' 
   });
-  const [guideForm, setGuideForm] = useState({ title: '', content: '', category: 'getting-started' });
+const [guideForm, setGuideForm] = useState({ 
+  title: '', 
+  content: '', 
+  category: 'getting-started',
+  difficulty: 'beginner',
+  description: '',
+  time: '5 min read'
+});
 
   useEffect(() => {
     fetchStats();
@@ -237,21 +244,21 @@ export default function AdminPanel() {
     }
   };
 
-  const fetchGuides = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setGuides(data);
-    } catch (err) {
-      console.error("Failed to fetch guides", err);
-      toast.error("Failed to load guides");
-    }
-  };
+const fetchGuides = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const { data } = await axios.get(
+      `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    setGuides(data);
+  } catch (err) {
+    console.error("Failed to fetch guides", err);
+    toast.error("Failed to load guides");
+  }
+};
 
   const updateUserRole = async (userId, newRole) => {
     try {
@@ -570,28 +577,42 @@ const sendBulkEmail = async () => {
     }
   };
 
-  const createGuide = async (e) => {
-    e.preventDefault();
-    try {
-      setIsSubmitting(true);
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
-        guideForm,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      toast.success("Guide created successfully");
-      setGuideForm({ title: '', content: '', category: 'getting-started' });
-      fetchGuides();
-    } catch (err) {
-      console.error("Failed to create guide", err);
-      toast.error("Failed to create guide");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+const createGuide = async (e) => {
+  e.preventDefault();
+  try {
+    setIsSubmitting(true);
+    const token = localStorage.getItem("token");
+    await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
+      {
+        title: guideForm.title,
+        content: guideForm.content,
+        category: guideForm.category,
+        difficulty: guideForm.difficulty,
+        excerpt: guideForm.description,
+        tags: [guideForm.category]
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    toast.success("Guide created successfully");
+    setGuideForm({ 
+      title: '', 
+      content: '', 
+      category: 'getting-started',
+      difficulty: 'beginner',
+      description: '',
+      time: '5 min read'
+    });
+    fetchGuides();
+  } catch (err) {
+    console.error("Failed to create guide", err);
+    toast.error("Failed to create guide");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const exportData = async (type) => {
     try {
@@ -1232,77 +1253,111 @@ const sendBulkEmail = async () => {
         )}
 
         {/* Guides Tab */}
-        {activeTab === 'guides' && (
-          <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
-            <h2 className="text-xl font-semibold mb-4">Guide Management</h2>
-            
-            {/* Create Guide Form */}
-            <div className="mb-6 p-4 border rounded-lg">
-              <h3 className="font-semibold mb-3">Create New Guide</h3>
-              <form onSubmit={createGuide}>
-                <input
-                  type="text"
-                  placeholder="Guide Title"
-                  value={guideForm.title}
-                  onChange={(e) => setGuideForm({...guideForm, title: e.target.value})}
-                  className="w-full p-2 border rounded mb-3"
-                  required
-                />
-                <select
-                  value={guideForm.category}
-                  onChange={(e) => setGuideForm({...guideForm, category: e.target.value})}
-                  className="w-full p-2 border rounded mb-3"
-                  required
-                >
-                  <option value="getting-started">Getting Started</option>
-                  <option value="tutorials">Tutorials</option>
-                  <option value="tips">Tips & Tricks</option>
-                  <option value="troubleshooting">Troubleshooting</option>
-                  <option value="advanced">Advanced</option>
-                </select>
-                <textarea
-                  placeholder="Guide Content"
-                  value={guideForm.content}
-                  onChange={(e) => setGuideForm({...guideForm, content: e.target.value})}
-                  rows={6}
-                  className="w-full p-2 border rounded mb-3"
-                  required
-                />
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-                >
-                  {isSubmitting ? 'Creating...' : 'Create Guide'}
-                </button>
-              </form>
-            </div>
+{activeTab === 'guides' && (
+  <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
+    <h2 className="text-xl font-semibold mb-4">Guide Management</h2>
+    
+    {/* Create Guide Form */}
+    <div className="mb-6 p-4 border rounded-lg">
+      <h3 className="font-semibold mb-3">Create New Guide</h3>
+      <form onSubmit={createGuide}>
+        <input
+          type="text"
+          placeholder="Guide Title"
+          value={guideForm.title}
+          onChange={(e) => setGuideForm({...guideForm, title: e.target.value})}
+          className="w-full p-2 border rounded mb-3"
+          required
+        />
+        
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <select
+            value={guideForm.category}
+            onChange={(e) => setGuideForm({...guideForm, category: e.target.value})}
+            className="w-full p-2 border rounded"
+            required
+          >
+            <option value="getting-started">Getting Started</option>
+            <option value="tutorials">Tutorials</option>
+            <option value="tips">Tips & Tricks</option>
+            <option value="troubleshooting">Troubleshooting</option>
+            <option value="advanced">Advanced</option>
+          </select>
+          
+          <select
+            value={guideForm.difficulty}
+            onChange={(e) => setGuideForm({...guideForm, difficulty: e.target.value})}
+            className="w-full p-2 border rounded"
+            required
+          >
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+        </div>
+        
+        <textarea
+          placeholder="Short Description"
+          value={guideForm.description}
+          onChange={(e) => setGuideForm({...guideForm, description: e.target.value})}
+          rows={2}
+          className="w-full p-2 border rounded mb-3"
+          required
+        />
+        
+        <textarea
+          placeholder="Guide Content"
+          value={guideForm.content}
+          onChange={(e) => setGuideForm({...guideForm, content: e.target.value})}
+          rows={6}
+          className="w-full p-2 border rounded mb-3"
+          required
+        />
+        
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+        >
+          {isSubmitting ? 'Creating...' : 'Create Guide'}
+        </button>
+      </form>
+    </div>
 
-            {/* Guides List */}
-            <h3 className="font-semibold mb-3">Guides</h3>
-            <div className="space-y-4">
-              {guides.map((guide) => (
-                <div key={guide._id} className="border rounded-lg p-4">
-                  <div className="flex justify-between items-start">
-                    <h4 className="font-semibold">{guide.title}</h4>
-                    <span className={`px-2 py-1 rounded text-xs bg-gray-100 text-gray-800`}>
-                      {guide.category}
-                    </span>
-                  </div>
-                  <p className="text-gray-600 mb-2">{guide.excerpt || guide.content.substring(0, 100)}...</p>
-                  <div className="flex gap-2">
-                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
-                      <FiEdit />
-                    </button>
-                    <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
-                      <FiTrash2 />
-                    </button>
-                  </div>
-                </div>
-              ))}
+    {/* Guides List */}
+    <h3 className="font-semibold mb-3">Guides</h3>
+    <div className="space-y-4">
+      {guides.map((guide) => (
+        <div key={guide._id} className="border rounded-lg p-4">
+          <div className="flex justify-between items-start">
+            <h4 className="font-semibold">{guide.title}</h4>
+            <div className="flex flex-col items-end">
+              <span className={`px-2 py-1 rounded text-xs bg-gray-100 text-gray-800 mb-1`}>
+                {guide.category}
+              </span>
+              <span className={`px-2 py-1 rounded text-xs ${
+                guide.difficulty === 'beginner' ? 'bg-green-100 text-green-800' :
+                guide.difficulty === 'intermediate' ? 'bg-blue-100 text-blue-800' :
+                'bg-purple-100 text-purple-800'
+              }`}>
+                {guide.difficulty}
+              </span>
             </div>
           </div>
-        )}
+          <p className="text-gray-600 mb-2">{guide.excerpt || 'No description'}</p>
+          <div className="flex gap-2">
+            <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+              <FiEdit />
+            </button>
+            <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+              <FiTrash2 />
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
 
         {/* Emails Tab */}
         {activeTab === 'emails' && (
