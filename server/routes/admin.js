@@ -267,7 +267,6 @@ router.get('/emails', protect, admin, async (req, res) => {
 });
 
 // Bulk email
-
 router.post('/emails/bulk', protect, admin, async (req, res) => {
   try {
     const { subject, content } = req.body;
@@ -277,7 +276,7 @@ router.post('/emails/bulk', protect, admin, async (req, res) => {
 
     const subscribers = await User.find({ emailSubscribed: true }).select("email");
     
-    // Create bulk email record in history (not in main Email collection)
+    // Create bulk email record in history
     const historyRecord = new EmailHistory({
       subject,
       content,
@@ -291,70 +290,98 @@ router.post('/emails/bulk', protect, admin, async (req, res) => {
     const { transporter, hasEmailCredentials } = require("../utils/emailService");
     
     if (!hasEmailCredentials()) {
-      await historyRecord.updateOne({ status: 'failed', error: 'Email service not configured' });
+      await EmailHistory.findByIdAndUpdate(historyRecord._id, { 
+        status: 'failed', 
+        error: 'Email service not configured' 
+      });
       return res.status(500).json({ error: "Email service not configured" });
     }
 
-    const emailPromises = subscribers.map(async (subscriber) => {
-      try {
-        const mailOptions = {
-          from: `Witty MoodTracker <${process.env.EMAIL_USER}>`,
-          to: subscriber.email,
-          subject: subject,
-          html: content
-        };
-        
-        await transporter.sendMail(mailOptions);
-        
-        // Add to sent emails array in history record
-        await EmailHistory.findByIdAndUpdate(
-          historyRecord._id,
-          { 
-            $push: { 
-              sentEmails: {
-                email: subscriber.email,
-                status: 'sent',
-                sentAt: new Date()
+    // Process emails in batches to avoid overwhelming the server
+    const batchSize = 10;
+    let successfulSends = 0;
+    let failedSends = 0;
+    
+    for (let i = 0; i < subscribers.length; i += batchSize) {
+      const batch = subscribers.slice(i, i + batchSize);
+      
+      const batchPromises = batch.map(async (subscriber) => {
+        try {
+          const mailOptions = {
+            from: `Witty MoodTracker <${process.env.EMAIL_USER}>`,
+            to: subscriber.email,
+            subject: subject,
+            html: content
+          };
+          
+          await transporter.sendMail(mailOptions);
+          successfulSends++;
+          
+          // Add to sent emails array
+          await EmailHistory.findByIdAndUpdate(
+            historyRecord._id,
+            { 
+              $push: { 
+                sentEmails: {
+                  email: subscriber.email,
+                  status: 'sent',
+                  sentAt: new Date()
+                }
               }
-            },
-            $inc: { successfulSends: 1 }
-          }
-        );
-        
-      } catch (error) {
-        console.error(`Failed to send email to ${subscriber.email}:`, error);
-        
-        // Add to failed emails array
-        await EmailHistory.findByIdAndUpdate(
-          historyRecord._id,
-          { 
-            $push: { 
-              failedEmails: {
-                email: subscriber.email,
-                status: 'failed',
-                error: error.message,
-                failedAt: new Date()
+            }
+          );
+          
+        } catch (error) {
+          console.error(`Failed to send email to ${subscriber.email}:`, error);
+          failedSends++;
+          
+          // Add to failed emails array
+          await EmailHistory.findByIdAndUpdate(
+            historyRecord._id,
+            { 
+              $push: { 
+                failedEmails: {
+                  email: subscriber.email,
+                  status: 'failed',
+                  error: error.message,
+                  failedAt: new Date()
+                }
               }
-            },
-            $inc: { failedSends: 1 }
-          }
-        );
-      }
-    });
+            }
+          );
+        }
+      });
 
-    await Promise.all(emailPromises);
+      await Promise.all(batchPromises);
+    }
     
     // Update history record status
-    await historyRecord.updateOne({ status: 'completed', completedAt: new Date() });
+    await EmailHistory.findByIdAndUpdate(historyRecord._id, { 
+      status: 'completed', 
+      successfulSends,
+      failedSends,
+      completedAt: new Date() 
+    });
 
     res.json({ 
       message: "Bulk email sent successfully", 
       recipients: subscribers.length,
+      successful: successfulSends,
+      failed: failedSends,
       success: true,
       historyId: historyRecord._id
     });
   } catch (err) {
     console.error("Bulk email error:", err);
+    
+    // Update history record if it was created
+    if (historyRecord && historyRecord._id) {
+      await EmailHistory.findByIdAndUpdate(historyRecord._id, { 
+        status: 'failed', 
+        error: err.message 
+      });
+    }
+    
     res.status(500).json({ error: err.message });
   }
 });
