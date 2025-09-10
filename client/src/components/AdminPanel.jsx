@@ -1443,40 +1443,41 @@ const handleTagKeyPress = (e) => {
         />
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-          <select
-            value={guideForm.category}
-            onChange={(e) => setGuideForm({...guideForm, category: e.target.value})}
-            className="w-full p-2 border rounded"
-            required
-          >
-            <option value="getting-started">Getting Started</option>
-            <option value="tutorials">Tutorials</option>
-            <option value="tips">Tips & Tricks</option>
-            <option value="troubleshooting">Troubleshooting</option>
-            <option value="advanced">Advanced</option>
-          </select>
-          
-          <select
-            value={guideForm.difficulty}
-            onChange={(e) => setGuideForm({...guideForm, difficulty: e.target.value})}
-            className="w-full p-2 border rounded"
-            required
-          >
-            <option value="beginner">Beginner</option>
-            <option value="intermediate">Intermediate</option>
-            <option value="advanced">Advanced</option>
-          </select>
+         <select
+  value={guideForm.category}
+  onChange={(e) => setGuideForm({...guideForm, category: e.target.value})}
+  className="w-full p-2 border rounded bg-white text-gray-800"
+  required
+>
+  <option value="getting-started">Getting Started</option>
+  <option value="tutorials">Tutorials</option>
+  <option value="tips">Tips & Tricks</option>
+  <option value="troubleshooting">Troubleshooting</option>
+  <option value="advanced">Advanced</option>
+</select>
 
-          <select
-            value={guideForm.status}
-            onChange={(e) => setGuideForm({...guideForm, status: e.target.value})}
-            className="w-full p-2 border rounded"
-            required
-          >
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-            <option value="archived">Archived</option>
-          </select>
+<select
+  value={guideForm.difficulty}
+  onChange={(e) => setGuideForm({...guideForm, difficulty: e.target.value})}
+  className="w-full p-2 border rounded bg-white text-gray-800"
+  required
+>
+  <option value="beginner">Beginner</option>
+  <option value="intermediate">Intermediate</option>
+  <option value="advanced">Advanced</option>
+</select>
+
+<select
+  value={guideForm.status}
+  onChange={(e) => setGuideForm({...guideForm, status: e.target.value})}
+  className="w-full p-2 border rounded bg-white text-gray-800"
+  required
+>
+  <option value="draft">Draft</option>
+  <option value="published">Published</option>
+  <option value="archived">Archived</option>
+</select>
+
         </div>
         
         <div className="mb-3">
