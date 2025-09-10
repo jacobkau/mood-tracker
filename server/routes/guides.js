@@ -3,15 +3,14 @@ const Guide = require('../models/Guide');
 const { protect, admin } = require("../middleware/authMiddleware");
 const router = express.Router();
 
-// Get all guides
+// Get all guides (public)
 router.get('/', async (req, res) => {
   try {
     const { category, difficulty, status, page = 1, limit = 10 } = req.query;
-    let query = {};
+    let query = { status: 'published' }; // Default to published only for public
 
     if (category) query.category = category;
     if (difficulty) query.difficulty = difficulty;
-    if (status) query.status = status;
 
     const guides = await Guide.find(query)
       .populate('author', 'username email')
@@ -34,8 +33,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get all guides (admin only)
-router.get('/admin/guides', protect, admin, async (req, res) => {
+// Get all guides (admin only) - FIXED ROUTE
+router.get('/admin/all', protect, admin, async (req, res) => {
   try {
     const guides = await Guide.find()
       .populate('author', 'username email')
@@ -95,8 +94,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create new guide (admin only)
-router.post('/admin/guides', protect, admin, async (req, res) => {
+// Create new guide (admin only) - FIXED ROUTE
+router.post('/admin/create', protect, admin, async (req, res) => {
   try {
     const { title, content, excerpt, category, difficulty, featuredImage, tags, relatedGuides } = req.body;
 
@@ -122,7 +121,7 @@ router.post('/admin/guides', protect, admin, async (req, res) => {
       tags: tags || [],
       relatedGuides: relatedGuides || [],
       author: req.user.id,
-      readTime: Math.ceil(content.split(/\s+/).length / 200) // Estimate read time
+      readTime: Math.ceil(content.split(/\s+/).length / 200)
     });
 
     await guide.save();
@@ -135,8 +134,8 @@ router.post('/admin/guides', protect, admin, async (req, res) => {
   }
 });
 
-// Update guide (admin only)
-router.put('/admin/guides/:id', protect, admin, async (req, res) => {
+// Update guide (admin only) - FIXED ROUTE
+router.put('/admin/update/:id', protect, admin, async (req, res) => {
   try {
     const { title, content, excerpt, category, difficulty, featuredImage, tags, relatedGuides, status } = req.body;
 
@@ -172,8 +171,8 @@ router.put('/admin/guides/:id', protect, admin, async (req, res) => {
   }
 });
 
-// Delete guide (admin only)
-router.delete('/admin/guides/:id', protect, admin, async (req, res) => {
+// Delete guide (admin only) - FIXED ROUTE
+router.delete('/admin/delete/:id', protect, admin, async (req, res) => {
   try {
     const guide = await Guide.findById(req.params.id);
     if (!guide) {
@@ -188,8 +187,8 @@ router.delete('/admin/guides/:id', protect, admin, async (req, res) => {
   }
 });
 
-// Update guide status (admin only)
-router.patch('/admin/guides/:id/status',  protect, admin, async (req, res) => {
+// Update guide status (admin only) - FIXED ROUTE
+router.patch('/admin/status/:id', protect, admin, async (req, res) => {
   try {
     const { status } = req.body;
     const guide = await Guide.findById(req.params.id);
