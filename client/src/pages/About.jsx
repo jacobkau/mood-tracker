@@ -6,17 +6,6 @@ import { useTheme } from '../context/useTheme';
 const About = () => {
   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
-  
-  const teamMembers = [
-    
- {
-  name: "Jacob Kau",
-  role: "Developer",
-  bio: "Focused on building web applications, user-centered systems, and exploring innovative tech solutions.",
-  image: "/logo.png",
-  expertise: ["Web Development", "MERN Stack", "Cloud Services"]
-}
-  ];
 
   const values = [
     {
@@ -191,39 +180,7 @@ const About = () => {
         </div>
       </section>
 
-      {/* Team Section */}
-      <section className={`py-16 ${currentTheme.cardBg} px-4 sm:px-6 lg:px-8`}>
-        <div className="max-w-7xl mx-auto">
-          <h2 className={`text-3xl font-bold  ${currentTheme.bodyAccent} text-center mb-12`}>Meet Our Team</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {teamMembers.map((member, index) => (
-              <div key={index} className={`text-center p-6 rounded-xl hover:shadow-lg transition-shadow duration-300 ${currentTheme.bodyBg}`}>
-                <div className={`w-20 h-20 rounded-full flex items-center justify-center font-bold text-xl mx-auto mb-4 ${currentTheme.highlight}`}>
-                  <img
-    src={member.image}
-    alt={member.name}
-    className="w-20 h-20 rounded-full object-cover shadow-md"
-  />
-                </div>
-
-
-
-                
-                <h3 className="text-xl font-semibold text-gray-900 mb-1">{member.name}</h3>
-                <p className={`font-medium mb-3 ${currentTheme.bodyAccent}`}>{member.role}</p>
-                <p className="text-gray-600 mb-4 text-sm">{member.bio}</p>
-                <div className="flex flex-wrap justify-center gap-2">
-                  {member.expertise.map((skill, skillIndex) => (
-                    <span key={skillIndex} className={`text-xs px-2 py-1 rounded-full ${currentTheme.highlight}`}>
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+   
 
       {/* Timeline Section */}
       <section className={`py-16 ${currentTheme.bodyBg} px-4 sm:px-6 lg:px-8`}>
