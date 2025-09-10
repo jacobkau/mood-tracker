@@ -173,8 +173,6 @@ router.post('/reviews/:id/response', protect, admin, async (req, res) => {
   }
 });
 
-module.exports = router;
-
 
 // Contact messages
 router.get('/contacts', protect, admin, async (req, res) => {
@@ -503,7 +501,7 @@ router.post('/pricing', protect, admin, async (req, res) => {
   }
 });
 
-// Guide management
+// Guide management routes for admin panel
 router.get('/guides', protect, admin, async (req, res) => {
   try {
     const guides = await Guide.find()
@@ -549,6 +547,58 @@ router.post('/guides', protect, admin, async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+router.put('/guides/:id', protect, admin, async (req, res) => {
+  try {
+    const guide = await Guide.findById(req.params.id);
+    if (!guide) {
+      return res.status(404).json({ error: 'Guide not found' });
+    }
+
+    Object.assign(guide, req.body);
+    await guide.save();
+
+    res.json(guide);
+  } catch (error) {
+    console.error('Error updating guide:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.delete('/guides/:id', protect, admin, async (req, res) => {
+  try {
+    const guide = await Guide.findById(req.params.id);
+    if (!guide) {
+      return res.status(404).json({ error: 'Guide not found' });
+    }
+
+    await Guide.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Guide deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting guide:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.put('/guides/:id/status', protect, admin, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const guide = await Guide.findById(req.params.id);
+
+    if (!guide) {
+      return res.status(404).json({ error: 'Guide not found' });
+    }
+
+    guide.status = status;
+    await guide.save();
+
+    res.json({ status: guide.status });
+  } catch (error) {
+    console.error('Error updating guide status:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 
 // Export data
 router.get('/export/:type', protect, admin, async (req, res) => {
