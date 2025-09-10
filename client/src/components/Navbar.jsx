@@ -5,6 +5,7 @@ import {
   FiBarChart2, 
   FiUser, 
   FiPhone, 
+  FiCode,
   FiSun, 
   FiMoon,
   FiFeather,
