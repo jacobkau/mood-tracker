@@ -45,6 +45,7 @@ export default function AdminPanel() {
   const [emailContent, setEmailContent] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
 
@@ -60,12 +61,15 @@ export default function AdminPanel() {
     yearlyPrice: '' 
   });
 const [guideForm, setGuideForm] = useState({ 
+  _id: '',
   title: '', 
   content: '', 
   category: 'getting-started',
   difficulty: 'beginner',
   description: '',
-  time: '5 min read'
+  tags: [],
+  newTag: '',
+  status: 'draft'
 });
 
   useEffect(() => {
@@ -577,43 +581,156 @@ const sendBulkEmail = async () => {
     }
   };
 
-const createGuide = async (e) => {
+const saveGuide = async (e) => {
   e.preventDefault();
   try {
     setIsSubmitting(true);
     const token = localStorage.getItem("token");
-    await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
-      {
-        title: guideForm.title,
-        content: guideForm.content,
-        category: guideForm.category,
-        difficulty: guideForm.difficulty,
-        excerpt: guideForm.description,
-        tags: [guideForm.category]
-      },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    toast.success("Guide created successfully");
+    
+    // Calculate read time (approx 200 words per minute)
+    const wordCount = guideForm.content.split(/\s+/).length;
+    const readTime = Math.ceil(wordCount / 200);
+    
+    const guideData = {
+      title: guideForm.title,
+      content: guideForm.content,
+      category: guideForm.category,
+      difficulty: guideForm.difficulty,
+      excerpt: guideForm.description,
+      tags: guideForm.tags,
+      readTime,
+      status: guideForm.status
+    };
+
+    let response;
+    if (isEditing) {
+      response = await axios.put(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideForm._id}`,
+        guideData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      toast.success("Guide updated successfully");
+    } else {
+      response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
+        guideData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      toast.success("Guide created successfully");
+    }
+
+    // Reset form
     setGuideForm({ 
+      _id: '',
       title: '', 
       content: '', 
       category: 'getting-started',
       difficulty: 'beginner',
       description: '',
-      time: '5 min read'
+      tags: [],
+      newTag: '',
+      status: 'draft'
     });
+    setIsEditing(false);
     fetchGuides();
   } catch (err) {
-    console.error("Failed to create guide", err);
-    toast.error("Failed to create guide");
+    console.error("Failed to save guide", err);
+    toast.error(`Failed to ${isEditing ? 'update' : 'create'} guide`);
   } finally {
     setIsSubmitting(false);
   }
 };
+const editGuide = (guide) => {
+  setGuideForm({
+    _id: guide._id,
+    title: guide.title,
+    content: guide.content,
+    category: guide.category,
+    difficulty: guide.difficulty,
+    description: guide.excerpt || '',
+    tags: guide.tags || [],
+    newTag: '',
+    status: guide.status
+  });
+  setIsEditing(true);
+  // Scroll to form
+  document.getElementById('guide-form').scrollIntoView({ behavior: 'smooth' });
+};
+  const cancelEdit = () => {
+  setGuideForm({ 
+    _id: '',
+    title: '', 
+    content: '', 
+    category: 'getting-started',
+    difficulty: 'beginner',
+    description: '',
+    tags: [],
+    newTag: '',
+    status: 'draft'
+  });
+  setIsEditing(false);
+};
+  const updateGuideStatus = async (guideId, newStatus) => {
+  try {
+    const token = localStorage.getItem("token");
+    await axios.patch(
+      `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideId}/status`,
+      { status: newStatus },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    toast.success(`Guide ${newStatus} successfully`);
+    fetchGuides();
+  } catch (err) {
+    console.error("Failed to update guide status", err);
+    toast.error("Failed to update guide status");
+  }
+};
+  const addTag = () => {
+  if (guideForm.newTag.trim() && !guideForm.tags.includes(guideForm.newTag.trim())) {
+    setGuideForm({
+      ...guideForm,
+      tags: [...guideForm.tags, guideForm.newTag.trim()],
+      newTag: ''
+    });
+  }
+};
 
+const removeTag = (tagToRemove) => {
+  setGuideForm({
+    ...guideForm,
+    tags: guideForm.tags.filter(tag => tag !== tagToRemove)
+  });
+};
+const deleteGuide = async (guideId) => {
+  if (window.confirm("Are you sure you want to delete this guide?")) {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      toast.success("Guide deleted successfully");
+      fetchGuides();
+    } catch (err) {
+      console.error("Failed to delete guide", err);
+      toast.error("Failed to delete guide");
+    }
+  }
+};
+const handleTagKeyPress = (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    addTag();
+  }
+};
   const exportData = async (type) => {
     try {
       const token = localStorage.getItem("token");
@@ -1257,10 +1374,12 @@ const createGuide = async (e) => {
   <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
     <h2 className="text-xl font-semibold mb-4">Guide Management</h2>
     
-    {/* Create Guide Form */}
-    <div className="mb-6 p-4 border rounded-lg">
-      <h3 className="font-semibold mb-3">Create New Guide</h3>
-      <form onSubmit={createGuide}>
+    {/* Create/Edit Guide Form */}
+    <div id="guide-form" className="mb-6 p-4 border rounded-lg">
+      <h3 className="font-semibold mb-3">
+        {isEditing ? 'Edit Guide' : 'Create New Guide'}
+      </h3>
+      <form onSubmit={saveGuide}>
         <input
           type="text"
           placeholder="Guide Title"
@@ -1270,7 +1389,7 @@ const createGuide = async (e) => {
           required
         />
         
-        <div className="grid grid-cols-2 gap-3 mb-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
           <select
             value={guideForm.category}
             onChange={(e) => setGuideForm({...guideForm, category: e.target.value})}
@@ -1294,10 +1413,56 @@ const createGuide = async (e) => {
             <option value="intermediate">Intermediate</option>
             <option value="advanced">Advanced</option>
           </select>
+
+          <select
+            value={guideForm.status}
+            onChange={(e) => setGuideForm({...guideForm, status: e.target.value})}
+            className="w-full p-2 border rounded"
+            required
+          >
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+        
+        <div className="mb-3">
+          <label className="block text-sm font-medium mb-1">Tags</label>
+          <div className="flex gap-2 mb-2">
+            <input
+              type="text"
+              placeholder="Add tag..."
+              value={guideForm.newTag}
+              onChange={(e) => setGuideForm({...guideForm, newTag: e.target.value})}
+              onKeyPress={handleTagKeyPress}
+              className="flex-1 p-2 border rounded"
+            />
+            <button
+              type="button"
+              onClick={addTag}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded"
+            >
+              Add
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {guideForm.tags.map((tag, index) => (
+              <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm flex items-center">
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => removeTag(tag)}
+                  className="ml-1 text-blue-600 hover:text-blue-800"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
         </div>
         
         <textarea
-          placeholder="Short Description"
+          placeholder="Short Description (Excerpt)"
           value={guideForm.description}
           onChange={(e) => setGuideForm({...guideForm, description: e.target.value})}
           rows={2}
@@ -1314,13 +1479,24 @@ const createGuide = async (e) => {
           required
         />
         
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-        >
-          {isSubmitting ? 'Creating...' : 'Create Guide'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+          >
+            {isSubmitting ? 'Saving...' : (isEditing ? 'Update Guide' : 'Create Guide')}
+          </button>
+          {isEditing && (
+            <button
+              type="button"
+              onClick={cancelEdit}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
       </form>
     </div>
 
@@ -1329,29 +1505,64 @@ const createGuide = async (e) => {
     <div className="space-y-4">
       {guides.map((guide) => (
         <div key={guide._id} className="border rounded-lg p-4">
-          <div className="flex justify-between items-start">
+          <div className="flex justify-between items-start mb-3">
             <h4 className="font-semibold">{guide.title}</h4>
-            <div className="flex flex-col items-end">
-              <span className={`px-2 py-1 rounded text-xs bg-gray-100 text-gray-800 mb-1`}>
-                {guide.category}
-              </span>
-              <span className={`px-2 py-1 rounded text-xs ${
-                guide.difficulty === 'beginner' ? 'bg-green-100 text-green-800' :
-                guide.difficulty === 'intermediate' ? 'bg-blue-100 text-blue-800' :
-                'bg-purple-100 text-purple-800'
-              }`}>
-                {guide.difficulty}
-              </span>
-            </div>
+            <span className={`px-2 py-1 rounded text-xs ${
+              guide.status === 'published' ? 'bg-green-100 text-green-800' : 
+              guide.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
+            }`}>
+              {guide.status}
+            </span>
           </div>
-          <p className="text-gray-600 mb-2">{guide.excerpt || 'No description'}</p>
-          <div className="flex gap-2">
-            <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
-              <FiEdit />
-            </button>
-            <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
-              <FiTrash2 />
-            </button>
+          
+          <div className="flex flex-wrap gap-2 mb-3">
+            <span className={`px-2 py-1 rounded text-xs bg-gray-100 text-gray-800`}>
+              {guide.category}
+            </span>
+            <span className={`px-2 py-1 rounded text-xs ${
+              guide.difficulty === 'beginner' ? 'bg-green-100 text-green-800' :
+              guide.difficulty === 'intermediate' ? 'bg-blue-100 text-blue-800' :
+              'bg-purple-100 text-purple-800'
+            }`}>
+              {guide.difficulty}
+            </span>
+            {guide.tags && guide.tags.map((tag, index) => (
+              <span key={index} className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-800">
+                {tag}
+              </span>
+            ))}
+          </div>
+          
+          <p className="text-gray-600 mb-3">{guide.excerpt || 'No description'}</p>
+          
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-gray-500">
+              {guide.readTime} min read • {guide.views || 0} views
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => editGuide(guide)}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+              >
+                <FiEdit />
+              </button>
+              <button
+                onClick={() => updateGuideStatus(guide._id, guide.status === 'published' ? 'draft' : 'published')}
+                className={`px-3 py-1 rounded text-sm ${
+                  guide.status === 'published' 
+                    ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
+                    : 'bg-green-500 hover:bg-green-600 text-white'
+                }`}
+              >
+                {guide.status === 'published' ? 'Unpublish' : 'Publish'}
+              </button>
+              <button
+                onClick={() => deleteGuide(guide._id)}
+                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+              >
+                <FiTrash2 />
+              </button>
+            </div>
           </div>
         </div>
       ))}
