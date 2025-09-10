@@ -27,6 +27,7 @@ import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import AdminPanel from './components/AdminPanel';
 import ReviewsPage from './pages/ReviewsPage';
+import GuideDetail from "./pages/GuideDetail";
 import AdminReviewManager from './components/AdminReviewManager';
 
 
@@ -61,6 +62,7 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/features" element={<Features />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/guides/:id" element={<GuideDetail />} />
           <Route path="/testimonials" element={<Testimonials />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/guides" element={<Guides />} />
