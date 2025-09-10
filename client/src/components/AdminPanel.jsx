@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Editor } from '@tinymce/tinymce-react';
 import { toast } from "react-toastify";
 import { useTheme } from '../context/useTheme';
+import TinyEditor from '../components/TinyEditor';
 import { 
   FiUsers, 
   FiStar, 
@@ -443,7 +443,10 @@ const fetchGuides = async () => {
       const token = localStorage.getItem("token");
       await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/admin/pages`,
-        pageForm,
+        {
+          ...pageForm,
+          content: pageForm.content 
+        },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -462,7 +465,6 @@ const fetchGuides = async () => {
       setIsSubmitting(false);
     }
   };
-
   const updatePageStatus = async (pageId, isPublished) => {
     try {
       const token = localStorage.getItem("token");
@@ -541,7 +543,10 @@ const sendBulkEmail = async () => {
       const token = localStorage.getItem("token");
       await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/admin/blogs`,
-        blogForm,
+        {
+          ...blogForm,
+          content: blogForm.content // HTML content
+        },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -557,28 +562,28 @@ const sendBulkEmail = async () => {
     }
   };
 
-  const createFeature = async (e) => {
-    e.preventDefault();
-    try {
-      setIsSubmitting(true);
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/admin/features`,
-        featureForm,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      toast.success("Feature created successfully");
-      setFeatureForm({ title: '', description: '', icon: '' });
-      fetchFeatures();
-    } catch (err) {
-      console.error("Failed to create feature", err);
-      toast.error("Failed to create feature");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+const createFeature = async (e) => {
+  e.preventDefault();
+  try {
+    setIsSubmitting(true);
+    const token = localStorage.getItem("token");
+    await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/api/admin/features`,
+      featureForm, 
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    toast.success("Feature created successfully");
+    setFeatureForm({ title: '', description: '', icon: '' });
+    fetchFeatures();
+  } catch (err) {
+    console.error("Failed to create feature", err);
+    toast.error("Failed to create feature");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const createFaq = async (e) => {
     e.preventDefault();
@@ -602,6 +607,7 @@ const sendBulkEmail = async () => {
       setIsSubmitting(false);
     }
   };
+
 
   const createPricingPlan = async (e) => {
     e.preventDefault();
@@ -1073,14 +1079,11 @@ const handleTagKeyPress = (e) => {
                     required
                   />
                 </div>
-                <textarea
-                  placeholder="Page Content"
-                  value={pageForm.content}
-                  onChange={(e) => setPageForm({...pageForm, content: e.target.value})}
-                  rows={4}
-                  className="w-full p-2 border rounded mb-3"
-                  required
-                />
+                <TinyEditor
+            value={pageForm.content}
+            onChange={(content) => setPageForm({...pageForm, content})}
+            height={200}
+          />
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -1157,14 +1160,11 @@ const handleTagKeyPress = (e) => {
                   <option value="updates">Updates</option>
                   <option value="tips">Tips & Tricks</option>
                 </select>
-                <textarea
-                  placeholder="Blog Content"
-                  value={blogForm.content}
-                  onChange={(e) => setBlogForm({...blogForm, content: e.target.value})}
-                  rows={6}
-                  className="w-full p-2 border rounded mb-3"
-                  required
-                />
+               <TinyEditor
+            value={blogForm.content}
+            onChange={(content) => setBlogForm({...blogForm, content})}
+            height={300}
+          />
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -1229,14 +1229,15 @@ const handleTagKeyPress = (e) => {
                   className="w-full p-2 border rounded mb-3"
                   required
                 />
-                <textarea
-                  placeholder="Feature Description"
-                  value={featureForm.description}
-                  onChange={(e) => setFeatureForm({...featureForm, description: e.target.value})}
-                  rows={3}
-                  className="w-full p-2 border rounded mb-3"
-                  required
-                />
+                
+<textarea
+  placeholder="Feature Description"
+  value={featureForm.description}
+  onChange={(e) => setFeatureForm({...featureForm, description: e.target.value})}
+  rows={3}
+  className="w-full p-2 border rounded mb-3"
+  required
+/>
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -1301,7 +1302,7 @@ const handleTagKeyPress = (e) => {
                   className="w-full p-2 border rounded mb-3"
                   required
                 />
-                <textarea
+             <textarea
                   placeholder="Answer"
                   value={faqForm.answer}
                   onChange={(e) => setFaqForm({...faqForm, answer: e.target.value})}
@@ -1516,23 +1517,16 @@ const handleTagKeyPress = (e) => {
           </div>
         </div>
         
-        <textarea
-          placeholder="Short Description (Excerpt)"
-          value={guideForm.description}
-          onChange={(e) => setGuideForm({...guideForm, description: e.target.value})}
-          rows={2}
-          className="w-full p-2 border rounded mb-3"
-          required
-        />
-        
-        <textarea
-          placeholder="Guide Content"
-          value={guideForm.content}
-          onChange={(e) => setGuideForm({...guideForm, content: e.target.value})}
-          rows={6}
-          className="w-full p-2 border rounded mb-3"
-          required
-        />
+          <TinyEditor
+            value={guideForm.description}
+            onChange={(description) => setGuideForm({...guideForm, description})}
+            height={100}
+          />
+          <TinyEditor
+            value={guideForm.content}
+            onChange={(content) => setGuideForm({...guideForm, content})}
+            height={400}
+          />
         
         <div className="flex gap-2">
           <button
@@ -1640,13 +1634,11 @@ const handleTagKeyPress = (e) => {
                 onChange={(e) => setEmailSubject(e.target.value)}
                 className="w-full p-2 border rounded mb-2"
               />
-              <textarea
-                placeholder="Email content"
-                value={emailContent}
-                onChange={(e) => setEmailContent(e.target.value)}
-                rows={4}
-                className="w-full p-2 border rounded mb-2"
-              />
+              <TinyEditor
+            value={emailContent}
+            onChange={setEmailContent}
+            height={200}
+          />
               <button
                 onClick={sendBulkEmail}
                 disabled={isSubmitting}
