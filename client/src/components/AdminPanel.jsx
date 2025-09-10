@@ -1517,16 +1517,46 @@ const handleTagKeyPress = (e) => {
           </div>
         </div>
         
-          <TinyEditor
-            value={guideForm.description}
-            onChange={(description) => setGuideForm({...guideForm, description})}
-            height={100}
-          />
-          <TinyEditor
-            value={guideForm.content}
-            onChange={(content) => setGuideForm({...guideForm, content})}
-            height={400}
-          />
+         <div className="space-y-6">
+  {/* Guide Description */}
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      Guide Description
+    </label>
+    <div className="rounded-lg shadow-sm border border-gray-300 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
+      <TinyEditor
+        value={guideForm.description}
+        onChange={(description) =>
+          setGuideForm({ ...guideForm, description })
+        }
+        height={120}
+      />
+    </div>
+    <p className="mt-1 text-xs text-gray-500">
+      A short summary for your guide (appears in lists and previews).
+    </p>
+  </div>
+
+  {/* Guide Content */}
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      Guide Content
+    </label>
+    <div className="rounded-lg shadow-sm border border-gray-300 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
+      <TinyEditor
+        value={guideForm.content}
+        onChange={(content) =>
+          setGuideForm({ ...guideForm, content })
+        }
+        height={400}
+      />
+    </div>
+    <p className="mt-1 text-xs text-gray-500">
+      The full content of your guide. You can format text, add lists, and insert links or images.
+    </p>
+  </div>
+</div>
+
         
         <div className="flex gap-2">
           <button
