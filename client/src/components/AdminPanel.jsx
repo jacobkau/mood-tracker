@@ -303,7 +303,7 @@ const fetchGuides = async () => {
   try {
     const token = localStorage.getItem("token");
     const { data } = await axios.get(
-      `${import.meta.env.VITE_API_BASE_URL}/api/guides/admin/guides`,
+      `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }
@@ -656,7 +656,7 @@ const saveGuide = async (e) => {
     let response;
     if (isEditing) {
       response = await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/api/guides/admin/guides/${guideForm._id}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideForm._id}`,
         guideData,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -665,7 +665,7 @@ const saveGuide = async (e) => {
       toast.success("Guide updated successfully");
     } else {
       response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/guides/admin/guides`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
         guideData,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -731,7 +731,7 @@ const updateGuideStatus = async (guideId, newStatus) => {
   try {
     const token = localStorage.getItem("token");
     await axios.put(
-      `${import.meta.env.VITE_API_BASE_URL}/api/guides/admin/guides/${guideId}/status`,
+      `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideId}/status`,
       { status: newStatus },
       {
         headers: { Authorization: `Bearer ${token}` },
@@ -765,7 +765,7 @@ const deleteGuide = async (guideId) => {
     try {
       const token = localStorage.getItem("token");
       await axios.delete(
-        `${import.meta.env.VITE_API_BASE_URL}/api/guides/admin/guides/${guideId}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
