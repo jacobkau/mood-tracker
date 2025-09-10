@@ -5,6 +5,7 @@ const Review = require("../models/Review");
 const Contact = require("../models/Contact"); 
 const Page = require("../models/Page");       
 const Email = require("../models/Email");
+const EmailHistory = require("../models/EmailHistory");
 const Blog = require('../models/Blog');
 const Feature = require('../models/Feature');
 const FAQ = require('../models/FAQ');
@@ -266,6 +267,7 @@ router.get('/emails', protect, admin, async (req, res) => {
 });
 
 // Bulk email
+
 router.post('/emails/bulk', protect, admin, async (req, res) => {
   try {
     const { subject, content } = req.body;
@@ -273,73 +275,83 @@ router.post('/emails/bulk', protect, admin, async (req, res) => {
       return res.status(400).json({ error: "Subject and content required" });
     }
 
-    // Fetch all subscribed users (not from Email model)
     const subscribers = await User.find({ emailSubscribed: true }).select("email");
     
-    // Create bulk email record
-    const BulkEmail = require("../models/BulkEmail");
-    const record = new BulkEmail({
+    // Create bulk email record in history (not in main Email collection)
+    const historyRecord = new EmailHistory({
       subject,
       content,
-      sentBy: req.user.id,
-      recipients: subscribers.length
+      type: 'bulk',
+      status: 'processing',
+      recipientCount: subscribers.length,
+      sentBy: req.user.id
     });
-    await record.save();
+    await historyRecord.save();
 
-    // Send emails to all subscribers
     const { transporter, hasEmailCredentials } = require("../utils/emailService");
     
     if (!hasEmailCredentials()) {
+      await historyRecord.updateOne({ status: 'failed', error: 'Email service not configured' });
       return res.status(500).json({ error: "Email service not configured" });
     }
 
-    // Send emails to each subscriber
     const emailPromises = subscribers.map(async (subscriber) => {
       try {
         const mailOptions = {
           from: `Witty MoodTracker <${process.env.EMAIL_USER}>`,
           to: subscriber.email,
           subject: subject,
-          html: content // You might want to use your email template here
+          html: content
         };
         
         await transporter.sendMail(mailOptions);
         
-        // Update email history
-        const Email = require("../models/Email");
-        const emailRecord = new Email({
-          email: subscriber.email,
-          subject,
-          content,
-          type: 'bulk',
-          status: 'sent'
-        });
-        await emailRecord.save();
+        // Add to sent emails array in history record
+        await EmailHistory.findByIdAndUpdate(
+          historyRecord._id,
+          { 
+            $push: { 
+              sentEmails: {
+                email: subscriber.email,
+                status: 'sent',
+                sentAt: new Date()
+              }
+            },
+            $inc: { successfulSends: 1 }
+          }
+        );
         
       } catch (error) {
         console.error(`Failed to send email to ${subscriber.email}:`, error);
         
-        // Record failed attempt
-        const Email = require("../models/Email");
-        const emailRecord = new Email({
-          email: subscriber.email,
-          subject,
-          content,
-          type: 'bulk',
-          status: 'failed',
-          error: error.message
-        });
-        await emailRecord.save();
+        // Add to failed emails array
+        await EmailHistory.findByIdAndUpdate(
+          historyRecord._id,
+          { 
+            $push: { 
+              failedEmails: {
+                email: subscriber.email,
+                status: 'failed',
+                error: error.message,
+                failedAt: new Date()
+              }
+            },
+            $inc: { failedSends: 1 }
+          }
+        );
       }
     });
 
-    // Wait for all emails to be processed
     await Promise.all(emailPromises);
+    
+    // Update history record status
+    await historyRecord.updateOne({ status: 'completed', completedAt: new Date() });
 
     res.json({ 
       message: "Bulk email sent successfully", 
       recipients: subscribers.length,
-      success: true
+      success: true,
+      historyId: historyRecord._id
     });
   } catch (err) {
     console.error("Bulk email error:", err);
