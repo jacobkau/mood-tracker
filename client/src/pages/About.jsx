@@ -199,8 +199,16 @@ const About = () => {
             {teamMembers.map((member, index) => (
               <div key={index} className={`text-center p-6 rounded-xl hover:shadow-lg transition-shadow duration-300 ${currentTheme.bodyBg}`}>
                 <div className={`w-20 h-20 rounded-full flex items-center justify-center font-bold text-xl mx-auto mb-4 ${currentTheme.highlight}`}>
-                  {member.image}
+                  <img
+    src={member.image}
+    alt={member.name}
+    className="w-20 h-20 rounded-full object-cover shadow-md"
+  />
                 </div>
+
+
+
+                
                 <h3 className="text-xl font-semibold text-gray-900 mb-1">{member.name}</h3>
                 <p className={`font-medium mb-3 ${currentTheme.bodyAccent}`}>{member.role}</p>
                 <p className="text-gray-600 mb-4 text-sm">{member.bio}</p>
