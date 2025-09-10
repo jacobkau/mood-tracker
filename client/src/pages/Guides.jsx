@@ -46,6 +46,12 @@ const Guides = () => {
     fetchGuides();
   }, []);
 
+  // Function to strip HTML tags for preview text
+  const stripHtmlTags = (html) => {
+    if (!html) return '';
+    return html.replace(/<[^>]*>/g, '');
+  };
+
   const filteredGuides = filter === 'all' 
     ? guides 
     : guides.filter(guide => 
@@ -167,7 +173,7 @@ const Guides = () => {
                   {guide.title}
                 </h3>
                 <p className={`${currentTheme.bodyText} mb-4 line-clamp-3 opacity-80`}>
-                  {guide.excerpt || guide.content?.substring(0, 150) + '...' || 'No description available.'}
+                  {guide.excerpt || stripHtmlTags(guide.content)?.substring(0, 150) + '...' || 'No description available.'}
                 </p>
                 <div className="flex justify-between items-center">
                   <span className={`text-sm font-medium px-2 py-1 rounded ${currentTheme.highlight}`}>
