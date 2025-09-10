@@ -9,34 +9,13 @@ const About = () => {
   
   const teamMembers = [
     
-    {
-      name: "Dr. Sarah Chen",
-      role: "Clinical Psychologist",
-      bio: "Specialized in cognitive behavioral therapy and digital mental health interventions. Leads our clinical research team.",
-      image: "SC",
-      expertise: ["Cognitive Therapy", "Digital Health", "Research"]
-    },
-    {
-      name: "Michael Rodriguez",
-      role: "Product Lead",
-      bio: "10+ years experience in health tech product development. Passionate about creating tools that make mental health accessible.",
-      image: "MR",
-      expertise: ["Product Strategy", "UX Design", "Health Tech"]
-    },
-    {
-      name: "Emily Watson",
-      role: "Software Engineer",
-      bio: "Full-stack developer with focus on secure, scalable applications for healthcare. Ensures your data stays private and safe.",
-      image: "EW",
-      expertise: ["React", "Node.js", "Security"]
-    },
-    {
-      name: "David Kim",
-      role: "Data Scientist",
-      bio: "Machine learning expert who develops our mood prediction algorithms and pattern recognition systems.",
-      image: "DK",
-      expertise: ["Machine Learning", "Data Analysis", "AI"]
-    }
+ {
+  name: "Jacob Kau",
+  role: "Developer",
+  bio: "Focused on building web applications, user-centered systems, and exploring innovative tech solutions.",
+  image: "/logo.png",
+  expertise: ["Web Development", "MERN Stack", "Cloud Services"]
+}
   ];
 
   const values = [
