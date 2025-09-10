@@ -174,6 +174,18 @@ export default function Navbar({ setIsAuthenticated, isAuthenticated }) {
                                             <FiFeather size={16} className="inline mr-2" />
                                             Features
                                         </Link>
+
+                                      <Link
+  to="/developer"
+  className="block px-4 py-2 text-sm text-white hover:bg-gray-700"
+  onClick={() => setDropdownOpen(false)}
+>
+  <FiCode size={16} className="inline mr-2" />
+  Developer
+</Link>
+
+                                      
+                                      
                                         <Link
                                             to="/testimonials"
                                             className={`block px-4 py-2 text-sm text-white hover:bg-gray-700`}
