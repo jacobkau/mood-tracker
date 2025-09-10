@@ -1702,32 +1702,63 @@ export default function AdminPanel() {
               </button>
             </div>
 
-            {/* Email History */}
-            <h3 className="font-semibold mb-3">Email History</h3>
-            <div className="space-y-3">
-              {emails.map((email) => (
-                <div key={email._id} className="border rounded-lg p-3">
-                  <div className="flex justify-between items-start">
-                    <h4 className="font-semibold">{email.subject || 'No Subject'}</h4>
-                    <span className="text-sm text-gray-500">
-                      {email.sentAt ? new Date(email.sentAt).toLocaleDateString() : 'No date'}
-                    </span>
-                  </div>
-                  {/* FIXED: Add null check for email.content */}
-                  <p className="text-gray-600 text-sm">
-                    {(email.content || '').substring(0, 100)}...
-                  </p>
-                </div>
-              ))}
+              {/* Email History */}
+    <h3 className="font-semibold mb-3">Email History</h3>
+    <div className="space-y-3">
+      {emails.map((email) => (
+        <div key={email._id} className="border rounded-lg p-4">
+          <div className="flex justify-between items-start mb-2">
+            <h4 className="font-semibold">{email.subject || 'No Subject'}</h4>
+            <span className={`px-2 py-1 rounded text-xs ${
+              email.status === 'completed' ? 'bg-green-100 text-green-800' :
+              email.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
+              email.status === 'failed' ? 'bg-red-100 text-red-800' :
+              'bg-gray-100 text-gray-800'
+            }`}>
+              {email.status}
+            </span>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4 mb-2 text-sm">
+            <div>
+              <span className="font-medium">Recipients: </span>
+              {email.recipientCount || 0}
             </div>
-
-            {/* Show message if no emails */}
-            {emails.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                <FiMail className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No emails sent yet</p>
-              </div>
+            <div>
+              <span className="font-medium">Sent: </span>
+              {email.successfulSends || 0}
+            </div>
+            <div>
+              <span className="font-medium">Failed: </span>
+              {email.failedSends || 0}
+            </div>
+            <div>
+              <span className="font-medium">Date: </span>
+              {email.createdAt ? new Date(email.createdAt).toLocaleDateString() : 'N/A'}
+            </div>
+          </div>
+          
+          <p className="text-gray-600 text-sm mb-2">
+            {(email.content || '').substring(0, 150)}...
+          </p>
+          
+          <div className="flex justify-between items-center text-xs text-gray-500">
+            <span>Sent by: {email.sentBy?.username || 'System'}</span>
+            {email.completedAt && (
+              <span>Completed: {new Date(email.completedAt).toLocaleString()}</span>
             )}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* Show message if no emails */}
+    {emails.length === 0 && (
+      <div className="text-center py-8 text-gray-500">
+        <FiMail className="w-12 h-12 mx-auto mb-4 opacity-50" />
+        <p>No emails sent yet</p>
+      </div>
+    )}
           </div>
         )}
 
