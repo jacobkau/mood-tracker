@@ -639,70 +639,74 @@ export default function AdminPanel() {
     }
   };
 
-  const saveGuide = async (e) => {
-    e.preventDefault();
-    try {
-      setIsSubmitting(true);
-      const token = localStorage.getItem("token");
+const saveGuide = async (e) => {
+  e.preventDefault();
+  try {
+    setIsSubmitting(true);
+    const token = localStorage.getItem("token");
 
-      // Calculate read time (approx 200 words per minute)
-      const wordCount = guideForm.content.split(/\s+/).length;
-      const readTime = Math.ceil(wordCount / 200);
+    // Calculate read time (approx 200 words per minute)
+    const wordCount = guideForm.content.split(/\s+/).length;
+    const readTime = Math.ceil(wordCount / 200);
 
-      const guideData = {
-        title: guideForm.title,
-        content: guideForm.content,
-        category: guideForm.category,
-        difficulty: guideForm.difficulty,
-        excerpt: guideForm.description,
-        tags: guideForm.tags,
-        readTime,
-        status: guideForm.status
-      };
+    const guideData = {
+      title: guideForm.title,
+      content: guideForm.content,
+      category: guideForm.category,
+      difficulty: guideForm.difficulty,
+      excerpt: guideForm.description, 
+      tags: guideForm.tags,
+      readTime,
+      status: guideForm.status
+    };
 
-      let response;
-      if (isEditing) {
-        response = await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideForm._id}`,
-          guideData,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        toast.success("Guide updated successfully");
-      } else {
-        response = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
-          guideData,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        toast.success("Guide created successfully");
-      }
+    console.log('Sending guide data:', guideData); // DEBUG LOG
 
-      // Reset form
-      setGuideForm({
-        _id: '',
-        title: '',
-        content: '',
-        category: 'getting-started',
-        difficulty: 'beginner',
-        description: '',
-        tags: [],
-        newTag: '',
-        status: 'draft'
-      });
-      setIsEditing(false);
-      fetchGuides();
-    } catch (err) {
-      console.error("Failed to save guide", err);
-      toast.error(`Failed to ${isEditing ? 'update' : 'create'} guide: ${err.response?.data?.error || err.message}`);
-    } finally {
-      setIsSubmitting(false);
+    let response;
+    if (isEditing) {
+      response = await axios.put(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideForm._id}`,
+        guideData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      toast.success("Guide updated successfully");
+    } else {
+      response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
+        guideData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      toast.success("Guide created successfully");
     }
-  };
 
+    console.log('Server response:', response.data); // DEBUG LOG
+
+    // Reset form
+    setGuideForm({
+      _id: '',
+      title: '',
+      content: '',
+      category: 'getting-started',
+      difficulty: 'beginner',
+      description: '',
+      tags: [],
+      newTag: '',
+      status: 'draft'
+    });
+    setIsEditing(false);
+    fetchGuides();
+  } catch (err) {
+    console.error("Failed to save guide", err);
+    console.error("Error details:", err.response?.data); // DEBUG LOG
+    toast.error(`Failed to ${isEditing ? 'update' : 'create'} guide: ${err.response?.data?.error || err.message}`);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const editGuide = (guide) => {
     setGuideForm({
@@ -751,15 +755,20 @@ export default function AdminPanel() {
       toast.error(`Failed to update guide status: ${err.response?.data?.error || err.message}`);
     }
   };
-  const addTag = () => {
-    if (guideForm.newTag.trim() && !guideForm.tags.includes(guideForm.newTag.trim())) {
+const addTag = () => {
+  if (guideForm.newTag.trim()) {
+    const newTag = guideForm.newTag.trim();
+    if (!guideForm.tags.includes(newTag)) {
       setGuideForm({
         ...guideForm,
-        tags: [...guideForm.tags, guideForm.newTag.trim()],
+        tags: [...guideForm.tags, newTag],
         newTag: ''
       });
+    } else {
+      toast.error("Tag already exists");
     }
-  };
+  }
+};
 
   const removeTag = (tagToRemove) => {
     setGuideForm({
@@ -1441,43 +1450,43 @@ export default function AdminPanel() {
                   required
                 />
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                  <select
-                    value={guideForm.category}
-                    onChange={(e) => setGuideForm({ ...guideForm, category: e.target.value })}
-                    className="w-full p-2 border rounded bg-white text-gray-800"
-                    required
-                  >
-                    <option value="getting-started">Getting Started</option>
-                    <option value="tutorials">Tutorials</option>
-                    <option value="tips">Tips & Tricks</option>
-                    <option value="troubleshooting">Troubleshooting</option>
-                    <option value="advanced">Advanced</option>
-                  </select>
+              {/* In the Guides Tab form - FIX THE SELECT ELEMENTS */}
+<div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+  <select
+    value={guideForm.category}
+    onChange={(e) => setGuideForm({ ...guideForm, category: e.target.value })}
+    className="w-full p-2 border rounded bg-white text-gray-800"
+    required
+  >
+    <option value="getting-started">Getting Started</option>
+    <option value="tutorials">Tutorials</option>
+    <option value="tips">Tips & Tricks</option>
+    <option value="troubleshooting">Troubleshooting</option>
+    <option value="advanced">Advanced</option>
+  </select>
 
-                  <select
-                    value={guideForm.difficulty}
-                    onChange={(e) => setGuideForm({ ...guideForm, difficulty: e.target.value })}
-                    className="w-full p-2 border rounded bg-white text-gray-800"
-                    required
-                  >
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                  </select>
+  <select
+    value={guideForm.difficulty}
+    onChange={(e) => setGuideForm({ ...guideForm, difficulty: e.target.value })}
+    className="w-full p-2 border rounded bg-white text-gray-800"
+    required
+  >
+    <option value="beginner">Beginner</option>
+    <option value="intermediate">Intermediate</option>
+    <option value="advanced">Advanced</option>
+  </select>
 
-                  <select
-                    value={guideForm.status}
-                    onChange={(e) => setGuideForm({ ...guideForm, status: e.target.value })}
-                    className="w-full p-2 border rounded bg-white text-gray-800"
-                    required
-                  >
-                    <option value="draft">Draft</option>
-                    <option value="published">Published</option>
-                    <option value="archived">Archived</option>
-                  </select>
-
-                </div>
+  <select
+    value={guideForm.status}
+    onChange={(e) => setGuideForm({ ...guideForm, status: e.target.value })}
+    className="w-full p-2 border rounded bg-white text-gray-800"
+    required
+  >
+    <option value="draft">Draft</option>
+    <option value="published">Published</option>
+    <option value="archived">Archived</option>
+  </select>
+</div>
 
                 <div className="mb-3">
                   <label className="block text-sm font-medium mb-1">Tags</label>
@@ -1607,8 +1616,9 @@ export default function AdminPanel() {
                       </span>
                     ))}
                   </div>
-
-                  <p className="text-gray-600 mb-3">{guide.excerpt || 'No description'}</p>
+<p className="text-gray-600 mb-3">
+  {guide.excerpt || guide.description || 'No description'}
+</p>
 
                   <div className="flex justify-between items-center">
                     <div className="text-sm text-gray-500">
