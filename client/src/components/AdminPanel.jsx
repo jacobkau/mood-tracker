@@ -71,6 +71,33 @@ const [guideForm, setGuideForm] = useState({
   newTag: '',
   status: 'draft'
 });
+  useEffect(() => {
+  const testApiConnection = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      console.log("Testing API connection...");
+      
+      // Test a simple endpoint first
+      const testResponse = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/stats`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("API connection successful", testResponse.data);
+      
+    } catch (error) {
+      console.error("API connection failed", error);
+      if (error.response?.status === 401) {
+        toast.error("Please login again");
+      }
+    }
+  };
+  
+  if (activeTab === 'guides') {
+    testApiConnection();
+  }
+}, [activeTab]);
 
   useEffect(() => {
     fetchStats();
@@ -247,20 +274,44 @@ const [guideForm, setGuideForm] = useState({
       toast.error("Failed to load pricing plans");
     }
   };
+const handleApiError = (error, defaultMessage) => {
+  console.error(defaultMessage, error);
+  
+  if (error.response) {
+    const status = error.response.status;
+    const message = error.response.data?.error || error.response.data?.message;
+    
+    if (status === 401) {
+      toast.error("Authentication failed. Please login again.");
+    } else if (status === 403) {
+      toast.error("You don't have permission to perform this action.");
+    } else if (status === 404) {
+      toast.error("Resource not found. Please check the API endpoint.");
+    } else if (message) {
+      toast.error(message);
+    } else {
+      toast.error(defaultMessage);
+    }
+  } else if (error.request) {
+    toast.error("Network error. Please check your connection.");
+  } else {
+    toast.error(defaultMessage);
+  }
+};
 
 const fetchGuides = async () => {
   try {
     const token = localStorage.getItem("token");
     const { data } = await axios.get(
-      `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
+      `${import.meta.env.VITE_API_BASE_URL}/api/guides/admin/guides`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }
     );
     setGuides(data);
   } catch (err) {
-    console.error("Failed to fetch guides", err);
-    toast.error("Failed to load guides");
+    handleApiError(err, "Failed to load guides");
+    setGuides([]); 
   }
 };
 
@@ -605,7 +656,7 @@ const saveGuide = async (e) => {
     let response;
     if (isEditing) {
       response = await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideForm._id}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/guides/admin/guides/${guideForm._id}`,
         guideData,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -614,7 +665,7 @@ const saveGuide = async (e) => {
       toast.success("Guide updated successfully");
     } else {
       response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/guides/admin/guides`,
         guideData,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -639,11 +690,13 @@ const saveGuide = async (e) => {
     fetchGuides();
   } catch (err) {
     console.error("Failed to save guide", err);
-    toast.error(`Failed to ${isEditing ? 'update' : 'create'} guide`);
+    toast.error(`Failed to ${isEditing ? 'update' : 'create'} guide: ${err.response?.data?.error || err.message}`);
   } finally {
     setIsSubmitting(false);
   }
 };
+
+  
 const editGuide = (guide) => {
   setGuideForm({
     _id: guide._id,
@@ -674,11 +727,11 @@ const editGuide = (guide) => {
   });
   setIsEditing(false);
 };
-  const updateGuideStatus = async (guideId, newStatus) => {
+const updateGuideStatus = async (guideId, newStatus) => {
   try {
     const token = localStorage.getItem("token");
-    await axios.patch(
-      `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideId}/status`,
+    await axios.put(
+      `${import.meta.env.VITE_API_BASE_URL}/api/guides/admin/guides/${guideId}/status`,
       { status: newStatus },
       {
         headers: { Authorization: `Bearer ${token}` },
@@ -688,7 +741,7 @@ const editGuide = (guide) => {
     fetchGuides();
   } catch (err) {
     console.error("Failed to update guide status", err);
-    toast.error("Failed to update guide status");
+    toast.error(`Failed to update guide status: ${err.response?.data?.error || err.message}`);
   }
 };
   const addTag = () => {
@@ -712,7 +765,7 @@ const deleteGuide = async (guideId) => {
     try {
       const token = localStorage.getItem("token");
       await axios.delete(
-        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideId}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/guides/admin/guides/${guideId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -721,7 +774,7 @@ const deleteGuide = async (guideId) => {
       fetchGuides();
     } catch (err) {
       console.error("Failed to delete guide", err);
-      toast.error("Failed to delete guide");
+      toast.error(`Failed to delete guide: ${err.response?.data?.error || err.message}`);
     }
   }
 };
