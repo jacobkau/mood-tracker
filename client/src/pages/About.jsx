@@ -95,7 +95,7 @@ const About = () => {
       {/* Mission Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Mission</h2>
+          <h2 className={`text-3xl font-bold  ${currentTheme.bodyAccent} mb-6`}>Our Mission</h2>
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
             At Witty MoodTracker, we believe that understanding your emotional patterns is the first step 
             toward better mental health. Our mission is to provide intuitive, powerful tools that help 
@@ -113,14 +113,14 @@ const About = () => {
       {/* Values Section */}
       <section className={`py-16 ${currentTheme.cardBg} px-4 sm:px-6 lg:px-8`}>
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Our Values</h2>
+          <h2 className={`text-3xl font-bold  ${currentTheme.bodyAccent} mb-6`}>Our Values</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {values.map((value, index) => (
               <div key={index} className={`text-center p-6 rounded-xl hover:shadow-lg transition-shadow duration-300 ${currentTheme.highlight}`}>
                 <div className={`mb-4 flex justify-center ${currentTheme.bodyAccent}`}>
                   {value.icon}
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{value.title}</h3>
+                <h3 className="text-xl font-semibold text-gray-300 mb-3">{value.title}</h3>
                 <p className="text-gray-600">{value.description}</p>
               </div>
             ))}
@@ -132,7 +132,7 @@ const About = () => {
       <section className={`py-16 ${currentTheme.bodyBg} px-4 sm:px-6 lg:px-8`}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Technology</h2>
+            <h2 className={`text-3xl font-bold  ${currentTheme.bodyAccent} mb-6`}>Our Technology</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Built with cutting-edge technology to ensure security, reliability, and the best user experience
             </p>
@@ -171,10 +171,10 @@ const About = () => {
           </div>
 
           <div className={`rounded-xl p-8 shadow-md ${currentTheme.cardBg}`}>
-            <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Security & Privacy</h3>
+            <h3 className={`text-2xl font-bold  ${currentTheme.bodyAccent} mb-6 text-center`}>Security & Privacy</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3">Data Protection</h4>
+                <h4 className="font-semibold text-gray-500 mb-3">Data Protection</h4>
                 <ul className="text-gray-600 space-y-2">
                   <li className="flex items-start">
                     <span className={`text-green-500 mr-2 ${currentTheme.bodyAccent}`}>✓</span>
@@ -191,7 +191,7 @@ const About = () => {
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3">Privacy Commitment</h4>
+                <h4 className="font-semibold text-gray-500 mb-3">Privacy Commitment</h4>
                 <ul className="text-gray-600 space-y-2">
                   <li className="flex items-start">
                     <span className={`text-green-500 mr-2 ${currentTheme.bodyAccent}`}>✓</span>
@@ -215,7 +215,7 @@ const About = () => {
       {/* Team Section */}
       <section className={`py-16 ${currentTheme.cardBg} px-4 sm:px-6 lg:px-8`}>
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Meet Our Team</h2>
+          <h2 className={`text-3xl font-bold  ${currentTheme.bodyAccent} text-center mb-12`}>Meet Our Team</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {teamMembers.map((member, index) => (
               <div key={index} className={`text-center p-6 rounded-xl hover:shadow-lg transition-shadow duration-300 ${currentTheme.bodyBg}`}>
@@ -241,7 +241,7 @@ const About = () => {
       {/* Timeline Section */}
       <section className={`py-16 ${currentTheme.bodyBg} px-4 sm:px-6 lg:px-8`}>
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Our Journey</h2>
+          <h2 className={`text-3xl font-bold text-center ${currentTheme.bodyAccent} mb-12`}>Our Journey</h2>         
           <div className="space-y-12">
             {milestones.map((milestone, index) => (
               <div key={index} className="flex">
@@ -252,8 +252,8 @@ const About = () => {
                   <div className={`w-1 h-full mt-2 ${currentTheme.divider}`}></div>
                 </div>
                 <div className="flex-1 pb-8">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{milestone.title}</h3>
-                  <p className="text-gray-600">{milestone.description}</p>
+                  <h3 className="text-xl font-semibold text-gray-300 mb-2">{milestone.title}</h3>
+                  <p className="text-gray-500">{milestone.description}</p>
                 </div>
               </div>
             ))}
