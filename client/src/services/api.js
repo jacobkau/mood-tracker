@@ -69,8 +69,8 @@ export const getSupportTicket = (id) => API.get(`/support/tickets/${id}`);
 export const getBlogPosts = (page = 1, limit = 6, category = '') => 
   API.get(`/content/blog?page=${page}&limit=${limit}&category=${category}`);
 export const getBlogPost = (id) => API.get(`/content/blog/${id}`);
-export const getGuides = () => API.get('/content/guides');
-export const getGuide = (id) => API.get(`/content/guides/${id}`);
+export const getGuides = () => API.get('/api/guides');
+export const getGuide = (id) => API.get(`/api/guides/${id}`);
 export const getTestimonials = () => API.get('/content/testimonials');
 export const submitTestimonial = (data) => API.post('/content/testimonials', data);
 export const subscribeToNewsletter = (email) => API.post('/content/newsletter', { email });
