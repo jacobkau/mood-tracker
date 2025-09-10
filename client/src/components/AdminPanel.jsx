@@ -3,12 +3,12 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useTheme } from '../context/useTheme';
 import TinyEditor from '../components/TinyEditor';
-import { 
-  FiUsers, 
-  FiStar, 
-  FiFileText, 
-  FiMail, 
-  FiMessageSquare, 
+import {
+  FiUsers,
+  FiStar,
+  FiFileText,
+  FiMail,
+  FiMessageSquare,
   FiSettings,
   FiBarChart2,
   FiGrid,
@@ -55,50 +55,50 @@ export default function AdminPanel() {
   const [blogForm, setBlogForm] = useState({ title: '', content: '', category: '' });
   const [featureForm, setFeatureForm] = useState({ title: '', description: '', icon: '' });
   const [faqForm, setFaqForm] = useState({ question: '', answer: '', category: 'general' });
-  const [pricingForm, setPricingForm] = useState({ 
-    name: '', 
-    description: '', 
-    monthlyPrice: '', 
-    yearlyPrice: '' 
+  const [pricingForm, setPricingForm] = useState({
+    name: '',
+    description: '',
+    monthlyPrice: '',
+    yearlyPrice: ''
   });
-const [guideForm, setGuideForm] = useState({ 
-  _id: '',
-  title: '', 
-  content: '', 
-  category: 'getting-started',
-  difficulty: 'beginner',
-  description: '',
-  tags: [],
-  newTag: '',
-  status: 'draft'
-});
+  const [guideForm, setGuideForm] = useState({
+    _id: '',
+    title: '',
+    content: '',
+    category: 'getting-started',
+    difficulty: 'beginner',
+    description: '',
+    tags: [],
+    newTag: '',
+    status: 'draft'
+  });
   useEffect(() => {
-  const testApiConnection = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      console.log("Testing API connection...");
-      
-      // Test a simple endpoint first
-      const testResponse = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/admin/stats`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
+    const testApiConnection = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        console.log("Testing API connection...");
+
+        // Test a simple endpoint first
+        const testResponse = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/api/admin/stats`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        console.log("API connection successful", testResponse.data);
+
+      } catch (error) {
+        console.error("API connection failed", error);
+        if (error.response?.status === 401) {
+          toast.error("Please login again");
         }
-      );
-      console.log("API connection successful", testResponse.data);
-      
-    } catch (error) {
-      console.error("API connection failed", error);
-      if (error.response?.status === 401) {
-        toast.error("Please login again");
       }
+    };
+
+    if (activeTab === 'guides') {
+      testApiConnection();
     }
-  };
-  
-  if (activeTab === 'guides') {
-    testApiConnection();
-  }
-}, [activeTab]);
+  }, [activeTab]);
 
   useEffect(() => {
     fetchStats();
@@ -148,7 +148,7 @@ const [guideForm, setGuideForm] = useState({
   };
 
   const fetchReviews = async () => {
-    
+
     try {
       const token = localStorage.getItem("token");
       const { data } = await axios.get(
@@ -275,46 +275,46 @@ const [guideForm, setGuideForm] = useState({
       toast.error("Failed to load pricing plans");
     }
   };
-const handleApiError = (error, defaultMessage) => {
-  console.error(defaultMessage, error);
-  
-  if (error.response) {
-    const status = error.response.status;
-    const message = error.response.data?.error || error.response.data?.message;
-    
-    if (status === 401) {
-      toast.error("Authentication failed. Please login again.");
-    } else if (status === 403) {
-      toast.error("You don't have permission to perform this action.");
-    } else if (status === 404) {
-      toast.error("Resource not found. Please check the API endpoint.");
-    } else if (message) {
-      toast.error(message);
+  const handleApiError = (error, defaultMessage) => {
+    console.error(defaultMessage, error);
+
+    if (error.response) {
+      const status = error.response.status;
+      const message = error.response.data?.error || error.response.data?.message;
+
+      if (status === 401) {
+        toast.error("Authentication failed. Please login again.");
+      } else if (status === 403) {
+        toast.error("You don't have permission to perform this action.");
+      } else if (status === 404) {
+        toast.error("Resource not found. Please check the API endpoint.");
+      } else if (message) {
+        toast.error(message);
+      } else {
+        toast.error(defaultMessage);
+      }
+    } else if (error.request) {
+      toast.error("Network error. Please check your connection.");
     } else {
       toast.error(defaultMessage);
     }
-  } else if (error.request) {
-    toast.error("Network error. Please check your connection.");
-  } else {
-    toast.error(defaultMessage);
-  }
-};
+  };
 
-const fetchGuides = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    const { data } = await axios.get(
-      `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    setGuides(data);
-  } catch (err) {
-    handleApiError(err, "Failed to load guides");
-    setGuides([]); 
-  }
-};
+  const fetchGuides = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setGuides(data);
+    } catch (err) {
+      handleApiError(err, "Failed to load guides");
+      setGuides([]);
+    }
+  };
 
   const updateUserRole = async (userId, newRole) => {
     try {
@@ -445,7 +445,7 @@ const fetchGuides = async () => {
         `${import.meta.env.VITE_API_BASE_URL}/api/admin/pages`,
         {
           ...pageForm,
-          content: pageForm.content 
+          content: pageForm.content
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -502,39 +502,39 @@ const fetchGuides = async () => {
     }
   };
 
-const sendBulkEmail = async () => {
-  if (!emailSubject.trim() || !emailContent.trim()) {
-    toast.error("Please enter subject and content");
-    return;
-  }
-
-  try {
-    setIsSubmitting(true);
-    const token = localStorage.getItem("token");
-    const response = await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL}/api/admin/emails/bulk`,
-      { subject: emailSubject, content: emailContent },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    
-    if (response.data.success) {
-      toast.success(`Bulk email sent to ${response.data.recipients} recipients`);
-    } else {
-      toast.error("Failed to send email: " + response.data.error);
+  const sendBulkEmail = async () => {
+    if (!emailSubject.trim() || !emailContent.trim()) {
+      toast.error("Please enter subject and content");
+      return;
     }
-    
-    setEmailSubject("");
-    setEmailContent("");
-    fetchEmails();
-  } catch (err) {
-    console.error("Failed to send bulk email", err);
-    toast.error("Failed to send email: " + (err.response?.data?.error || err.message));
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+
+    try {
+      setIsSubmitting(true);
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/emails/bulk`,
+        { subject: emailSubject, content: emailContent },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success(`Bulk email sent to ${response.data.recipients} recipients`);
+      } else {
+        toast.error("Failed to send email: " + response.data.error);
+      }
+
+      setEmailSubject("");
+      setEmailContent("");
+      fetchEmails();
+    } catch (err) {
+      console.error("Failed to send bulk email", err);
+      toast.error("Failed to send email: " + (err.response?.data?.error || err.message));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const createBlog = async (e) => {
     e.preventDefault();
@@ -562,28 +562,28 @@ const sendBulkEmail = async () => {
     }
   };
 
-const createFeature = async (e) => {
-  e.preventDefault();
-  try {
-    setIsSubmitting(true);
-    const token = localStorage.getItem("token");
-    await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL}/api/admin/features`,
-      featureForm, 
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    toast.success("Feature created successfully");
-    setFeatureForm({ title: '', description: '', icon: '' });
-    fetchFeatures();
-  } catch (err) {
-    console.error("Failed to create feature", err);
-    toast.error("Failed to create feature");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  const createFeature = async (e) => {
+    e.preventDefault();
+    try {
+      setIsSubmitting(true);
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/features`,
+        featureForm,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      toast.success("Feature created successfully");
+      setFeatureForm({ title: '', description: '', icon: '' });
+      fetchFeatures();
+    } catch (err) {
+      console.error("Failed to create feature", err);
+      toast.error("Failed to create feature");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const createFaq = async (e) => {
     e.preventDefault();
@@ -639,53 +639,92 @@ const createFeature = async (e) => {
     }
   };
 
-const saveGuide = async (e) => {
-  e.preventDefault();
-  try {
-    setIsSubmitting(true);
-    const token = localStorage.getItem("token");
-    
-    // Calculate read time (approx 200 words per minute)
-    const wordCount = guideForm.content.split(/\s+/).length;
-    const readTime = Math.ceil(wordCount / 200);
-    
-    const guideData = {
-      title: guideForm.title,
-      content: guideForm.content,
-      category: guideForm.category,
-      difficulty: guideForm.difficulty,
-      excerpt: guideForm.description,
-      tags: guideForm.tags,
-      readTime,
-      status: guideForm.status
-    };
+  const saveGuide = async (e) => {
+    e.preventDefault();
+    try {
+      setIsSubmitting(true);
+      const token = localStorage.getItem("token");
 
-    let response;
-    if (isEditing) {
-      response = await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideForm._id}`,
-        guideData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      toast.success("Guide updated successfully");
-    } else {
-      response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
-        guideData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      toast.success("Guide created successfully");
+      // Calculate read time (approx 200 words per minute)
+      const wordCount = guideForm.content.split(/\s+/).length;
+      const readTime = Math.ceil(wordCount / 200);
+
+      const guideData = {
+        title: guideForm.title,
+        content: guideForm.content,
+        category: guideForm.category,
+        difficulty: guideForm.difficulty,
+        excerpt: guideForm.description,
+        tags: guideForm.tags,
+        readTime,
+        status: guideForm.status
+      };
+
+      let response;
+      if (isEditing) {
+        response = await axios.put(
+          `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideForm._id}`,
+          guideData,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        toast.success("Guide updated successfully");
+      } else {
+        response = await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
+          guideData,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        toast.success("Guide created successfully");
+      }
+
+      // Reset form
+      setGuideForm({
+        _id: '',
+        title: '',
+        content: '',
+        category: 'getting-started',
+        difficulty: 'beginner',
+        description: '',
+        tags: [],
+        newTag: '',
+        status: 'draft'
+      });
+      setIsEditing(false);
+      fetchGuides();
+    } catch (err) {
+      console.error("Failed to save guide", err);
+      toast.error(`Failed to ${isEditing ? 'update' : 'create'} guide: ${err.response?.data?.error || err.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
+  };
 
-    // Reset form
-    setGuideForm({ 
+
+  const editGuide = (guide) => {
+    setGuideForm({
+      _id: guide._id,
+      title: guide.title,
+      content: guide.content,
+      category: guide.category,
+      difficulty: guide.difficulty,
+      description: guide.excerpt || '',
+      tags: guide.tags || [],
+      newTag: '',
+      status: guide.status
+    });
+    setIsEditing(true);
+    // Scroll to form
+    document.getElementById('guide-form').scrollIntoView({ behavior: 'smooth' });
+  };
+  const cancelEdit = () => {
+    setGuideForm({
       _id: '',
-      title: '', 
-      content: '', 
+      title: '',
+      content: '',
       category: 'getting-started',
       difficulty: 'beginner',
       description: '',
@@ -694,103 +733,64 @@ const saveGuide = async (e) => {
       status: 'draft'
     });
     setIsEditing(false);
-    fetchGuides();
-  } catch (err) {
-    console.error("Failed to save guide", err);
-    toast.error(`Failed to ${isEditing ? 'update' : 'create'} guide: ${err.response?.data?.error || err.message}`);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
-  
-const editGuide = (guide) => {
-  setGuideForm({
-    _id: guide._id,
-    title: guide.title,
-    content: guide.content,
-    category: guide.category,
-    difficulty: guide.difficulty,
-    description: guide.excerpt || '',
-    tags: guide.tags || [],
-    newTag: '',
-    status: guide.status
-  });
-  setIsEditing(true);
-  // Scroll to form
-  document.getElementById('guide-form').scrollIntoView({ behavior: 'smooth' });
-};
-  const cancelEdit = () => {
-  setGuideForm({ 
-    _id: '',
-    title: '', 
-    content: '', 
-    category: 'getting-started',
-    difficulty: 'beginner',
-    description: '',
-    tags: [],
-    newTag: '',
-    status: 'draft'
-  });
-  setIsEditing(false);
-};
-const updateGuideStatus = async (guideId, newStatus) => {
-  try {
-    const token = localStorage.getItem("token");
-    await axios.put(
-      `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideId}/status`,
-      { status: newStatus },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    toast.success(`Guide ${newStatus} successfully`);
-    fetchGuides();
-  } catch (err) {
-    console.error("Failed to update guide status", err);
-    toast.error(`Failed to update guide status: ${err.response?.data?.error || err.message}`);
-  }
-};
-  const addTag = () => {
-  if (guideForm.newTag.trim() && !guideForm.tags.includes(guideForm.newTag.trim())) {
-    setGuideForm({
-      ...guideForm,
-      tags: [...guideForm.tags, guideForm.newTag.trim()],
-      newTag: ''
-    });
-  }
-};
-
-const removeTag = (tagToRemove) => {
-  setGuideForm({
-    ...guideForm,
-    tags: guideForm.tags.filter(tag => tag !== tagToRemove)
-  });
-};
-const deleteGuide = async (guideId) => {
-  if (window.confirm("Are you sure you want to delete this guide?")) {
+  };
+  const updateGuideStatus = async (guideId, newStatus) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(
-        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideId}`,
+      await axios.put(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideId}/status`,
+        { status: newStatus },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      toast.success("Guide deleted successfully");
+      toast.success(`Guide ${newStatus} successfully`);
       fetchGuides();
     } catch (err) {
-      console.error("Failed to delete guide", err);
-      toast.error(`Failed to delete guide: ${err.response?.data?.error || err.message}`);
+      console.error("Failed to update guide status", err);
+      toast.error(`Failed to update guide status: ${err.response?.data?.error || err.message}`);
     }
-  }
-};
-const handleTagKeyPress = (e) => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    addTag();
-  }
-};
+  };
+  const addTag = () => {
+    if (guideForm.newTag.trim() && !guideForm.tags.includes(guideForm.newTag.trim())) {
+      setGuideForm({
+        ...guideForm,
+        tags: [...guideForm.tags, guideForm.newTag.trim()],
+        newTag: ''
+      });
+    }
+  };
+
+  const removeTag = (tagToRemove) => {
+    setGuideForm({
+      ...guideForm,
+      tags: guideForm.tags.filter(tag => tag !== tagToRemove)
+    });
+  };
+  const deleteGuide = async (guideId) => {
+    if (window.confirm("Are you sure you want to delete this guide?")) {
+      try {
+        const token = localStorage.getItem("token");
+        await axios.delete(
+          `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        toast.success("Guide deleted successfully");
+        fetchGuides();
+      } catch (err) {
+        console.error("Failed to delete guide", err);
+        toast.error(`Failed to delete guide: ${err.response?.data?.error || err.message}`);
+      }
+    }
+  };
+  const handleTagKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTag();
+    }
+  };
   const exportData = async (type) => {
     try {
       const token = localStorage.getItem("token");
@@ -801,7 +801,7 @@ const handleTagKeyPress = (e) => {
           responseType: 'blob'
         }
       );
-      
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -809,7 +809,7 @@ const handleTagKeyPress = (e) => {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      
+
       toast.success(`${type} data exported successfully`);
     } catch (err) {
       console.error("Failed to export data", err);
@@ -831,11 +831,10 @@ const handleTagKeyPress = (e) => {
   const TabButton = ({ name, icon, label }) => (
     <button
       onClick={() => setActiveTab(name)}
-      className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
-        activeTab === name
+      className={`flex items-center px-4 py-2 rounded-lg transition-colors ${activeTab === name
           ? `${currentTheme.btnPrimary} text-white`
           : `${currentTheme.btnAccent} hover:${currentTheme.navHover}`
-      }`}
+        }`}
     >
       {icon}
       <span className="ml-2">{label}</span>
@@ -1066,7 +1065,7 @@ const handleTagKeyPress = (e) => {
                     type="text"
                     placeholder="Page Title"
                     value={pageForm.title}
-                    onChange={(e) => setPageForm({...pageForm, title: e.target.value})}
+                    onChange={(e) => setPageForm({ ...pageForm, title: e.target.value })}
                     className="w-full p-2 border rounded"
                     required
                   />
@@ -1074,16 +1073,16 @@ const handleTagKeyPress = (e) => {
                     type="text"
                     placeholder="Slug (URL-friendly)"
                     value={pageForm.slug}
-                    onChange={(e) => setPageForm({...pageForm, slug: e.target.value})}
+                    onChange={(e) => setPageForm({ ...pageForm, slug: e.target.value })}
                     className="w-full p-2 border rounded"
                     required
                   />
                 </div>
                 <TinyEditor
-            value={pageForm.content}
-            onChange={(content) => setPageForm({...pageForm, content})}
-            height={200}
-          />
+                  value={pageForm.content}
+                  onChange={(content) => setPageForm({ ...pageForm, content })}
+                  height={200}
+                />
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -1101,9 +1100,8 @@ const handleTagKeyPress = (e) => {
                 <div key={page._id} className="border rounded-lg p-4">
                   <div className="flex justify-between items-start mb-3">
                     <h4 className="font-semibold">{page.title}</h4>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      page.isPublished ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span className={`px-2 py-1 rounded text-xs ${page.isPublished ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
                       {page.isPublished ? 'Published' : 'Draft'}
                     </span>
                   </div>
@@ -1135,7 +1133,7 @@ const handleTagKeyPress = (e) => {
         {activeTab === 'blogs' && (
           <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
             <h2 className="text-xl font-semibold mb-4">Blog Management</h2>
-            
+
             {/* Create Blog Form */}
             <div className="mb-6 p-4 border rounded-lg">
               <h3 className="font-semibold mb-3">Create New Blog Post</h3>
@@ -1144,13 +1142,13 @@ const handleTagKeyPress = (e) => {
                   type="text"
                   placeholder="Blog Title"
                   value={blogForm.title}
-                  onChange={(e) => setBlogForm({...blogForm, title: e.target.value})}
+                  onChange={(e) => setBlogForm({ ...blogForm, title: e.target.value })}
                   className="w-full p-2 border rounded mb-3"
                   required
                 />
                 <select
                   value={blogForm.category}
-                  onChange={(e) => setBlogForm({...blogForm, category: e.target.value})}
+                  onChange={(e) => setBlogForm({ ...blogForm, category: e.target.value })}
                   className="w-full p-2 border rounded mb-3"
                   required
                 >
@@ -1160,11 +1158,11 @@ const handleTagKeyPress = (e) => {
                   <option value="updates">Updates</option>
                   <option value="tips">Tips & Tricks</option>
                 </select>
-               <TinyEditor
-            value={blogForm.content}
-            onChange={(content) => setBlogForm({...blogForm, content})}
-            height={300}
-          />
+                <TinyEditor
+                  value={blogForm.content}
+                  onChange={(content) => setBlogForm({ ...blogForm, content })}
+                  height={300}
+                />
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -1182,10 +1180,9 @@ const handleTagKeyPress = (e) => {
                 <div key={blog._id} className="border rounded-lg p-4">
                   <div className="flex justify-between items-start">
                     <h4 className="font-semibold">{blog.title}</h4>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      blog.status === 'published' ? 'bg-green-100 text-green-800' : 
-                      blog.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span className={`px-2 py-1 rounded text-xs ${blog.status === 'published' ? 'bg-green-100 text-green-800' :
+                        blog.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
                       {blog.status}
                     </span>
                   </div>
@@ -1208,7 +1205,7 @@ const handleTagKeyPress = (e) => {
         {activeTab === 'features' && (
           <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
             <h2 className="text-xl font-semibold mb-4">Feature Management</h2>
-            
+
             {/* Create Feature Form */}
             <div className="mb-6 p-4 border rounded-lg">
               <h3 className="font-semibold mb-3">Add New Feature</h3>
@@ -1217,7 +1214,7 @@ const handleTagKeyPress = (e) => {
                   type="text"
                   placeholder="Feature Title"
                   value={featureForm.title}
-                  onChange={(e) => setFeatureForm({...featureForm, title: e.target.value})}
+                  onChange={(e) => setFeatureForm({ ...featureForm, title: e.target.value })}
                   className="w-full p-2 border rounded mb-3"
                   required
                 />
@@ -1225,19 +1222,19 @@ const handleTagKeyPress = (e) => {
                   type="text"
                   placeholder="Icon (e.g., FiStar)"
                   value={featureForm.icon}
-                  onChange={(e) => setFeatureForm({...featureForm, icon: e.target.value})}
+                  onChange={(e) => setFeatureForm({ ...featureForm, icon: e.target.value })}
                   className="w-full p-2 border rounded mb-3"
                   required
                 />
-                
-<textarea
-  placeholder="Feature Description"
-  value={featureForm.description}
-  onChange={(e) => setFeatureForm({...featureForm, description: e.target.value})}
-  rows={3}
-  className="w-full p-2 border rounded mb-3"
-  required
-/>
+
+                <textarea
+                  placeholder="Feature Description"
+                  value={featureForm.description}
+                  onChange={(e) => setFeatureForm({ ...featureForm, description: e.target.value })}
+                  rows={3}
+                  className="w-full p-2 border rounded mb-3"
+                  required
+                />
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -1276,14 +1273,14 @@ const handleTagKeyPress = (e) => {
         {activeTab === 'faqs' && (
           <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
             <h2 className="text-xl font-semibold mb-4">FAQ Management</h2>
-            
+
             {/* Create FAQ Form */}
             <div className="mb-6 p-4 border rounded-lg">
               <h3 className="font-semibold mb-3">Add New FAQ</h3>
               <form onSubmit={createFaq}>
                 <select
                   value={faqForm.category}
-                  onChange={(e) => setFaqForm({...faqForm, category: e.target.value})}
+                  onChange={(e) => setFaqForm({ ...faqForm, category: e.target.value })}
                   className="w-full p-2 border rounded mb-3"
                   required
                 >
@@ -1298,14 +1295,14 @@ const handleTagKeyPress = (e) => {
                   type="text"
                   placeholder="Question"
                   value={faqForm.question}
-                  onChange={(e) => setFaqForm({...faqForm, question: e.target.value})}
+                  onChange={(e) => setFaqForm({ ...faqForm, question: e.target.value })}
                   className="w-full p-2 border rounded mb-3"
                   required
                 />
-             <textarea
+                <textarea
                   placeholder="Answer"
                   value={faqForm.answer}
-                  onChange={(e) => setFaqForm({...faqForm, answer: e.target.value})}
+                  onChange={(e) => setFaqForm({ ...faqForm, answer: e.target.value })}
                   rows={3}
                   className="w-full p-2 border rounded mb-3"
                   required
@@ -1350,7 +1347,7 @@ const handleTagKeyPress = (e) => {
         {activeTab === 'pricing' && (
           <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
             <h2 className="text-xl font-semibold mb-4">Pricing Management</h2>
-            
+
             {/* Create Pricing Plan Form */}
             <div className="mb-6 p-4 border rounded-lg">
               <h3 className="font-semibold mb-3">Add New Pricing Plan</h3>
@@ -1359,14 +1356,14 @@ const handleTagKeyPress = (e) => {
                   type="text"
                   placeholder="Plan Name"
                   value={pricingForm.name}
-                  onChange={(e) => setPricingForm({...pricingForm, name: e.target.value})}
+                  onChange={(e) => setPricingForm({ ...pricingForm, name: e.target.value })}
                   className="w-full p-2 border rounded mb-3"
                   required
                 />
                 <textarea
                   placeholder="Plan Description"
                   value={pricingForm.description}
-                  onChange={(e) => setPricingForm({...pricingForm, description: e.target.value})}
+                  onChange={(e) => setPricingForm({ ...pricingForm, description: e.target.value })}
                   rows={2}
                   className="w-full p-2 border rounded mb-3"
                   required
@@ -1376,7 +1373,7 @@ const handleTagKeyPress = (e) => {
                     type="number"
                     placeholder="Monthly Price"
                     value={pricingForm.monthlyPrice}
-                    onChange={(e) => setPricingForm({...pricingForm, monthlyPrice: e.target.value})}
+                    onChange={(e) => setPricingForm({ ...pricingForm, monthlyPrice: e.target.value })}
                     className="w-full p-2 border rounded"
                     required
                   />
@@ -1384,7 +1381,7 @@ const handleTagKeyPress = (e) => {
                     type="number"
                     placeholder="Yearly Price"
                     value={pricingForm.yearlyPrice}
-                    onChange={(e) => setPricingForm({...pricingForm, yearlyPrice: e.target.value})}
+                    onChange={(e) => setPricingForm({ ...pricingForm, yearlyPrice: e.target.value })}
                     className="w-full p-2 border rounded"
                     required
                   />
@@ -1425,235 +1422,233 @@ const handleTagKeyPress = (e) => {
         )}
 
         {/* Guides Tab */}
-{activeTab === 'guides' && (
-  <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
-    <h2 className="text-xl font-semibold mb-4">Guide Management</h2>
-    
-    {/* Create/Edit Guide Form */}
-    <div id="guide-form" className="mb-6 p-4 border rounded-lg">
-      <h3 className="font-semibold mb-3">
-        {isEditing ? 'Edit Guide' : 'Create New Guide'}
-      </h3>
-      <form onSubmit={saveGuide}>
-        <input
-          type="text"
-          placeholder="Guide Title"
-          value={guideForm.title}
-          onChange={(e) => setGuideForm({...guideForm, title: e.target.value})}
-          className="w-full p-2 border rounded mb-3"
-          required
-        />
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-         <select
-  value={guideForm.category}
-  onChange={(e) => setGuideForm({...guideForm, category: e.target.value})}
-  className="w-full p-2 border rounded bg-white text-gray-800"
-  required
->
-  <option value="getting-started">Getting Started</option>
-  <option value="tutorials">Tutorials</option>
-  <option value="tips">Tips & Tricks</option>
-  <option value="troubleshooting">Troubleshooting</option>
-  <option value="advanced">Advanced</option>
-</select>
+        {activeTab === 'guides' && (
+          <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
+            <h2 className="text-xl font-semibold mb-4">Guide Management</h2>
 
-<select
-  value={guideForm.difficulty}
-  onChange={(e) => setGuideForm({...guideForm, difficulty: e.target.value})}
-  className="w-full p-2 border rounded bg-white text-gray-800"
-  required
->
-  <option value="beginner">Beginner</option>
-  <option value="intermediate">Intermediate</option>
-  <option value="advanced">Advanced</option>
-</select>
+            {/* Create/Edit Guide Form */}
+            <div id="guide-form" className="mb-6 p-4 border rounded-lg">
+              <h3 className="font-semibold mb-3">
+                {isEditing ? 'Edit Guide' : 'Create New Guide'}
+              </h3>
+              <form onSubmit={saveGuide}>
+                <input
+                  type="text"
+                  placeholder="Guide Title"
+                  value={guideForm.title}
+                  onChange={(e) => setGuideForm({ ...guideForm, title: e.target.value })}
+                  className="w-full p-2 border rounded mb-3"
+                  required
+                />
 
-<select
-  value={guideForm.status}
-  onChange={(e) => setGuideForm({...guideForm, status: e.target.value})}
-  className="w-full p-2 border rounded bg-white text-gray-800"
-  required
->
-  <option value="draft">Draft</option>
-  <option value="published">Published</option>
-  <option value="archived">Archived</option>
-</select>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                  <select
+                    value={guideForm.category}
+                    onChange={(e) => setGuideForm({ ...guideForm, category: e.target.value })}
+                    className="w-full p-2 border rounded bg-white text-gray-800"
+                    required
+                  >
+                    <option value="getting-started">Getting Started</option>
+                    <option value="tutorials">Tutorials</option>
+                    <option value="tips">Tips & Tricks</option>
+                    <option value="troubleshooting">Troubleshooting</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
 
-        </div>
-        
-        <div className="mb-3">
-          <label className="block text-sm font-medium mb-1">Tags</label>
-          <div className="flex gap-2 mb-2">
-            <input
-              type="text"
-              placeholder="Add tag..."
-              value={guideForm.newTag}
-              onChange={(e) => setGuideForm({...guideForm, newTag: e.target.value})}
-              onKeyPress={handleTagKeyPress}
-              className="flex-1 p-2 border rounded"
-            />
-            <button
-              type="button"
-              onClick={addTag}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded"
-            >
-              Add
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {guideForm.tags.map((tag, index) => (
-              <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm flex items-center">
-                {tag}
-                <button
-                  type="button"
-                  onClick={() => removeTag(tag)}
-                  className="ml-1 text-blue-600 hover:text-blue-800"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        </div>
-        
-         <div className="space-y-6">
-  {/* Guide Description */}
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">
-    Guide Description
-  </label>
-  <textarea
-    value={guideForm.description}
-    onChange={(e) =>
-      setGuideForm({ ...guideForm, description: e.target.value })
-    }
-    rows={4}
-    className="w-full rounded-lg border border-gray-300 p-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-900 placeholder-gray-400"
-    placeholder="Write a short summary for your guide..."
-  />
-    <p className="mt-1 text-xs text-gray-500">
-      A short summary for your guide (appears in lists and previews).
-    </p>
-  </div>
+                  <select
+                    value={guideForm.difficulty}
+                    onChange={(e) => setGuideForm({ ...guideForm, difficulty: e.target.value })}
+                    className="w-full p-2 border rounded bg-white text-gray-800"
+                    required
+                  >
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
 
-  {/* Guide Content */}
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">
-      Guide Content
-    </label>
-    <div className="rounded-lg shadow-sm border border-gray-300 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
-      <TinyEditor
-        value={guideForm.content}
-        onChange={(content) =>
-          setGuideForm({ ...guideForm, content })
-        }
-        height={400}
-      />
-    </div>
-    <p className="mt-1 text-xs text-gray-500">
-      The full content of your guide. You can format text, add lists, and insert links or images.
-    </p>
-  </div>
-</div>
+                  <select
+                    value={guideForm.status}
+                    onChange={(e) => setGuideForm({ ...guideForm, status: e.target.value })}
+                    className="w-full p-2 border rounded bg-white text-gray-800"
+                    required
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                  </select>
 
-        
-        <div className="flex gap-2">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-          >
-            {isSubmitting ? 'Saving...' : (isEditing ? 'Update Guide' : 'Create Guide')}
-          </button>
-          {isEditing && (
-            <button
-              type="button"
-              onClick={cancelEdit}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-            >
-              Cancel
-            </button>
-          )}
-        </div>
-      </form>
-    </div>
+                </div>
 
-    {/* Guides List */}
-    <h3 className="font-semibold mb-3">Guides</h3>
-    <div className="space-y-4">
-      {guides.map((guide) => (
-        <div key={guide._id} className="border rounded-lg p-4">
-          <div className="flex justify-between items-start mb-3">
-            <h4 className="font-semibold">{guide.title}</h4>
-            <span className={`px-2 py-1 rounded text-xs ${
-              guide.status === 'published' ? 'bg-green-100 text-green-800' : 
-              guide.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
-            }`}>
-              {guide.status}
-            </span>
-          </div>
-          
-          <div className="flex flex-wrap gap-2 mb-3">
-            <span className={`px-2 py-1 rounded text-xs bg-gray-100 text-gray-800`}>
-              {guide.category}
-            </span>
-            <span className={`px-2 py-1 rounded text-xs ${
-              guide.difficulty === 'beginner' ? 'bg-green-100 text-green-800' :
-              guide.difficulty === 'intermediate' ? 'bg-blue-100 text-blue-800' :
-              'bg-purple-100 text-purple-800'
-            }`}>
-              {guide.difficulty}
-            </span>
-            {guide.tags && guide.tags.map((tag, index) => (
-              <span key={index} className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-800">
-                {tag}
-              </span>
-            ))}
-          </div>
-          
-          <p className="text-gray-600 mb-3">{guide.excerpt || 'No description'}</p>
-          
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-gray-500">
-              {guide.readTime} min read • {guide.views || 0} views
+                <div className="mb-3">
+                  <label className="block text-sm font-medium mb-1">Tags</label>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      placeholder="Add tag..."
+                      value={guideForm.newTag}
+                      onChange={(e) => setGuideForm({ ...guideForm, newTag: e.target.value })}
+                      onKeyPress={handleTagKeyPress}
+                      className="flex-1 p-2 border rounded"
+                    />
+                    <button
+                      type="button"
+                      onClick={addTag}
+                      className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {guideForm.tags.map((tag, index) => (
+                      <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm flex items-center">
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => removeTag(tag)}
+                          className="ml-1 text-blue-600 hover:text-blue-800"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Guide Description */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-2">
+                      Guide Description
+                    </label>
+                    <textarea
+                      value={guideForm.description}
+                      onChange={(e) =>
+                        setGuideForm({ ...guideForm, description: e.target.value })
+                      }
+                      rows={4}
+                      className="w-full rounded-lg border border-gray-300 p-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-white placeholder-gray-300 bg-gray-800"
+                      placeholder="Write a short summary for your guide..."
+                    />
+
+                    <p className="mt-1 text-xs text-gray-300">
+                      A short summary for your guide (appears in lists and previews).
+                    </p>
+                  </div>
+
+                  {/* Guide Content */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-2">
+                      Guide Content
+                    </label>
+                    <div className="rounded-lg shadow-sm border border-gray-300 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
+                      <TinyEditor
+                        value={guideForm.content}
+                        onChange={(content) =>
+                          setGuideForm({ ...guideForm, content })
+                        }
+                        height={400}
+                      />
+                    </div>
+                    <p className="mt-1 text-xs text-gray-300">
+                      The full content of your guide. You can format text, add lists, and insert links or images.
+                    </p>
+                  </div>
+                </div>
+
+
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Saving...' : (isEditing ? 'Update Guide' : 'Create Guide')}
+                  </button>
+                  {isEditing && (
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </form>
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => editGuide(guide)}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
-              >
-                <FiEdit />
-              </button>
-              <button
-                onClick={() => updateGuideStatus(guide._id, guide.status === 'published' ? 'draft' : 'published')}
-                className={`px-3 py-1 rounded text-sm ${
-                  guide.status === 'published' 
-                    ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
-                    : 'bg-green-500 hover:bg-green-600 text-white'
-                }`}
-              >
-                {guide.status === 'published' ? 'Unpublish' : 'Publish'}
-              </button>
-              <button
-                onClick={() => deleteGuide(guide._id)}
-                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
-              >
-                <FiTrash2 />
-              </button>
+
+            {/* Guides List */}
+            <h3 className="font-semibold mb-3">Guides</h3>
+            <div className="space-y-4">
+              {guides.map((guide) => (
+                <div key={guide._id} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <h4 className="font-semibold">{guide.title}</h4>
+                    <span className={`px-2 py-1 rounded text-xs ${guide.status === 'published' ? 'bg-green-100 text-green-800' :
+                        guide.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                      {guide.status}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    <span className={`px-2 py-1 rounded text-xs bg-gray-100 text-gray-800`}>
+                      {guide.category}
+                    </span>
+                    <span className={`px-2 py-1 rounded text-xs ${guide.difficulty === 'beginner' ? 'bg-green-100 text-green-800' :
+                        guide.difficulty === 'intermediate' ? 'bg-blue-100 text-blue-800' :
+                          'bg-purple-100 text-purple-800'
+                      }`}>
+                      {guide.difficulty}
+                    </span>
+                    {guide.tags && guide.tags.map((tag, index) => (
+                      <span key={index} className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-800">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  <p className="text-gray-600 mb-3">{guide.excerpt || 'No description'}</p>
+
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm text-gray-500">
+                      {guide.readTime} min read • {guide.views || 0} views
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => editGuide(guide)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                      >
+                        <FiEdit />
+                      </button>
+                      <button
+                        onClick={() => updateGuideStatus(guide._id, guide.status === 'published' ? 'draft' : 'published')}
+                        className={`px-3 py-1 rounded text-sm ${guide.status === 'published'
+                            ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                            : 'bg-green-500 hover:bg-green-600 text-white'
+                          }`}
+                      >
+                        {guide.status === 'published' ? 'Unpublish' : 'Publish'}
+                      </button>
+                      <button
+                        onClick={() => deleteGuide(guide._id)}
+                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
+        )}
 
         {/* Emails Tab */}
         {activeTab === 'emails' && (
           <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
             <h2 className="text-xl font-semibold mb-4">Email Management</h2>
-            
+
             {/* Bulk Email Form */}
             <div className="mb-6 p-4 border rounded-lg">
               <h3 className="font-semibold mb-3">Send Bulk Email</h3>
@@ -1665,10 +1660,10 @@ const handleTagKeyPress = (e) => {
                 className="w-full p-2 border rounded mb-2"
               />
               <TinyEditor
-            value={emailContent}
-            onChange={setEmailContent}
-            height={200}
-          />
+                value={emailContent}
+                onChange={setEmailContent}
+                height={200}
+              />
               <button
                 onClick={sendBulkEmail}
                 disabled={isSubmitting}
@@ -1714,7 +1709,7 @@ const handleTagKeyPress = (e) => {
                   </label>
                 </div>
               </div>
-              
+
               <div className="p-4 border rounded-lg">
                 <h3 className="font-semibold mb-2">Email Settings</h3>
                 <div className="space-y-2">
@@ -1730,7 +1725,7 @@ const handleTagKeyPress = (e) => {
                   />
                 </div>
               </div>
-              
+
               <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
                 Save Settings
               </button>
