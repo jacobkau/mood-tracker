@@ -27,6 +27,32 @@ import {
   FiBox
 } from "react-icons/fi";
 
+// Add at the top of your file
+import { ErrorBoundary } from 'react-error-boundary';
+
+function ErrorFallback({ error, resetErrorBoundary }) {
+  return (
+    <div className="p-4 bg-red-100 border border-red-400 rounded">
+      <h2>Something went wrong:</h2>
+      <pre>{error.message}</pre>
+      <button onClick={resetErrorBoundary} className="bg-blue-500 text-white px-4 py-2 rounded">
+        Try again
+      </button>
+    </div>
+  );
+}
+
+// Wrap your component export
+export default function AdminPanelWithErrorBoundary() {
+  return (
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <AdminPanel />
+    </ErrorBoundary>
+  );
+}
+
+
+
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [users, setUsers] = useState([]);
@@ -196,7 +222,7 @@ export default function AdminPanel() {
     }
   };
 
-  const fetchEmails = async () => {
+ const fetchEmails = async () => {
     try {
       const token = localStorage.getItem("token");
       const { data } = await axios.get(
@@ -205,10 +231,17 @@ export default function AdminPanel() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setEmails(data);
+      
+      const processedEmails = Array.isArray(data) ? data.map(email => ({
+        ...email,
+        content: email.content || ''
+      })) : [];
+      
+      setEmails(processedEmails);
     } catch (err) {
       console.error("Failed to fetch emails", err);
       toast.error("Failed to load emails");
+      setEmails([]); 
     }
   };
 
@@ -502,40 +535,44 @@ export default function AdminPanel() {
     }
   };
 
-  const sendBulkEmail = async () => {
-    if (!emailSubject.trim() || !emailContent.trim()) {
-      toast.error("Please enter subject and content");
-      return;
-    }
+const sendBulkEmail = async () => {
+  if (!emailSubject.trim() || !emailContent.trim()) {
+    toast.error("Please enter subject and content");
+    return;
+  }
 
-    try {
-      setIsSubmitting(true);
-      const token = localStorage.getItem("token");
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/admin/emails/bulk`,
-        { subject: emailSubject, content: emailContent },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (response.data.success) {
-        toast.success(`Bulk email sent to ${response.data.recipients} recipients`);
-      } else {
-        toast.error("Failed to send email: " + response.data.error);
+  try {
+    setIsSubmitting(true);
+    const token = localStorage.getItem("token");
+    const response = await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/api/admin/emails/bulk`,
+      { 
+        subject: emailSubject.trim(), 
+        content: emailContent.trim() 
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 30000, 
       }
+    );
 
-      setEmailSubject("");
-      setEmailContent("");
-      fetchEmails();
-    } catch (err) {
-      console.error("Failed to send bulk email", err);
-      toast.error("Failed to send email: " + (err.response?.data?.error || err.message));
-    } finally {
-      setIsSubmitting(false);
+    if (response.data?.success) {
+      toast.success(`Bulk email sent to ${response.data.recipients || 0} recipients`);
+    } else {
+      toast.error("Failed to send email: " + (response.data?.error || 'Unknown error'));
     }
-  };
 
+    setEmailSubject("");
+    setEmailContent("");
+    fetchEmails();
+  } catch (err) {
+    console.error("Failed to send bulk email", err);
+    const errorMessage = err.response?.data?.error || err.message || 'Failed to send email';
+    toast.error(`Failed to send email: ${errorMessage}`);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   const createBlog = async (e) => {
     e.preventDefault();
     try {
@@ -1655,52 +1692,63 @@ const addTag = () => {
           </div>
         )}
 
-        {/* Emails Tab */}
-        {activeTab === 'emails' && (
-          <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
-            <h2 className="text-xl font-semibold mb-4">Email Management</h2>
+          {/* Emails Tab */}
+      {activeTab === 'emails' && (
+        <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
+          <h2 className="text-xl font-semibold mb-4">Email Management</h2>
 
-            {/* Bulk Email Form */}
-            <div className="mb-6 p-4 border rounded-lg">
-              <h3 className="font-semibold mb-3">Send Bulk Email</h3>
-              <input
-                type="text"
-                placeholder="Subject"
-                value={emailSubject}
-                onChange={(e) => setEmailSubject(e.target.value)}
-                className="w-full p-2 border rounded mb-2"
-              />
-              <TinyEditor
-                value={emailContent}
-                onChange={setEmailContent}
-                height={200}
-              />
-              <button
-                onClick={sendBulkEmail}
-                disabled={isSubmitting}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-              >
-                {isSubmitting ? 'Sending...' : 'Send to All Users'}
-              </button>
-            </div>
-
-            {/* Email History */}
-            <h3 className="font-semibold mb-3">Email History</h3>
-            <div className="space-y-3">
-              {emails.map((email) => (
-                <div key={email._id} className="border rounded-lg p-3">
-                  <div className="flex justify-between items-start">
-                    <h4 className="font-semibold">{email.subject}</h4>
-                    <span className="text-sm text-gray-500">
-                      {new Date(email.sentAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <p className="text-gray-600 text-sm">{email.content.substring(0, 100)}...</p>
-                </div>
-              ))}
-            </div>
+          {/* Bulk Email Form */}
+          <div className="mb-6 p-4 border rounded-lg">
+            <h3 className="font-semibold mb-3">Send Bulk Email</h3>
+            <input
+              type="text"
+              placeholder="Subject"
+              value={emailSubject}
+              onChange={(e) => setEmailSubject(e.target.value)}
+              className="w-full p-2 border rounded mb-2"
+            />
+            <TinyEditor
+              value={emailContent}
+              onChange={setEmailContent}
+              height={200}
+            />
+            <button
+              onClick={sendBulkEmail}
+              disabled={isSubmitting}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+            >
+              {isSubmitting ? 'Sending...' : 'Send to All Users'}
+            </button>
           </div>
-        )}
+
+          {/* Email History */}
+          <h3 className="font-semibold mb-3">Email History</h3>
+          <div className="space-y-3">
+            {emails.map((email) => (
+              <div key={email._id} className="border rounded-lg p-3">
+                <div className="flex justify-between items-start">
+                  <h4 className="font-semibold">{email.subject || 'No Subject'}</h4>
+                  <span className="text-sm text-gray-500">
+                    {email.sentAt ? new Date(email.sentAt).toLocaleDateString() : 'No date'}
+                  </span>
+                </div>
+                {/* FIXED: Add null check for email.content */}
+                <p className="text-gray-600 text-sm">
+                  {(email.content || '').substring(0, 100)}...
+                </p>
+              </div>
+            ))}
+          </div>
+          
+          {/* Show message if no emails */}
+          {emails.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              <FiMail className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>No emails sent yet</p>
+            </div>
+          )}
+        </div>
+      )}
 
         {/* Settings Tab */}
         {activeTab === 'settings' && (
