@@ -99,7 +99,7 @@ const FAQ = () => {
                 onClick={() => toggleFAQ(index)}
                 aria-expanded={activeIndex === index}
               >
-                <h3 className="text-lg font-medium text-gray-900 pr-4">{item.question}</h3>
+                <h3 className="text-lg font-medium text-gray-300 pr-4">{item.question}</h3>
                 <svg
                   className={`w-5 h-5 transition-transform duration-200 flex-shrink-0 ${
                     activeIndex === index ? `transform rotate-180 ${currentTheme.bodyAccent}` : 'text-gray-400'
@@ -114,7 +114,7 @@ const FAQ = () => {
               </button>
               {activeIndex === index && (
                 <div className="px-6 pb-4">
-                  <p className="text-gray-600 leading-relaxed">{item.answer}</p>
+                  <p className="text-gray-500 leading-relaxed">{item.answer}</p>
                 </div>
               )}
             </div>
@@ -123,7 +123,7 @@ const FAQ = () => {
         
         {/* Contact Support Section */}
         <div className={`mt-16 rounded-xl shadow-md p-8 ${currentTheme.cardBg}`}>
-          <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">Still have questions?</h2>
+          <h2 className="text-2xl font-bold text-white text-center mb-6">Still have questions?</h2>
           <p className="text-gray-600 text-center mb-6">
             Our support team is here to help you with any questions or issues you might have
           </p>
@@ -198,7 +198,7 @@ const FAQ = () => {
             className={`p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 text-center group ${currentTheme.cardBg}`}
           >
             <div className="text-2xl mb-2">📚</div>
-            <h3 className="font-medium text-gray-900 group-hover:text-indigo-600 transition-colors duration-200">User Guides</h3>
+            <h3 className="font-medium text-white group-hover:text-indigo-600 transition-colors duration-200">User Guides</h3>
             <p className="text-sm text-gray-600 mt-1">Step-by-step instructions</p>
           </Link>
           
@@ -207,7 +207,7 @@ const FAQ = () => {
             className={`p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 text-center group ${currentTheme.cardBg}`}
           >
             <div className="text-2xl mb-2">✍️</div>
-            <h3 className="font-medium text-gray-900 group-hover:text-indigo-600 transition-colors duration-200">Blog</h3>
+            <h3 className="font-medium text-white group-hover:text-indigo-600 transition-colors duration-200">Blog</h3>
             <p className="text-sm text-gray-600 mt-1">Tips and insights</p>
           </Link>
           
@@ -216,7 +216,7 @@ const FAQ = () => {
             className={`p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 text-center group ${currentTheme.cardBg}`}
           >
             <div className="text-2xl mb-2">📞</div>
-            <h3 className="font-medium text-gray-900 group-hover:text-indigo-600 transition-colors duration-200">Contact</h3>
+            <h3 className="font-medium text-white group-hover:text-indigo-600 transition-colors duration-200">Contact</h3>
             <p className="text-sm text-gray-600 mt-1">Get in touch with us</p>
           </Link>
         </div>
@@ -225,7 +225,7 @@ const FAQ = () => {
         <div className={`mt-8 rounded-lg p-6 ${currentTheme.highlight}`}>
           <h3 className="font-semibold mb-2">Quick Support</h3>
           <p className="text-sm">
-            Email: support@wtymoodtracker.com<br />
+            Email: kaujacob4@gmail.com <br />
             Response time: Typically within 24 hours<br />
             Hours: Monday-Friday, 9AM-6PM EST
           </p>
