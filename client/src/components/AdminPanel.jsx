@@ -1096,7 +1096,11 @@ export default function AdminPanel() {
                     required
                   />
                 </div>
+                 <label className="block text-sm font-medium text-gray-200 mb-2">
+                      Page Content
+                    </label>
                 <TinyEditor
+                  className="mt-5"
                   value={pageForm.content}
                   onChange={(content) => setPageForm({ ...pageForm, content })}
                   height={200}
@@ -1679,15 +1683,20 @@ export default function AdminPanel() {
                 onChange={(e) => setEmailSubject(e.target.value)}
                 className="w-full p-2 border rounded mb-2"
               />
+               <label className="block text-sm font-medium text-gray-200 mb-2">
+                      Email Content
+                    </label>
+              
               <TinyEditor
                 value={emailContent}
                 onChange={setEmailContent}
+                className="mt-5"
                 height={200}
               />
               <button
                 onClick={sendBulkEmail}
                 disabled={isSubmitting}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 mt-5 rounded disabled:opacity-50"
               >
                 {isSubmitting ? 'Sending...' : 'Send to All Users'}
               </button>
