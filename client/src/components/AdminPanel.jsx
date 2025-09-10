@@ -1534,7 +1534,8 @@ const addTag = () => {
                       onChange={(e) =>
                         setGuideForm({ ...guideForm, description: e.target.value })
                       }
-                      rows={4}
+                      rows={2}
+                      maxLength={300}   
                       className="w-full rounded-lg border border-gray-300 p-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-white placeholder-gray-300 bg-gray-800"
                       placeholder="Write a short summary for your guide..."
                     />
