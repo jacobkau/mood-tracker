@@ -14,13 +14,7 @@ export default function Developer() {
         description="Find answers On the Developer of Witty MoodTracker"
       />
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">About the Developer</h1>
-          <p className="text-lg text-gray-600">
-            Meet the creator behind MoodTrack
-          </p>
-        </div>
-
+       
         <div className={`shadow rounded-lg overflow-hidden ${currentTheme.cardBg}`}>
           <div className="p-8">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
@@ -33,10 +27,10 @@ export default function Developer() {
               </div>
               
               <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Jacob Mwambwa</h2>
-                <p className="text-gray-600 mb-4">Full Stack Developer & Mental Health Advocate</p>
+                <h2 className={`text-2xl font-bold  mb-2  ${currentTheme.bodyAccent}`}>Jacob Mwambwa</h2>
+                <p className="text-gray-300 mb-4">Full Stack Developer & Mental Health Advocate</p>
                 
-                <p className="text-gray-700 mb-6">
+                <p className="text-gray-500 mb-6">
                   I created MoodTrack to help people better understand their emotional patterns and 
                   improve their mental wellbeing. With a background in psychology and software 
                   development, I wanted to build a tool that combines both fields to create something 
@@ -81,11 +75,11 @@ export default function Developer() {
             </div>
             
             <div className="mt-12">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">System Technical Details</h3>
+              <h3 className={` ${currentTheme.bodyAccent} text-xl font-semibold mb-4`}>System Technical Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className={`p-4 rounded-lg ${currentTheme.highlight}`}>
-                  <h4 className="font-medium text-gray-900 mb-2">Frontend</h4>
-                  <ul className="text-gray-600 space-y-1">
+                  <h4 className="font-medium text-gray-300 mb-2">Frontend</h4>
+                  <ul className="text-gray-500 space-y-1">
                     <li>React</li>
                     <li>Tailwind CSS</li>
                     <li>Vite</li>
@@ -93,8 +87,8 @@ export default function Developer() {
                   </ul>
                 </div>
                 <div className={`p-4 rounded-lg ${currentTheme.highlight}`}>
-                  <h4 className="font-medium text-gray-900 mb-2">Backend</h4>
-                  <ul className="text-gray-600 space-y-1">
+                  <h4 className="font-medium text-gray-300 mb-2">Backend</h4>
+                  <ul className="text-gray-500 space-y-1">
                     <li>Node.js</li>
                     <li>Express</li>
                     <li>MongoDB</li>
