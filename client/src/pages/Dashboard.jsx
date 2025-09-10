@@ -82,8 +82,7 @@ export default function Dashboard() {
         title={`Welcome back, ${user?.username || user?.firstName || "Friend"} 🌿`}
         description="This is your personal space to reflect, track moods, and nurture your well-being each day."
       />
-      <div className="max-w-4xl mx-auto">
-        <p className={`${currentTheme.bodySecondary}`}><i>Your personal companion for emotional wellness!</i></p>
+      <div className="mt-4 max-w-4xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
             <MoodEntry setMoods={setMoods} />
