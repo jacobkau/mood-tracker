@@ -17,13 +17,26 @@ const Guides = () => {
       try {
         setError(null);
         const response = await getGuides();
-        // Handle different API response structures
-        const guidesData = response.data || response || [];
-        setGuides(Array.isArray(guidesData) ? guidesData : []);
+        console.log('API Response:', response);
+        
+        let guidesData = [];
+        
+        // Handle different response structures
+        if (response.data && Array.isArray(response.data)) {
+          guidesData = response.data;
+        } else if (response.data && response.data.guides) {
+          guidesData = response.data.guides;
+        } else if (Array.isArray(response)) {
+          guidesData = response;
+        } else if (response.guides) {
+          guidesData = response.guides;
+        }
+        
+        console.log('Extracted guides:', guidesData);
+        setGuides(guidesData);
       } catch (error) {
         console.error('Failed to fetch guides:', error);
         setError('Failed to load guides. Please try again later.');
-        // Set empty array to prevent map errors
         setGuides([]);
       } finally {
         setLoading(false);
@@ -35,16 +48,21 @@ const Guides = () => {
 
   const filteredGuides = filter === 'all' 
     ? guides 
-    : guides.filter(guide => guide.level === filter);
+    : guides.filter(guide => 
+        guide.difficulty?.toLowerCase() === filter.toLowerCase()
+      );
 
-  const categories = ['all', 'Beginner', 'Intermediate', 'Advanced'];
+  const categories = ['all', 'beginner', 'intermediate', 'advanced'];
 
-  // Theme-based level colors
   const levelColors = {
-    Beginner: `${currentTheme.highlight} bg-opacity-50`,
-    Intermediate: 'bg-blue-900/20 text-blue-300',
-    Advanced: 'bg-purple-900/20 text-purple-300'
+    beginner: `${currentTheme.highlight} bg-opacity-50`,
+    intermediate: 'bg-blue-900/20 text-blue-300',
+    advanced: 'bg-purple-900/20 text-purple-300'
   };
+
+  // Debug logs
+  console.log('Current guides:', guides);
+  console.log('Filtered guides:', filteredGuides);
 
   if (loading) {
     return (
@@ -118,7 +136,7 @@ const Guides = () => {
                     : `${currentTheme.bodyText} hover:${currentTheme.bodyAccent}`
                 }`}
               >
-                {category === 'all' ? 'All Guides' : category}
+                {category === 'all' ? 'All Guides' : category.charAt(0).toUpperCase() + category.slice(1)}
               </button>
             ))}
           </div>
@@ -126,31 +144,37 @@ const Guides = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredGuides.map((guide) => (
-            <div key={guide._id || guide.id} className={`rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 group ${currentTheme.cardBg}`}>
-              <div className={`h-4 ${currentTheme.btnPrimary}`}></div>
+            <div key={guide._id} className={`rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 group ${currentTheme.cardBg}`}>
+              {guide.featuredImage && (
+                <img 
+                  src={guide.featuredImage} 
+                  alt={guide.title}
+                  className="w-full h-48 object-cover"
+                />
+              )}
               <div className="p-6">
                 <div className="flex justify-between items-center mb-4">
                   <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                    levelColors[guide.level] || levelColors.Beginner
+                    levelColors[guide.difficulty?.toLowerCase()] || levelColors.beginner
                   }`}>
-                    {guide.level || 'General'}
+                    {guide.difficulty || 'General'}
                   </span>
                   <span className={`text-sm ${currentTheme.bodyAccent}`}>
-                    {guide.time || '5 min read'}
+                    {guide.readTime ? `${guide.readTime} min read` : '5 min read'}
                   </span>
                 </div>
                 <h3 className={`text-xl font-semibold mb-3 group-hover:${currentTheme.bodyAccent} transition-colors duration-200`}>
-                  {guide.title || 'Untitled Guide'}
+                  {guide.title}
                 </h3>
                 <p className={`${currentTheme.bodyText} mb-4 line-clamp-3 opacity-80`}>
-                  {guide.description || 'No description available.'}
+                  {guide.excerpt || guide.content?.substring(0, 150) + '...' || 'No description available.'}
                 </p>
                 <div className="flex justify-between items-center">
                   <span className={`text-sm font-medium px-2 py-1 rounded ${currentTheme.highlight}`}>
                     {guide.category || 'General'}
                   </span>
                   <Link 
-                    to={`/guides/${guide._id || guide.id}`}
+                    to={`/guides/${guide.slug || guide._id}`}
                     className={`font-medium flex items-center transition-colors duration-200 ${currentTheme.bodyAccent} hover:${currentTheme.bodySecondary}`}
                   >
                     Read Guide
@@ -167,8 +191,10 @@ const Guides = () => {
         {filteredGuides.length === 0 && !loading && (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📚</div>
-            <h3 className="text-lg font-medium mb-2">No guides found</h3>
-            <p className="opacity-80">We're working on more guides for this category. Check back soon!</p>
+            <h3 className="text-lg font-medium mb-2">
+              {filter === 'all' ? 'No guides available yet' : `No ${filter} guides found`}
+            </h3>
+            <p className="opacity-80">We're working on more guides. Check back soon!</p>
           </div>
         )}
         
