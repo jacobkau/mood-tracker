@@ -13,8 +13,7 @@ export default function Developer() {
         title="The Developer" 
         description="Find answers On the Developer of Witty MoodTracker"
       />
-      <div className="max-w-4xl mx-auto">
-       
+      <div className="max-w-4xl mt-5 mx-auto">       
         <div className={`shadow rounded-lg overflow-hidden ${currentTheme.cardBg}`}>
           <div className="p-8">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
