@@ -1,12 +1,6 @@
 const mongoose = require('mongoose');
 
 const emailHistorySchema = new mongoose.Schema({
-  email: {
-    type: String,
-    required: true,
-    trim: true,
-    lowercase: true
-  },
   subject: String,
   content: String,
   type: {
@@ -16,7 +10,7 @@ const emailHistorySchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['sent', 'failed', 'pending'],
+    enum: ['sent', 'failed', 'pending', 'processing', 'completed'],
     default: 'pending'
   },
   error: String,
@@ -24,7 +18,31 @@ const emailHistorySchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  recipientCount: Number
+  recipientCount: Number,
+  successfulSends: {
+    type: Number,
+    default: 0
+  },
+  failedSends: {
+    type: Number,
+    default: 0
+  },
+  sentEmails: [{
+    email: String,
+    status: String,
+    sentAt: Date
+  }],
+  failedEmails: [{
+    email: String,
+    status: String,
+    error: String,
+    failedAt: Date
+  }],
+  sentBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  completedAt: Date
 }, {
   timestamps: true
 });
