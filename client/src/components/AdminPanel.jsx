@@ -1521,17 +1521,17 @@ const handleTagKeyPress = (e) => {
   {/* Guide Description */}
   <div>
     <label className="block text-sm font-medium text-gray-700 mb-2">
-      Guide Description
-    </label>
-    <div className="rounded-lg shadow-sm border border-gray-300 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
-      <TinyEditor
-        value={guideForm.description}
-        onChange={(description) =>
-          setGuideForm({ ...guideForm, description })
-        }
-        height={120}
-      />
-    </div>
+    Guide Description
+  </label>
+  <textarea
+    value={guideForm.description}
+    onChange={(e) =>
+      setGuideForm({ ...guideForm, description: e.target.value })
+    }
+    rows={4}
+    className="w-full rounded-lg border border-gray-300 p-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-900 placeholder-gray-400"
+    placeholder="Write a short summary for your guide..."
+  />
     <p className="mt-1 text-xs text-gray-500">
       A short summary for your guide (appears in lists and previews).
     </p>
