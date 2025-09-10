@@ -196,7 +196,7 @@ export default function AdminPanel() {
     }
   };
 
- const fetchEmails = async () => {
+  const fetchEmails = async () => {
     try {
       const token = localStorage.getItem("token");
       const { data } = await axios.get(
@@ -205,17 +205,15 @@ export default function AdminPanel() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      
-      const processedEmails = Array.isArray(data) ? data.map(email => ({
-        ...email,
-        content: email.content || ''
-      })) : [];
-      
+
+
+      const processedEmails = Array.isArray(data) ? data : [];
+
       setEmails(processedEmails);
     } catch (err) {
       console.error("Failed to fetch emails", err);
       toast.error("Failed to load emails");
-      setEmails([]); 
+      setEmails([]);
     }
   };
 
@@ -509,44 +507,44 @@ export default function AdminPanel() {
     }
   };
 
-const sendBulkEmail = async () => {
-  if (!emailSubject.trim() || !emailContent.trim()) {
-    toast.error("Please enter subject and content");
-    return;
-  }
-
-  try {
-    setIsSubmitting(true);
-    const token = localStorage.getItem("token");
-    const response = await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL}/api/admin/emails/bulk`,
-      { 
-        subject: emailSubject.trim(), 
-        content: emailContent.trim() 
-      },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        timeout: 30000, 
-      }
-    );
-
-    if (response.data?.success) {
-      toast.success(`Bulk email sent to ${response.data.recipients || 0} recipients`);
-    } else {
-      toast.error("Failed to send email: " + (response.data?.error || 'Unknown error'));
+  const sendBulkEmail = async () => {
+    if (!emailSubject.trim() || !emailContent.trim()) {
+      toast.error("Please enter subject and content");
+      return;
     }
 
-    setEmailSubject("");
-    setEmailContent("");
-    fetchEmails();
-  } catch (err) {
-    console.error("Failed to send bulk email", err);
-    const errorMessage = err.response?.data?.error || err.message || 'Failed to send email';
-    toast.error(`Failed to send email: ${errorMessage}`);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    try {
+      setIsSubmitting(true);
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/emails/bulk`,
+        {
+          subject: emailSubject.trim(),
+          content: emailContent.trim()
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 30000,
+        }
+      );
+
+      if (response.data?.success) {
+        toast.success(`Bulk email sent to ${response.data.recipients || 0} recipients`);
+      } else {
+        toast.error("Failed to send email: " + (response.data?.error || 'Unknown error'));
+      }
+
+      setEmailSubject("");
+      setEmailContent("");
+      fetchEmails();
+    } catch (err) {
+      console.error("Failed to send bulk email", err);
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to send email';
+      toast.error(`Failed to send email: ${errorMessage}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   const createBlog = async (e) => {
     e.preventDefault();
     try {
@@ -650,74 +648,74 @@ const sendBulkEmail = async () => {
     }
   };
 
-const saveGuide = async (e) => {
-  e.preventDefault();
-  try {
-    setIsSubmitting(true);
-    const token = localStorage.getItem("token");
+  const saveGuide = async (e) => {
+    e.preventDefault();
+    try {
+      setIsSubmitting(true);
+      const token = localStorage.getItem("token");
 
-    // Calculate read time (approx 200 words per minute)
-    const wordCount = guideForm.content.split(/\s+/).length;
-    const readTime = Math.ceil(wordCount / 200);
+      // Calculate read time (approx 200 words per minute)
+      const wordCount = guideForm.content.split(/\s+/).length;
+      const readTime = Math.ceil(wordCount / 200);
 
-    const guideData = {
-      title: guideForm.title,
-      content: guideForm.content,
-      category: guideForm.category,
-      difficulty: guideForm.difficulty,
-      excerpt: guideForm.description, 
-      tags: guideForm.tags,
-      readTime,
-      status: guideForm.status
-    };
+      const guideData = {
+        title: guideForm.title,
+        content: guideForm.content,
+        category: guideForm.category,
+        difficulty: guideForm.difficulty,
+        excerpt: guideForm.description,
+        tags: guideForm.tags,
+        readTime,
+        status: guideForm.status
+      };
 
-    console.log('Sending guide data:', guideData); // DEBUG LOG
+      console.log('Sending guide data:', guideData); // DEBUG LOG
 
-    let response;
-    if (isEditing) {
-      response = await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideForm._id}`,
-        guideData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      toast.success("Guide updated successfully");
-    } else {
-      response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
-        guideData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      toast.success("Guide created successfully");
+      let response;
+      if (isEditing) {
+        response = await axios.put(
+          `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides/${guideForm._id}`,
+          guideData,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        toast.success("Guide updated successfully");
+      } else {
+        response = await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/api/admin/guides`,
+          guideData,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        toast.success("Guide created successfully");
+      }
+
+      console.log('Server response:', response.data); // DEBUG LOG
+
+      // Reset form
+      setGuideForm({
+        _id: '',
+        title: '',
+        content: '',
+        category: 'getting-started',
+        difficulty: 'beginner',
+        description: '',
+        tags: [],
+        newTag: '',
+        status: 'draft'
+      });
+      setIsEditing(false);
+      fetchGuides();
+    } catch (err) {
+      console.error("Failed to save guide", err);
+      console.error("Error details:", err.response?.data); // DEBUG LOG
+      toast.error(`Failed to ${isEditing ? 'update' : 'create'} guide: ${err.response?.data?.error || err.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    console.log('Server response:', response.data); // DEBUG LOG
-
-    // Reset form
-    setGuideForm({
-      _id: '',
-      title: '',
-      content: '',
-      category: 'getting-started',
-      difficulty: 'beginner',
-      description: '',
-      tags: [],
-      newTag: '',
-      status: 'draft'
-    });
-    setIsEditing(false);
-    fetchGuides();
-  } catch (err) {
-    console.error("Failed to save guide", err);
-    console.error("Error details:", err.response?.data); // DEBUG LOG
-    toast.error(`Failed to ${isEditing ? 'update' : 'create'} guide: ${err.response?.data?.error || err.message}`);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   const editGuide = (guide) => {
     setGuideForm({
@@ -766,20 +764,20 @@ const saveGuide = async (e) => {
       toast.error(`Failed to update guide status: ${err.response?.data?.error || err.message}`);
     }
   };
-const addTag = () => {
-  if (guideForm.newTag.trim()) {
-    const newTag = guideForm.newTag.trim();
-    if (!guideForm.tags.includes(newTag)) {
-      setGuideForm({
-        ...guideForm,
-        tags: [...guideForm.tags, newTag],
-        newTag: ''
-      });
-    } else {
-      toast.error("Tag already exists");
+  const addTag = () => {
+    if (guideForm.newTag.trim()) {
+      const newTag = guideForm.newTag.trim();
+      if (!guideForm.tags.includes(newTag)) {
+        setGuideForm({
+          ...guideForm,
+          tags: [...guideForm.tags, newTag],
+          newTag: ''
+        });
+      } else {
+        toast.error("Tag already exists");
+      }
     }
-  }
-};
+  };
 
   const removeTag = (tagToRemove) => {
     setGuideForm({
@@ -852,8 +850,8 @@ const addTag = () => {
     <button
       onClick={() => setActiveTab(name)}
       className={`flex items-center px-4 py-2 rounded-lg transition-colors ${activeTab === name
-          ? `${currentTheme.btnPrimary} text-white`
-          : `${currentTheme.btnAccent} hover:${currentTheme.navHover}`
+        ? `${currentTheme.btnPrimary} text-white`
+        : `${currentTheme.btnAccent} hover:${currentTheme.navHover}`
         }`}
     >
       {icon}
@@ -1201,7 +1199,7 @@ const addTag = () => {
                   <div className="flex justify-between items-start">
                     <h4 className="font-semibold">{blog.title}</h4>
                     <span className={`px-2 py-1 rounded text-xs ${blog.status === 'published' ? 'bg-green-100 text-green-800' :
-                        blog.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
+                      blog.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
                       }`}>
                       {blog.status}
                     </span>
@@ -1461,43 +1459,43 @@ const addTag = () => {
                   required
                 />
 
-              {/* In the Guides Tab form - FIX THE SELECT ELEMENTS */}
-<div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-  <select
-    value={guideForm.category}
-    onChange={(e) => setGuideForm({ ...guideForm, category: e.target.value })}
-    className="w-full p-2 border rounded bg-white text-gray-800"
-    required
-  >
-    <option value="getting-started">Getting Started</option>
-    <option value="tutorials">Tutorials</option>
-    <option value="tips">Tips & Tricks</option>
-    <option value="troubleshooting">Troubleshooting</option>
-    <option value="advanced">Advanced</option>
-  </select>
+                {/* In the Guides Tab form - FIX THE SELECT ELEMENTS */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                  <select
+                    value={guideForm.category}
+                    onChange={(e) => setGuideForm({ ...guideForm, category: e.target.value })}
+                    className="w-full p-2 border rounded bg-white text-gray-800"
+                    required
+                  >
+                    <option value="getting-started">Getting Started</option>
+                    <option value="tutorials">Tutorials</option>
+                    <option value="tips">Tips & Tricks</option>
+                    <option value="troubleshooting">Troubleshooting</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
 
-  <select
-    value={guideForm.difficulty}
-    onChange={(e) => setGuideForm({ ...guideForm, difficulty: e.target.value })}
-    className="w-full p-2 border rounded bg-white text-gray-800"
-    required
-  >
-    <option value="beginner">Beginner</option>
-    <option value="intermediate">Intermediate</option>
-    <option value="advanced">Advanced</option>
-  </select>
+                  <select
+                    value={guideForm.difficulty}
+                    onChange={(e) => setGuideForm({ ...guideForm, difficulty: e.target.value })}
+                    className="w-full p-2 border rounded bg-white text-gray-800"
+                    required
+                  >
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
 
-  <select
-    value={guideForm.status}
-    onChange={(e) => setGuideForm({ ...guideForm, status: e.target.value })}
-    className="w-full p-2 border rounded bg-white text-gray-800"
-    required
-  >
-    <option value="draft">Draft</option>
-    <option value="published">Published</option>
-    <option value="archived">Archived</option>
-  </select>
-</div>
+                  <select
+                    value={guideForm.status}
+                    onChange={(e) => setGuideForm({ ...guideForm, status: e.target.value })}
+                    className="w-full p-2 border rounded bg-white text-gray-800"
+                    required
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </div>
 
                 <div className="mb-3">
                   <label className="block text-sm font-medium mb-1">Tags</label>
@@ -1546,7 +1544,7 @@ const addTag = () => {
                         setGuideForm({ ...guideForm, description: e.target.value })
                       }
                       rows={2}
-                      maxLength={300}   
+                      maxLength={300}
                       className="w-full rounded-lg border border-gray-300 p-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-white placeholder-gray-300 bg-gray-800"
                       placeholder="Write a short summary for your guide..."
                     />
@@ -1606,7 +1604,7 @@ const addTag = () => {
                   <div className="flex justify-between items-start mb-3">
                     <h4 className="font-semibold">{guide.title}</h4>
                     <span className={`px-2 py-1 rounded text-xs ${guide.status === 'published' ? 'bg-green-100 text-green-800' :
-                        guide.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
+                      guide.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
                       }`}>
                       {guide.status}
                     </span>
@@ -1617,8 +1615,8 @@ const addTag = () => {
                       {guide.category}
                     </span>
                     <span className={`px-2 py-1 rounded text-xs ${guide.difficulty === 'beginner' ? 'bg-green-100 text-green-800' :
-                        guide.difficulty === 'intermediate' ? 'bg-blue-100 text-blue-800' :
-                          'bg-purple-100 text-purple-800'
+                      guide.difficulty === 'intermediate' ? 'bg-blue-100 text-blue-800' :
+                        'bg-purple-100 text-purple-800'
                       }`}>
                       {guide.difficulty}
                     </span>
@@ -1628,9 +1626,9 @@ const addTag = () => {
                       </span>
                     ))}
                   </div>
-<p className="text-gray-600 mb-3">
-  {guide.excerpt || guide.description || 'No description'}
-</p>
+                  <p className="text-gray-600 mb-3">
+                    {guide.excerpt || guide.description || 'No description'}
+                  </p>
 
                   <div className="flex justify-between items-center">
                     <div className="text-sm text-gray-500">
@@ -1646,8 +1644,8 @@ const addTag = () => {
                       <button
                         onClick={() => updateGuideStatus(guide._id, guide.status === 'published' ? 'draft' : 'published')}
                         className={`px-3 py-1 rounded text-sm ${guide.status === 'published'
-                            ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                            : 'bg-green-500 hover:bg-green-600 text-white'
+                          ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                          : 'bg-green-500 hover:bg-green-600 text-white'
                           }`}
                       >
                         {guide.status === 'published' ? 'Unpublish' : 'Publish'}
@@ -1666,63 +1664,63 @@ const addTag = () => {
           </div>
         )}
 
-          {/* Emails Tab */}
-      {activeTab === 'emails' && (
-        <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
-          <h2 className="text-xl font-semibold mb-4">Email Management</h2>
+        {/* Emails Tab */}
+        {activeTab === 'emails' && (
+          <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
+            <h2 className="text-xl font-semibold mb-4">Email Management</h2>
 
-          {/* Bulk Email Form */}
-          <div className="mb-6 p-4 border rounded-lg">
-            <h3 className="font-semibold mb-3">Send Bulk Email</h3>
-            <input
-              type="text"
-              placeholder="Subject"
-              value={emailSubject}
-              onChange={(e) => setEmailSubject(e.target.value)}
-              className="w-full p-2 border rounded mb-2"
-            />
-            <TinyEditor
-              value={emailContent}
-              onChange={setEmailContent}
-              height={200}
-            />
-            <button
-              onClick={sendBulkEmail}
-              disabled={isSubmitting}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-            >
-              {isSubmitting ? 'Sending...' : 'Send to All Users'}
-            </button>
-          </div>
-
-          {/* Email History */}
-          <h3 className="font-semibold mb-3">Email History</h3>
-          <div className="space-y-3">
-            {emails.map((email) => (
-              <div key={email._id} className="border rounded-lg p-3">
-                <div className="flex justify-between items-start">
-                  <h4 className="font-semibold">{email.subject || 'No Subject'}</h4>
-                  <span className="text-sm text-gray-500">
-                    {email.sentAt ? new Date(email.sentAt).toLocaleDateString() : 'No date'}
-                  </span>
-                </div>
-                {/* FIXED: Add null check for email.content */}
-                <p className="text-gray-600 text-sm">
-                  {(email.content || '').substring(0, 100)}...
-                </p>
-              </div>
-            ))}
-          </div>
-          
-          {/* Show message if no emails */}
-          {emails.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              <FiMail className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No emails sent yet</p>
+            {/* Bulk Email Form */}
+            <div className="mb-6 p-4 border rounded-lg">
+              <h3 className="font-semibold mb-3">Send Bulk Email</h3>
+              <input
+                type="text"
+                placeholder="Subject"
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+                className="w-full p-2 border rounded mb-2"
+              />
+              <TinyEditor
+                value={emailContent}
+                onChange={setEmailContent}
+                height={200}
+              />
+              <button
+                onClick={sendBulkEmail}
+                disabled={isSubmitting}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+              >
+                {isSubmitting ? 'Sending...' : 'Send to All Users'}
+              </button>
             </div>
-          )}
-        </div>
-      )}
+
+            {/* Email History */}
+            <h3 className="font-semibold mb-3">Email History</h3>
+            <div className="space-y-3">
+              {emails.map((email) => (
+                <div key={email._id} className="border rounded-lg p-3">
+                  <div className="flex justify-between items-start">
+                    <h4 className="font-semibold">{email.subject || 'No Subject'}</h4>
+                    <span className="text-sm text-gray-500">
+                      {email.sentAt ? new Date(email.sentAt).toLocaleDateString() : 'No date'}
+                    </span>
+                  </div>
+                  {/* FIXED: Add null check for email.content */}
+                  <p className="text-gray-600 text-sm">
+                    {(email.content || '').substring(0, 100)}...
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Show message if no emails */}
+            {emails.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <FiMail className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>No emails sent yet</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Settings Tab */}
         {activeTab === 'settings' && (
