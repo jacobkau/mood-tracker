@@ -144,7 +144,7 @@ const Blog = () => {
         )}
         
         <div className={`mt-16 rounded-xl p-8 ${currentTheme.highlight}`}>
-          <h2 className="text-2xl font-bold text-gray-900 text-center mb-4">Stay Updated</h2>
+          <h2 className="text-2xl font-bold text-white text-center mb-4">Stay Updated</h2>
           <p className="text-gray-600 text-center mb-6 max-w-2xl mx-auto">
             Subscribe to our newsletter for the latest articles, research updates, and mental health tips
           </p>
@@ -172,7 +172,7 @@ const Blog = () => {
 
         {/* Categories Section */}
         <div className={`mt-12 rounded-xl shadow-md p-6 ${currentTheme.cardBg}`}>
-          <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">Browse by Category</h2>
+          <h2 className="text-xl font-bold text-white mb-6 text-center">Browse by Category</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {['Mental Health', 'Wellness', 'Technology', 'Science', 'Relationships', 'Productivity', 'Therapy', 'Research'].map((category) => (
               <Link
