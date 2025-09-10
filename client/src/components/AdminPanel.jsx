@@ -27,32 +27,6 @@ import {
   FiBox
 } from "react-icons/fi";
 
-// Add at the top of your file
-import { ErrorBoundary } from 'react-error-boundary';
-
-function ErrorFallback({ error, resetErrorBoundary }) {
-  return (
-    <div className="p-4 bg-red-100 border border-red-400 rounded">
-      <h2>Something went wrong:</h2>
-      <pre>{error.message}</pre>
-      <button onClick={resetErrorBoundary} className="bg-blue-500 text-white px-4 py-2 rounded">
-        Try again
-      </button>
-    </div>
-  );
-}
-
-// Wrap your component export
-export default function AdminPanelWithErrorBoundary() {
-  return (
-    <ErrorBoundary FallbackComponent={ErrorFallback}>
-      <AdminPanel />
-    </ErrorBoundary>
-  );
-}
-
-
-
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [users, setUsers] = useState([]);
