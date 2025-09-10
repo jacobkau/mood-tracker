@@ -76,14 +76,14 @@ const Features = () => {
               <div className="flex justify-center mb-4">
                 {feature.icon}
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2 text-center">{feature.title}</h3>
-              <p className="text-gray-600 text-center">{feature.description}</p>
+              <h3 className="text-xl font-semibold text-white mb-2 text-center">{feature.title}</h3>
+              <p className="text-center text-white">{feature.description}</p>
             </div>
           ))}
         </div>
         
         <div className="mt-16 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Ready to experience these features?</h2>
+          <h2 className="text-2xl font-bold text-white mb-6">Ready to experience these features?</h2>
           <Link
             to="/register"
             className={`inline-block text-white font-medium py-3 px-8 rounded-lg transition-colors duration-200 text-lg ${currentTheme.btnPrimary}`}
