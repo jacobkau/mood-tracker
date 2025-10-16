@@ -37,11 +37,12 @@ const getImageUrl = (imagePath) => {
 
   // Already a full URL
   if (imagePath.startsWith("http")) {
-    return imagePath;
+    // Add cache busting parameter
+    const separator = imagePath.includes('?') ? '&' : '?';
+    return `${imagePath}${separator}_=${Date.now()}`;
   }
 
   console.log("Building URL for image path:", imagePath);
-  console.log("VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
 
   // Base URL
   let baseUrl =
@@ -52,7 +53,7 @@ const getImageUrl = (imagePath) => {
   // Normalize path (remove leading slash if exists)
   let cleanPath = imagePath.startsWith("/") ? imagePath.slice(1) : imagePath;
 
-  const finalUrl = `${baseUrl}/${cleanPath}`;
+  const finalUrl = `${baseUrl}/${cleanPath}?_=${Date.now()}`;
   console.log("Final image URL:", finalUrl);
 
   return finalUrl;
@@ -85,10 +86,12 @@ const getImageUrl = (imagePath) => {
         
        // Set profile image if exists
         if (data.profileImage) {
-          const imageUrl = getImageUrl(data.profileImage);
-          console.log("Loading profile image from:", imageUrl);
-          setPreviewImage(imageUrl);
-        }
+  const imageUrl = getImageUrl(data.profileImage);
+  console.log("Loading profile image from:", imageUrl);
+  
+  // Force image reload by creating a new URL each time
+  setPreviewImage(imageUrl + '&_=' + Date.now());
+}
       } catch (err) {
         console.error("Failed to fetch user", err);
         if (err.response?.status === 401) {
@@ -305,11 +308,19 @@ const uploadProfileImage = async () => {
       if (response.data.user) {
         setUser(response.data.user);
         // Update preview image with the new path from backend
-        if (response.data.user.profileImage) {
-          setPreviewImage(getImageUrl(response.data.user.profileImage));
-        } else {
-          setPreviewImage("");
-        }
+      if (response.data.user.profileImage) {
+  const newImageUrl = getImageUrl(response.data.user.profileImage);
+  setPreviewImage(newImageUrl);
+  
+  // Force browser to clear cache for this image
+  if ('caches' in window) {
+    caches.keys().then((names) => {
+      names.forEach((name) => {
+        caches.delete(name);
+      });
+    });
+  }
+}
       }
       
     } catch (err) {
@@ -400,30 +411,42 @@ const uploadProfileImage = async () => {
             <div className="relative">
               <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-200 flex items-center justify-center">
                 {previewImage ? (
-    <img 
-      src={previewImage} 
-      alt="Profile preview" 
-      className="w-full h-full object-cover"
-      onError={(e) => {
-        console.error('Image failed to load:', previewImage);
-        e.target.style.display = 'none';
-        
-        // If it's a blob URL that failed, try FileReader as fallback
-        if (previewImage.startsWith('blob:') && profileImage) {
-          console.log('Trying FileReader fallback for blob URL');
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            if (reader.result) {
-              setPreviewImage(reader.result);
-            }
-          };
-          reader.readAsDataURL(profileImage);
+  <img 
+  src={previewImage} 
+  alt="Profile preview" 
+  className="w-full h-full object-cover"
+  onError={(e) => {
+    console.error('Image failed to load:', previewImage);
+    
+    // Try multiple fallback strategies
+    if (previewImage.includes('?_=')) {
+      // Remove cache busting and try again
+      const cleanUrl = previewImage.split('?_=')[0];
+      e.target.src = cleanUrl + '?_=' + Date.now();
+    } else if (previewImage.startsWith('blob:') && profileImage) {
+      // Fallback to FileReader for blob URLs
+      console.log('Trying FileReader fallback for blob URL');
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (reader.result) {
+          setPreviewImage(reader.result);
         }
-      }}
-      onLoad={(e) => {
-        console.log('Image loaded successfully');
-      }}
-    />
+      };
+      reader.readAsDataURL(profileImage);
+    } else {
+      // Final fallback - reload the original image
+      e.target.style.display = 'none';
+      setTimeout(() => {
+        e.target.style.display = 'block';
+        e.target.src = previewImage + '&_=' + Date.now();
+      }, 100);
+    }
+  }}
+  onLoad={(e) => {
+    console.log('Image loaded successfully');
+  }}
+  key={previewImage} // This forces React to re-mount the img element when URL changes
+/>
   ) : (
     <FiUser className="w-16 h-16 text-gray-400" />
   )}
