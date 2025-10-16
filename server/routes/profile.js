@@ -24,6 +24,7 @@ router.get("/", protect, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 // @desc    Update user profile
 // @route   PUT /api/profile
 router.put("/", protect, async (req, res) => {
