@@ -15,7 +15,8 @@ router.get("/", protect, async (req, res) => {
     
     // Convert profileImage to full URL if it's a local path
     if (user.profileImage && !user.profileImage.startsWith('http')) {
-      user.profileImage = `${process.env.SERVER_BASE_URL || process.env.API_BASE_URL}/${user.profileImage}`;
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      user.profileImage = `${baseUrl}/${user.profileImage}`;
     }
     
     res.json(user);
@@ -23,7 +24,6 @@ router.get("/", protect, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 // @desc    Update user profile
 // @route   PUT /api/profile
 router.put("/", protect, async (req, res) => {
