@@ -795,27 +795,68 @@ const deletePricingPlan = async (planId, planName) => {
 
 // Edit pricing plan - populate form with plan data
 const editPricingPlan = (plan) => {
-  setEditingPricing(plan);
-  setIsEditingPricing(true);
-  setPricingForm({
-    name: plan.name,
-    description: plan.description,
-    monthlyPrice: plan.price?.monthly || 0,
-    yearlyPrice: plan.price?.yearly || 0,
-    isActive: plan.isActive,
-    isPopular: plan.isPopular,
-    order: plan.order || 0
-  });
+  console.log("Edit button clicked for plan:", plan); // Debug log
   
-  // Scroll to form
-  document.getElementById('pricing-form').scrollIntoView({ 
-    behavior: 'smooth',
-    block: 'start'
-  });
+  if (!plan) {
+    console.error("No plan data provided");
+    toast.error("Cannot edit: No plan data");
+    return;
+  }
+  
+  try {
+    // Set editing states
+    setEditingPricing(plan);
+    setIsEditingPricing(true);
+    
+    // Populate the form with plan data
+    setPricingForm({
+      name: plan.name || '',
+      description: plan.description || '',
+      monthlyPrice: plan.price?.monthly || 0,
+      yearlyPrice: plan.price?.yearly || 0,
+      isActive: plan.isActive !== undefined ? plan.isActive : true,
+      isPopular: plan.isPopular || false,
+      order: plan.order || 0
+    });
+    
+    console.log("Form populated with:", {
+      name: plan.name,
+      description: plan.description,
+      monthlyPrice: plan.price?.monthly,
+      yearlyPrice: plan.price?.yearly
+    });
+    
+    // Show success message
+    toast.info(`Editing plan: ${plan.name}`);
+    
+    // Scroll to form after a short delay to allow DOM update
+    setTimeout(() => {
+      const formElement = document.getElementById('pricing-form');
+      if (formElement) {
+        formElement.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'start'
+        });
+        // Highlight the form
+        formElement.style.transition = 'all 0.3s ease';
+        formElement.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.5)';
+        setTimeout(() => {
+          formElement.style.boxShadow = '';
+        }, 2000);
+      } else {
+        console.error("Form element with id 'pricing-form' not found");
+      }
+    }, 100);
+    
+  } catch (error) {
+    console.error("Error in editPricingPlan:", error);
+    toast.error("Failed to load plan data for editing");
+  }
 };
 
 // Cancel pricing edit
 const cancelPricingEdit = () => {
+  console.log("Canceling edit mode"); // Debug log
   setEditingPricing(null);
   setIsEditingPricing(false);
   setPricingForm({ 
@@ -824,6 +865,7 @@ const cancelPricingEdit = () => {
     monthlyPrice: '', 
     yearlyPrice: '' 
   });
+  toast.info("Edit cancelled");
 };
 
 // Toggle pricing plan active status
@@ -1750,12 +1792,15 @@ const togglePricingPopular = async (plan) => {
             </div>
             
             <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => editPricingPlan(plan)}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
-              >
-                <FiEdit size={14} /> Edit
-              </button>
+             <button
+  onClick={() => {
+    console.log("Edit button clicked for plan ID:", plan._id); // Debug log
+    editPricingPlan(plan);
+  }}
+  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+>
+  <FiEdit size={14} /> Edit
+</button>
               
               <button
                 onClick={() => togglePricingActive(plan)}
