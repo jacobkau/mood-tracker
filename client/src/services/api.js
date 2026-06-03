@@ -75,14 +75,38 @@ export const getTestimonials = () => API.get('/content/testimonials');
 export const submitTestimonial = (data) => API.post('/content/testimonials', data);
 export const subscribeToNewsletter = (email) => API.post('/content/newsletter', { email });
 
-// Subscription API
-export const getSubscriptionPlans = () => {
-  // For development or if API fails, return mock data
-  if (process.env.NODE_ENV === 'development') {
-    return Promise.resolve({
-      data: {
-        success: true,
-        plans: [
+// Subscription API - FIXED
+export const getSubscriptionPlans = async () => {
+  try {
+    // Try to fetch from the public pricing endpoint
+    const response = await API.get('/pricing');
+    console.log('Pricing API response:', response.data);
+    
+    // Transform the data to match what the frontend expects
+    const plans = response.data.map(plan => ({
+      id: plan._id,
+      name: plan.name,
+      price: plan.price?.monthly || 0,
+      yearlyPrice: plan.price?.yearly || 0,
+      description: plan.description,
+      features: plan.features?.map(f => f.name) || [
+        'Access to core features',
+        'Email support',
+        'Basic analytics'
+      ],
+      popular: plan.isPopular || false,
+      period: 'month'
+    }));
+    
+    return { data: plans };
+  } catch (error) {
+    console.error('Failed to fetch pricing plans from API:', error);
+    
+    // Return mock data as fallback only in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Using mock data for development');
+      return {
+        data: [
           {
             id: 'free',
             name: 'Free',
@@ -134,25 +158,38 @@ export const getSubscriptionPlans = () => {
             popular: false
           }
         ]
-      }
-    });
+      };
+    }
+    
+    throw error;
   }
-  
-  return API.get('/subscription/plans');
 };
 
-// Helper function to extract plans from API response
+// Helper function to extract plans from API response - UPDATED
 export const extractPlansFromResponse = (response) => {
+  console.log('Extracting plans from response:', response);
+  
+  // Check if response.data is an array (direct from API)
   if (Array.isArray(response.data)) {
-    return response.data; // Direct array response
-  } else if (response.data && Array.isArray(response.data.plans)) {
-    return response.data.plans; // { success: true, plans: [...] }
-  } else if (response.data && response.data.success && Array.isArray(response.data.data)) {
-    return response.data.data; // { success: true, data: [...] }
-  } else {
-    console.error('Unexpected API response structure:', response.data);
-    throw new Error('Invalid plans data format');
+    console.log('Response is direct array');
+    return response.data;
   }
+  
+  // Check if response.data has a data property that's an array
+  if (response.data && Array.isArray(response.data.data)) {
+    console.log('Response has data.data array');
+    return response.data.data;
+  }
+  
+  // Check if response itself is an array
+  if (Array.isArray(response)) {
+    console.log('Response itself is array');
+    return response;
+  }
+  
+  // If none of the above, return empty array
+  console.warn('Unexpected response format:', response);
+  return [];
 };
 
 export const subscribeToPlan = (planId) => API.post('/subscription/subscribe', { planId });
