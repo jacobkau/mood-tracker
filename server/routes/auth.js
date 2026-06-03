@@ -128,7 +128,7 @@ router.post("/register", async (req, res) => {
     const verifyLink = `${getClientUrl(req)}/verify-email?token=${verificationToken}&email=${email}`;
     await sendVerificationEmail(email, verifyLink);
 
-    res.status(201).json({ message: "User created. Please check your email to verify your account." });
+    res.status(201).json({ message: "User created! you can login" }); //  Add this statement after "user created". Please check your email to verify your account.
   } catch (err) {
     console.error("Registration error:", err);
     res.status(500).json({ error: err.message });
