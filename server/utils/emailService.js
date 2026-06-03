@@ -5,29 +5,106 @@ const hasEmailCredentials = () => {
   return !!(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
 };
 
-// Initialize Gmail transporter
+// Create transporter with optimized settings for serverless
 let transporter;
+let transporterPromise = null;
 
-if (hasEmailCredentials()) {
+const getTransporter = async () => {
+  if (transporter) return transporter;
+  
+  if (!hasEmailCredentials()) {
+    console.warn('⚠️ GMAIL_USER or GMAIL_APP_PASSWORD not found.');
+    console.warn('To set up:');
+    console.warn('1. Enable 2-Factor Authentication on your Google account');
+    console.warn('2. Generate an App Password at https://myaccount.google.com/apppasswords');
+    console.warn('3. Add GMAIL_USER and GMAIL_APP_PASSWORD to your .env file');
+    return null;
+  }
+
+  // Create transporter with better timeout settings
   transporter = nodemailer.createTransport({
     service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // use SSL
     auth: {
       user: process.env.GMAIL_USER,
       pass: process.env.GMAIL_APP_PASSWORD,
     },
+    pool: false, // Disable connection pooling for serverless
+    maxConnections: 1,
+    maxMessages: 1,
+    timeout: 30000, // 30 seconds timeout
+    socketTimeout: 30000,
+    connectionTimeout: 30000,
+    tls: {
+      rejectUnauthorized: false // Sometimes needed for some hosting environments
+    }
   });
-  console.log('✅ Gmail transporter initialized successfully');
-} else {
-  console.warn('⚠️ GMAIL_USER or GMAIL_APP_PASSWORD not found. Email functionality will be disabled.');
-  console.warn('To set up:');
-  console.warn('1. Enable 2-Factor Authentication on your Google account');
-  console.warn('2. Generate an App Password at https://myaccount.google.com/apppasswords');
-  console.warn('3. Add GMAIL_USER and GMAIL_APP_PASSWORD to your .env file');
-}
+
+  // Verify connection
+  try {
+    await transporter.verify();
+    console.log('✅ Gmail transporter initialized and verified successfully');
+  } catch (error) {
+    console.error('❌ Gmail transporter verification failed:', error.message);
+    transporter = null;
+    return null;
+  }
+  
+  return transporter;
+};
 
 // Helper function to get sender email
 const getSenderEmail = () => {
   return process.env.GMAIL_USER || 'your-email@gmail.com';
+};
+
+// Send email helper function with retry logic
+const sendEmail = async (to, subject, html, fromName = 'Witty MoodTracker', retries = 2) => {
+  const currentTransporter = await getTransporter();
+  
+  if (!currentTransporter) {
+    console.warn("⚠️ Gmail not configured. Skipping email.");
+    return false;
+  }
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      console.log(`📧 Sending email to ${to} (attempt ${attempt}/${retries})...`);
+      
+      const info = await currentTransporter.sendMail({
+        from: `${fromName} <${getSenderEmail()}>`,
+        to: to,
+        subject: subject,
+        html: html,
+        headers: {
+          'X-Priority': '1',
+          'X-MSMail-Priority': 'High'
+        }
+      });
+      
+      console.log(`✅ Email sent successfully to ${to}`, info.messageId);
+      return true;
+    } catch (error) {
+      console.error(`❌ Attempt ${attempt} failed:`, error.message);
+      
+      if (attempt === retries) {
+        console.error(`❌ All ${retries} attempts failed for ${to}`);
+        return false;
+      }
+      
+      // Wait before retry (exponential backoff)
+      const waitTime = Math.pow(2, attempt) * 1000;
+      console.log(`⏳ Waiting ${waitTime}ms before retry...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+      
+      // Recreate transporter on failure (might help with connection issues)
+      transporter = null;
+    }
+  }
+  
+  return false;
 };
 
 // Base email template with consistent styling
@@ -165,35 +242,15 @@ const baseEmailTemplate = (content, title) => `
 </html>
 `;
 
-// Send email helper function
-const sendEmail = async (to, subject, html, fromName = 'Witty MoodTracker') => {
-  if (!transporter) {
-    console.warn("⚠️ Gmail not configured. Skipping email.");
-    return false;
-  }
-
-  try {
-    const info = await transporter.sendMail({
-      from: `${fromName} <${getSenderEmail()}>`,
-      to: to,
-      subject: subject,
-      html: html,
-    });
-    console.log(`✅ Email sent successfully to ${to}`, info.messageId);
-    return true;
-  } catch (error) {
-    console.error("❌ Error sending email:", error.message);
-    return false;
-  }
-};
-
 // Verification email
 const sendVerificationEmail = async (to, link) => {
   console.log(`🔍 Attempting to send verification email to: ${to}`);
   console.log(`🔍 Link: ${link}`);
-  console.log(`🔍 Has Gmail transporter? ${!!transporter}`);
   
-  if (!transporter) {
+  const hasTransporter = await getTransporter();
+  console.log(`🔍 Has Gmail transporter? ${!!hasTransporter}`);
+  
+  if (!hasTransporter) {
     console.warn("⚠️ Gmail not configured. Skipping verification email.");
     return false;
   }
@@ -232,7 +289,8 @@ const sendVerificationEmail = async (to, link) => {
 
 // Support email template
 const sendSupportEmail = async ({ ticketId, name, email, subject, message }) => {
-  if (!transporter) {
+  const hasTransporter = await getTransporter();
+  if (!hasTransporter) {
     console.warn('⚠️ Gmail not configured. Skipping support email.');
     return false;
   }
@@ -289,7 +347,8 @@ const sendSupportEmail = async ({ ticketId, name, email, subject, message }) => 
 
 // Support confirmation email to user
 const sendSupportConfirmation = async ({ to, name, ticketId, subject }) => {
-  if (!transporter) {
+  const hasTransporter = await getTransporter();
+  if (!hasTransporter) {
     console.warn('⚠️ Gmail not configured. Skipping confirmation email.');
     return false;
   }
@@ -341,7 +400,8 @@ const sendSupportConfirmation = async ({ to, name, ticketId, subject }) => {
 
 // Contact form email template
 const sendContactEmail = async ({ name, email, subject, message, type }) => {
-  if (!transporter) {
+  const hasTransporter = await getTransporter();
+  if (!hasTransporter) {
     console.warn('⚠️ Gmail not configured. Skipping contact email.');
     return false;
   }
@@ -415,7 +475,8 @@ const sendContactEmail = async ({ name, email, subject, message, type }) => {
 
 // Newsletter welcome email
 const sendNewsletterWelcome = async (email) => {
-  if (!transporter) {
+  const hasTransporter = await getTransporter();
+  if (!hasTransporter) {
     console.warn('⚠️ Gmail not configured. Skipping newsletter welcome.');
     return false;
   }
@@ -476,7 +537,8 @@ const sendNewsletterWelcome = async (email) => {
 
 // Review notification email
 const sendReviewNotificationEmail = async (review) => {
-  if (!transporter) {
+  const hasTransporter = await getTransporter();
+  if (!hasTransporter) {
     console.warn('⚠️ Gmail not configured. Skipping review notification.');
     return false;
   }
@@ -548,7 +610,8 @@ const sendReviewNotificationEmail = async (review) => {
 
 // Review response email
 const sendReviewResponseEmail = async (review, adminMessage) => {
-  if (!transporter) {
+  const hasTransporter = await getTransporter();
+  if (!hasTransporter) {
     console.warn('⚠️ Gmail not configured. Skipping review response.');
     return false;
   }
@@ -597,12 +660,13 @@ const sendReviewResponseEmail = async (review, adminMessage) => {
 
 // Bulk email
 const sendBulkEmail = async (to, subject, content) => {
-  if (!transporter) {
+  const currentTransporter = await getTransporter();
+  if (!currentTransporter) {
     throw new Error("Gmail not configured");
   }
 
   try {
-    const info = await transporter.sendMail({
+    const info = await currentTransporter.sendMail({
       from: `Witty MoodTracker <${getSenderEmail()}>`,
       to: to,
       subject: subject,
