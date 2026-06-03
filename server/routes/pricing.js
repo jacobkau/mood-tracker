@@ -39,10 +39,37 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create new pricing plan (admin only)
+// Create new pricing plan (admin only) - FIXED VERSION
 router.post('/admin/pricing', protect, admin, async (req, res) => {
   try {
     const { name, description, price, features, isActive, isPopular, order, trialPeriod } = req.body;
+
+    // Validate required fields
+    if (!name || !description) {
+      return res.status(400).json({ error: 'Name and description are required' });
+    }
+
+    // Validate and sanitize price values
+    let monthlyPrice = 0;
+    let yearlyPrice = 0;
+    let currency = 'USD';
+
+    if (price) {
+      // Handle monthly price
+      if (price.monthly !== undefined && price.monthly !== null && price.monthly !== '') {
+        monthlyPrice = parseFloat(price.monthly);
+        if (isNaN(monthlyPrice)) monthlyPrice = 0;
+      }
+      
+      // Handle yearly price
+      if (price.yearly !== undefined && price.yearly !== null && price.yearly !== '') {
+        yearlyPrice = parseFloat(price.yearly);
+        if (isNaN(yearlyPrice)) yearlyPrice = 0;
+      }
+      
+      // Handle currency
+      if (price.currency) currency = price.currency;
+    }
 
     // Check if plan with same name exists
     const existingPlan = await PricingPlan.findOne({ name });
@@ -50,15 +77,25 @@ router.post('/admin/pricing', protect, admin, async (req, res) => {
       return res.status(409).json({ error: 'Pricing plan with this name already exists' });
     }
 
+    // Sanitize features
+    let sanitizedFeatures = [];
+    if (features && Array.isArray(features)) {
+      sanitizedFeatures = features.map(feature => ({
+        name: feature.name || '',
+        included: feature.included !== undefined ? feature.included : true,
+        description: feature.description || ''
+      }));
+    }
+
     const pricingPlan = new PricingPlan({
       name,
       description,
       price: {
-        monthly: price.monthly,
-        yearly: price.yearly,
-        currency: price.currency || 'USD'
+        monthly: monthlyPrice,
+        yearly: yearlyPrice,
+        currency: currency
       },
-      features: features || [],
+      features: sanitizedFeatures,
       isActive: isActive !== undefined ? isActive : true,
       isPopular: isPopular || false,
       order: order || 0,
@@ -69,11 +106,14 @@ router.post('/admin/pricing', protect, admin, async (req, res) => {
     res.status(201).json(pricingPlan);
   } catch (error) {
     console.error('Error creating pricing plan:', error);
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ error: error.message, details: error.errors });
+    }
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Update pricing plan (admin only)
+// Update pricing plan (admin only) - FIXED VERSION
 router.put('/admin/pricing/:id', protect, admin, async (req, res) => {
   try {
     const { name, description, price, features, isActive, isPopular, order, trialPeriod } = req.body;
@@ -91,15 +131,34 @@ router.put('/admin/pricing/:id', protect, admin, async (req, res) => {
       }
     }
 
-    // Update fields
+    // Update fields with validation
     if (name) pricingPlan.name = name;
     if (description) pricingPlan.description = description;
+    
     if (price) {
-      if (price.monthly) pricingPlan.price.monthly = price.monthly;
-      if (price.yearly) pricingPlan.price.yearly = price.yearly;
+      // Validate and sanitize monthly price
+      if (price.monthly !== undefined && price.monthly !== null && price.monthly !== '') {
+        const monthlyPrice = parseFloat(price.monthly);
+        if (!isNaN(monthlyPrice)) pricingPlan.price.monthly = monthlyPrice;
+      }
+      
+      // Validate and sanitize yearly price
+      if (price.yearly !== undefined && price.yearly !== null && price.yearly !== '') {
+        const yearlyPrice = parseFloat(price.yearly);
+        if (!isNaN(yearlyPrice)) pricingPlan.price.yearly = yearlyPrice;
+      }
+      
       if (price.currency) pricingPlan.price.currency = price.currency;
     }
-    if (features) pricingPlan.features = features;
+    
+    if (features && Array.isArray(features)) {
+      pricingPlan.features = features.map(feature => ({
+        name: feature.name || '',
+        included: feature.included !== undefined ? feature.included : true,
+        description: feature.description || ''
+      }));
+    }
+    
     if (isActive !== undefined) pricingPlan.isActive = isActive;
     if (isPopular !== undefined) pricingPlan.isPopular = isPopular;
     if (order !== undefined) pricingPlan.order = order;
@@ -111,6 +170,9 @@ router.put('/admin/pricing/:id', protect, admin, async (req, res) => {
     res.json(pricingPlan);
   } catch (error) {
     console.error('Error updating pricing plan:', error);
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ error: error.message, details: error.errors });
+    }
     res.status(500).json({ error: 'Server error' });
   }
 });
