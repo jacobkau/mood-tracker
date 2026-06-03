@@ -49,6 +49,7 @@ export default function AdminPanel() {
   const [isEditing, setIsEditing] = useState(false);
   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
+  const [isEditingPricing, setIsEditingPricing] = useState(false);
 
   // Form states for different sections
   const [pageForm, setPageForm] = useState({ title: '', slug: '', content: '' });
@@ -131,6 +132,7 @@ export default function AdminPanel() {
     }
   };
 
+  
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -617,37 +619,169 @@ export default function AdminPanel() {
     }
   };
 
+const createPricingPlan = async (e) => {
+  e.preventDefault();
+  
+  // Validate inputs
+  if (!pricingForm.name.trim()) {
+    toast.error("Plan name is required");
+    return;
+  }
+  if (!pricingForm.description.trim()) {
+    toast.error("Plan description is required");
+    return;
+  }
+  
+  // Parse and validate price values
+  const monthlyPrice = parseFloat(pricingForm.monthlyPrice);
+  const yearlyPrice = parseFloat(pricingForm.yearlyPrice);
+  
+  if (isNaN(monthlyPrice) || monthlyPrice < 0) {
+    toast.error("Please enter a valid monthly price");
+    return;
+  }
+  if (isNaN(yearlyPrice) || yearlyPrice < 0) {
+    toast.error("Please enter a valid yearly price");
+    return;
+  }
+  
+  try {
+    setIsSubmitting(true);
+    const token = localStorage.getItem("token");
+    
+    // IMPORTANT: Send data in the format the backend expects
+    const planData = {
+      name: pricingForm.name.trim(),
+      description: pricingForm.description.trim(),
+      price: {
+        monthly: monthlyPrice,
+        yearly: yearlyPrice,
+        currency: 'USD'
+      },
+      features: [], // Add default empty features array
+      isActive: true,
+      isPopular: false,
+      order: 0,
+      trialPeriod: 0
+    };
+    
+    console.log("Sending pricing plan data:", planData); // Debug log
+    
+    const response = await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing`,
+      planData,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    
+    toast.success("Pricing plan created successfully");
+    
+    // Reset form
+    setPricingForm({ 
+      name: '', 
+      description: '', 
+      monthlyPrice: '', 
+      yearlyPrice: '' 
+    });
+    
+    // Refresh the list
+    fetchPricingPlans();
+    
+  } catch (err) {
+    console.error("Failed to create pricing plan:", err);
+    console.error("Error details:", err.response?.data);
+    
+    // Show detailed error message
+    const errorMessage = err.response?.data?.error || err.response?.data?.message || "Failed to create pricing plan";
+    toast.error(errorMessage);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
-  const createPricingPlan = async (e) => {
-    e.preventDefault();
+// Delete pricing plan
+const deletePricingPlan = async (planId) => {
+  if (window.confirm("Are you sure you want to delete this pricing plan?")) {
     try {
-      setIsSubmitting(true);
       const token = localStorage.getItem("token");
-      await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing`,
-        {
-          name: pricingForm.name,
-          description: pricingForm.description,
-          price: {
-            monthly: parseFloat(pricingForm.monthlyPrice),
-            yearly: parseFloat(pricingForm.yearlyPrice)
-          }
-        },
+      await axios.delete(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing/${planId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      toast.success("Pricing plan created successfully");
-      setPricingForm({ name: '', description: '', monthlyPrice: '', yearlyPrice: '' });
+      toast.success("Pricing plan deleted successfully");
       fetchPricingPlans();
     } catch (err) {
-      console.error("Failed to create pricing plan", err);
-      toast.error("Failed to create pricing plan");
-    } finally {
-      setIsSubmitting(false);
+      console.error("Failed to delete pricing plan:", err);
+      toast.error("Failed to delete pricing plan");
     }
-  };
+  }
+};
 
+// Edit pricing plan (opens modal or form)
+const editPricingPlan = (plan) => {
+  setPricingForm({
+    name: plan.name,
+    description: plan.description,
+    monthlyPrice: plan.price?.monthly || '',
+    yearlyPrice: plan.price?.yearly || '',
+    _id: plan._id
+  });
+  setIsEditingPricing(true);
+  // Scroll to form
+  document.getElementById('pricing-form').scrollIntoView({ behavior: 'smooth' });
+};
+
+// Update pricing plan
+const updatePricingPlan = async (e) => {
+  e.preventDefault();
+  
+  const monthlyPrice = parseFloat(pricingForm.monthlyPrice);
+  const yearlyPrice = parseFloat(pricingForm.yearlyPrice);
+  
+  if (isNaN(monthlyPrice) || monthlyPrice < 0) {
+    toast.error("Please enter a valid monthly price");
+    return;
+  }
+  if (isNaN(yearlyPrice) || yearlyPrice < 0) {
+    toast.error("Please enter a valid yearly price");
+    return;
+  }
+  
+  try {
+    setIsSubmitting(true);
+    const token = localStorage.getItem("token");
+    
+    await axios.put(
+      `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing/${pricingForm._id}`,
+      {
+        name: pricingForm.name.trim(),
+        description: pricingForm.description.trim(),
+        price: {
+          monthly: monthlyPrice,
+          yearly: yearlyPrice,
+          currency: 'USD'
+        }
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    
+    toast.success("Pricing plan updated successfully");
+    setPricingForm({ name: '', description: '', monthlyPrice: '', yearlyPrice: '' });
+    setIsEditingPricing(false);
+    fetchPricingPlans();
+  } catch (err) {
+    console.error("Failed to update pricing plan:", err);
+    toast.error("Failed to update pricing plan");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+  
   const saveGuide = async (e) => {
     e.preventDefault();
     try {
@@ -1365,83 +1499,128 @@ export default function AdminPanel() {
           </div>
         )}
 
-        {/* Pricing Tab */}
-        {activeTab === 'pricing' && (
-          <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
-            <h2 className="text-xl font-semibold mb-4">Pricing Management</h2>
+     {/* Pricing Tab */}
+{activeTab === 'pricing' && (
+  <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
+    <h2 className="text-xl font-semibold mb-4">Pricing Management</h2>
 
-            {/* Create Pricing Plan Form */}
-            <div className="mb-6 p-4 border rounded-lg">
-              <h3 className="font-semibold mb-3">Add New Pricing Plan</h3>
-              <form onSubmit={createPricingPlan}>
-                <input
-                  type="text"
-                  placeholder="Plan Name"
-                  value={pricingForm.name}
-                  onChange={(e) => setPricingForm({ ...pricingForm, name: e.target.value })}
-                  className="w-full p-2 border rounded mb-3"
-                  required
-                />
-                <textarea
-                  placeholder="Plan Description"
-                  value={pricingForm.description}
-                  onChange={(e) => setPricingForm({ ...pricingForm, description: e.target.value })}
-                  rows={2}
-                  className="w-full p-2 border rounded mb-3"
-                  required
-                />
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <input
-                    type="number"
-                    placeholder="Monthly Price"
-                    value={pricingForm.monthlyPrice}
-                    onChange={(e) => setPricingForm({ ...pricingForm, monthlyPrice: e.target.value })}
-                    className="w-full p-2 border rounded"
-                    required
-                  />
-                  <input
-                    type="number"
-                    placeholder="Yearly Price"
-                    value={pricingForm.yearlyPrice}
-                    onChange={(e) => setPricingForm({ ...pricingForm, yearlyPrice: e.target.value })}
-                    className="w-full p-2 border rounded"
-                    required
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-                >
-                  {isSubmitting ? 'Creating...' : 'Add Pricing Plan'}
-                </button>
-              </form>
+    {/* Create Pricing Plan Form */}
+    <div className="mb-6 p-4 border rounded-lg">
+      <h3 className="font-semibold mb-3">Add New Pricing Plan</h3>
+      <form onSubmit={createPricingPlan}>
+        <div className="mb-3">
+          <label className="block text-sm font-medium mb-1">Plan Name *</label>
+          <input
+            type="text"
+            placeholder="e.g., Basic, Pro, Enterprise"
+            value={pricingForm.name}
+            onChange={(e) => setPricingForm({ ...pricingForm, name: e.target.value })}
+            className="w-full p-2 border rounded"
+            required
+          />
+        </div>
+        
+        <div className="mb-3">
+          <label className="block text-sm font-medium mb-1">Plan Description *</label>
+          <textarea
+            placeholder="Describe what this plan offers..."
+            value={pricingForm.description}
+            onChange={(e) => setPricingForm({ ...pricingForm, description: e.target.value })}
+            rows={2}
+            className="w-full p-2 border rounded"
+            required
+          />
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">Monthly Price ($) *</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+              value={pricingForm.monthlyPrice}
+              onChange={(e) => setPricingForm({ ...pricingForm, monthlyPrice: e.target.value })}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Yearly Price ($) *</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+              value={pricingForm.yearlyPrice}
+              onChange={(e) => setPricingForm({ ...pricingForm, yearlyPrice: e.target.value })}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+        </div>
+        
+        <div className="text-sm text-gray-500 mb-3">
+          💡 Tip: Yearly plans typically offer a discount (e.g., $9.99/month = $99.99/year)
+        </div>
+        
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+        >
+          {isSubmitting ? 'Creating...' : 'Add Pricing Plan'}
+        </button>
+      </form>
+    </div>
+
+    {/* Pricing Plans List */}
+    <h3 className="font-semibold mb-3">Existing Pricing Plans</h3>
+    {pricingPlans.length === 0 ? (
+      <div className="text-center py-8 text-gray-500">
+        <p>No pricing plans created yet</p>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {pricingPlans.map((plan) => (
+          <div key={plan._id} className="border rounded-lg p-4">
+            <h4 className="font-semibold text-lg mb-2">{plan.name}</h4>
+            <p className="text-gray-600 text-sm mb-3">{plan.description}</p>
+            <div className="mb-2">
+              <span className="text-2xl font-bold">${plan.price?.monthly || 0}</span>
+              <span className="text-gray-600">/month</span>
             </div>
-
-            {/* Pricing Plans List */}
-            <h3 className="font-semibold mb-3">Pricing Plans</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {pricingPlans.map((plan) => (
-                <div key={plan._id} className="border rounded-lg p-4">
-                  <h4 className="font-semibold text-lg mb-2">{plan.name}</h4>
-                  <p className="text-gray-600 mb-3">{plan.description}</p>
-                  <div className="mb-3">
-                    <span className="text-2xl font-bold">${plan.price.monthly}</span>
-                    <span className="text-gray-600">/month</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
-                      <FiEdit />
-                    </button>
-                    <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
-                      <FiTrash2 />
-                    </button>
-                  </div>
-                </div>
-              ))}
+            <div className="mb-3">
+              <span className="text-lg font-semibold">${plan.price?.yearly || 0}</span>
+              <span className="text-gray-600">/year</span>
+            </div>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => {
+                  // TODO: Implement edit functionality
+                  toast.info("Edit functionality coming soon");
+                }}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+              >
+                <FiEdit size={14} /> Edit
+              </button>
+              <button 
+                onClick={() => {
+                  // TODO: Implement delete functionality
+                  toast.info("Delete functionality coming soon");
+                }}
+                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+              >
+                <FiTrash2 size={14} /> Delete
+              </button>
             </div>
           </div>
-        )}
+        ))}
+      </div>
+    )}
+  </div>
+)}
 
         {/* Guides Tab */}
         {activeTab === 'guides' && (
