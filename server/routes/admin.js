@@ -500,7 +500,9 @@ router.post('/faqs', protect, admin, async (req, res) => {
   }
 });
 
-// Pricing management - FIXED VERSION for admin.js
+
+// ==================== PRICING MANAGEMENT ====================
+// GET all pricing plans (admin)
 router.get('/pricing', protect, admin, async (req, res) => {
   try {
     const pricingPlans = await PricingPlan.find().sort({ order: 1 });
@@ -511,10 +513,10 @@ router.get('/pricing', protect, admin, async (req, res) => {
   }
 });
 
-// CREATE pricing plan - FIXED with proper validation
+// CREATE pricing plan (admin) - COMPLETELY FIXED
 router.post('/pricing', protect, admin, async (req, res) => {
   try {
-    console.log('📦 [admin.js] Received pricing data:', JSON.stringify(req.body, null, 2));
+    console.log('📦 [ADMIN] Received pricing data:', JSON.stringify(req.body, null, 2));
     
     let { name, description, price, monthlyPrice, yearlyPrice } = req.body;
     
@@ -526,23 +528,42 @@ router.post('/pricing', protect, admin, async (req, res) => {
       return res.status(400).json({ error: 'Plan description is required' });
     }
     
+    // Parse prices - handle multiple possible formats
     let finalMonthlyPrice = 0;
     let finalYearlyPrice = 0;
     
-    // Handle different data structures
+    // Format 1: { price: { monthly: 10, yearly: 100 } }
     if (price && typeof price === 'object') {
-      // Structure: { price: { monthly: 10, yearly: 100 } }
-      finalMonthlyPrice = price.monthly ? parseFloat(price.monthly) : 0;
-      finalYearlyPrice = price.yearly ? parseFloat(price.yearly) : 0;
-    } else if (monthlyPrice !== undefined || yearlyPrice !== undefined) {
-      // Structure: { monthlyPrice: 10, yearlyPrice: 100 }
-      finalMonthlyPrice = monthlyPrice ? parseFloat(monthlyPrice) : 0;
-      finalYearlyPrice = yearlyPrice ? parseFloat(yearlyPrice) : 0;
+      if (price.monthly !== undefined && price.monthly !== null && price.monthly !== '') {
+        finalMonthlyPrice = parseFloat(price.monthly);
+        if (isNaN(finalMonthlyPrice)) finalMonthlyPrice = 0;
+      }
+      if (price.yearly !== undefined && price.yearly !== null && price.yearly !== '') {
+        finalYearlyPrice = parseFloat(price.yearly);
+        if (isNaN(finalYearlyPrice)) finalYearlyPrice = 0;
+      }
+    }
+    // Format 2: { monthlyPrice: 10, yearlyPrice: 100 }
+    else if (monthlyPrice !== undefined || yearlyPrice !== undefined) {
+      if (monthlyPrice !== undefined && monthlyPrice !== null && monthlyPrice !== '') {
+        finalMonthlyPrice = parseFloat(monthlyPrice);
+        if (isNaN(finalMonthlyPrice)) finalMonthlyPrice = 0;
+      }
+      if (yearlyPrice !== undefined && yearlyPrice !== null && yearlyPrice !== '') {
+        finalYearlyPrice = parseFloat(yearlyPrice);
+        if (isNaN(finalYearlyPrice)) finalYearlyPrice = 0;
+      }
     }
     
-    // Ensure valid numbers
+    // Ensure we have valid numbers (not NaN)
     if (isNaN(finalMonthlyPrice)) finalMonthlyPrice = 0;
     if (isNaN(finalYearlyPrice)) finalYearlyPrice = 0;
+    
+    // Set default prices if both are 0 (for free plan)
+    if (finalMonthlyPrice === 0 && finalYearlyPrice === 0) {
+      // This is fine for free plan
+      console.log('Creating free plan');
+    }
     
     console.log('💰 Processed prices:', { monthly: finalMonthlyPrice, yearly: finalYearlyPrice });
     
@@ -552,6 +573,7 @@ router.post('/pricing', protect, admin, async (req, res) => {
       return res.status(409).json({ error: 'Pricing plan with this name already exists' });
     }
     
+    // Create the pricing plan
     const pricingPlan = new PricingPlan({
       name: name.trim(),
       description: description.trim(),
@@ -560,39 +582,50 @@ router.post('/pricing', protect, admin, async (req, res) => {
         yearly: finalYearlyPrice,
         currency: 'USD'
       },
-      isActive: true,
-      isPopular: false,
-      order: 0,
-      features: [] // Add empty features array
+      features: req.body.features || [],
+      isActive: req.body.isActive !== undefined ? req.body.isActive : true,
+      isPopular: req.body.isPopular || false,
+      order: req.body.order || 0,
+      trialPeriod: req.body.trialPeriod || 0
     });
     
     await pricingPlan.save();
     console.log('✅ Pricing plan created successfully:', pricingPlan._id);
     res.status(201).json(pricingPlan);
+    
   } catch (error) {
     console.error('❌ Error creating pricing plan:', error);
     if (error.name === 'ValidationError') {
-      return res.status(400).json({ error: error.message, details: error.errors });
+      const errors = Object.values(error.errors).map(e => e.message);
+      return res.status(400).json({ error: 'Validation failed', details: errors });
     }
     res.status(500).json({ error: 'Server error: ' + error.message });
   }
 });
 
-// UPDATE pricing plan
+// UPDATE pricing plan (admin)
 router.put('/pricing/:id', protect, admin, async (req, res) => {
   try {
-    const { name, description, price, monthlyPrice, yearlyPrice, isActive, isPopular, order } = req.body;
+    const { name, description, price, monthlyPrice, yearlyPrice, features, isActive, isPopular, order, trialPeriod } = req.body;
     
     const pricingPlan = await PricingPlan.findById(req.params.id);
     if (!pricingPlan) {
       return res.status(404).json({ error: 'Pricing plan not found' });
     }
     
-    // Update fields
-    if (name) pricingPlan.name = name.trim();
+    // Update name if provided and not duplicate
+    if (name && name.trim() !== pricingPlan.name) {
+      const existingPlan = await PricingPlan.findOne({ name: name.trim(), _id: { $ne: req.params.id } });
+      if (existingPlan) {
+        return res.status(409).json({ error: 'Pricing plan with this name already exists' });
+      }
+      pricingPlan.name = name.trim();
+    }
+    
+    // Update description
     if (description) pricingPlan.description = description.trim();
     
-    // Handle price updates
+    // Update prices - handle multiple formats
     if (price && typeof price === 'object') {
       if (price.monthly !== undefined) {
         const monthly = parseFloat(price.monthly);
@@ -602,29 +635,43 @@ router.put('/pricing/:id', protect, admin, async (req, res) => {
         const yearly = parseFloat(price.yearly);
         if (!isNaN(yearly)) pricingPlan.price.yearly = yearly;
       }
-    } else if (monthlyPrice !== undefined) {
+      if (price.currency) pricingPlan.price.currency = price.currency;
+    }
+    
+    if (monthlyPrice !== undefined) {
       const monthly = parseFloat(monthlyPrice);
       if (!isNaN(monthly)) pricingPlan.price.monthly = monthly;
-    } else if (yearlyPrice !== undefined) {
+    }
+    
+    if (yearlyPrice !== undefined) {
       const yearly = parseFloat(yearlyPrice);
       if (!isNaN(yearly)) pricingPlan.price.yearly = yearly;
     }
     
+    // Update features
+    if (features && Array.isArray(features)) {
+      pricingPlan.features = features;
+    }
+    
+    // Update other fields
     if (isActive !== undefined) pricingPlan.isActive = isActive;
     if (isPopular !== undefined) pricingPlan.isPopular = isPopular;
     if (order !== undefined) pricingPlan.order = order;
+    if (trialPeriod !== undefined) pricingPlan.trialPeriod = trialPeriod;
     
     pricingPlan.updatedAt = new Date();
     await pricingPlan.save();
     
+    console.log('✅ Pricing plan updated successfully:', pricingPlan._id);
     res.json(pricingPlan);
+    
   } catch (error) {
     console.error('Error updating pricing plan:', error);
     res.status(500).json({ error: 'Server error: ' + error.message });
   }
 });
 
-// DELETE pricing plan
+// DELETE pricing plan (admin)
 router.delete('/pricing/:id', protect, admin, async (req, res) => {
   try {
     const pricingPlan = await PricingPlan.findById(req.params.id);
@@ -633,12 +680,36 @@ router.delete('/pricing/:id', protect, admin, async (req, res) => {
     }
     
     await PricingPlan.findByIdAndDelete(req.params.id);
+    console.log('✅ Pricing plan deleted successfully:', req.params.id);
     res.json({ message: 'Pricing plan deleted successfully' });
+    
   } catch (error) {
     console.error('Error deleting pricing plan:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+// Toggle pricing plan active status (admin)
+router.patch('/pricing/:id/toggle-active', protect, admin, async (req, res) => {
+  try {
+    const pricingPlan = await PricingPlan.findById(req.params.id);
+    if (!pricingPlan) {
+      return res.status(404).json({ error: 'Pricing plan not found' });
+    }
+    
+    pricingPlan.isActive = !pricingPlan.isActive;
+    await pricingPlan.save();
+    
+    res.json({ isActive: pricingPlan.isActive });
+    
+  } catch (error) {
+    console.error('Error toggling plan status:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
+
 // Guide management routes for admin panel
 router.get('/guides', protect, admin, async (req, res) => {
   try {
