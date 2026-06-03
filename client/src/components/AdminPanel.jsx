@@ -49,7 +49,9 @@ export default function AdminPanel() {
   const [isEditing, setIsEditing] = useState(false);
   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
-  const [isEditingPricing, setIsEditingPricing] = useState(false);
+  const [editingPricing, setEditingPricing] = useState(null);
+const [isEditingPricing, setIsEditingPricing] = useState(false);
+const [isUpdatingPricing, setIsUpdatingPricing] = useState(false);
 
   // Form states for different sections
   const [pageForm, setPageForm] = useState({ title: '', slug: '', content: '' });
@@ -691,86 +693,178 @@ const createPricingPlan = async (e) => {
     setIsSubmitting(false);
   }
 };
-
-// Delete pricing plan
-const deletePricingPlan = async (planId) => {
-  if (window.confirm("Are you sure you want to delete this pricing plan?")) {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(
-        `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing/${planId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      toast.success("Pricing plan deleted successfully");
-      fetchPricingPlans();
-    } catch (err) {
-      console.error("Failed to delete pricing plan:", err);
-      toast.error("Failed to delete pricing plan");
-    }
-  }
-};
-
-// Edit pricing plan (opens modal or form)
-const editPricingPlan = (plan) => {
-  setPricingForm({
-    name: plan.name,
-    description: plan.description,
-    monthlyPrice: plan.price?.monthly || '',
-    yearlyPrice: plan.price?.yearly || '',
-    _id: plan._id
-  });
-  setIsEditingPricing(true);
-  // Scroll to form
-  document.getElementById('pricing-form').scrollIntoView({ behavior: 'smooth' });
-};
-
 // Update pricing plan
 const updatePricingPlan = async (e) => {
   e.preventDefault();
   
+  if (!editingPricing) return;
+  
+  // Validate inputs
+  if (!pricingForm.name.trim()) {
+    toast.error("Plan name is required");
+    return;
+  }
+  if (!pricingForm.description.trim()) {
+    toast.error("Plan description is required");
+    return;
+  }
+  
+  // Parse and validate price values
   const monthlyPrice = parseFloat(pricingForm.monthlyPrice);
   const yearlyPrice = parseFloat(pricingForm.yearlyPrice);
   
-  if (isNaN(monthlyPrice) || monthlyPrice < 0) {
+  if (isNaN(monthlyPrice)) {
     toast.error("Please enter a valid monthly price");
     return;
   }
-  if (isNaN(yearlyPrice) || yearlyPrice < 0) {
+  if (isNaN(yearlyPrice)) {
     toast.error("Please enter a valid yearly price");
     return;
   }
   
   try {
-    setIsSubmitting(true);
+    setIsUpdatingPricing(true);
     const token = localStorage.getItem("token");
     
-    await axios.put(
-      `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing/${pricingForm._id}`,
+    const planData = {
+      name: pricingForm.name.trim(),
+      description: pricingForm.description.trim(),
+      monthlyPrice: monthlyPrice,
+      yearlyPrice: yearlyPrice,
+      isActive: pricingForm.isActive !== undefined ? pricingForm.isActive : true,
+      isPopular: pricingForm.isPopular || false,
+      order: pricingForm.order || 0
+    };
+    
+    console.log("Updating pricing plan:", planData);
+    
+    const response = await axios.put(
+      `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing/${editingPricing._id}`,
+      planData,
       {
-        name: pricingForm.name.trim(),
-        description: pricingForm.description.trim(),
-        price: {
-          monthly: monthlyPrice,
-          yearly: yearlyPrice,
-          currency: 'USD'
-        }
-      },
-      {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` }
       }
     );
     
     toast.success("Pricing plan updated successfully");
-    setPricingForm({ name: '', description: '', monthlyPrice: '', yearlyPrice: '' });
-    setIsEditingPricing(false);
+    
+    // Reset editing state
+    cancelPricingEdit();
+    
+    // Refresh the list
     fetchPricingPlans();
+    
   } catch (err) {
     console.error("Failed to update pricing plan:", err);
-    toast.error("Failed to update pricing plan");
+    const errorMessage = err.response?.data?.error || err.response?.data?.message || "Failed to update pricing plan";
+    toast.error(errorMessage);
   } finally {
-    setIsSubmitting(false);
+    setIsUpdatingPricing(false);
+  }
+};
+
+// Delete pricing plan
+const deletePricingPlan = async (planId, planName) => {
+  if (window.confirm(`Are you sure you want to delete the "${planName}" pricing plan?`)) {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing/${planId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      
+      toast.success("Pricing plan deleted successfully");
+      
+      // If we were editing this plan, cancel edit
+      if (editingPricing?._id === planId) {
+        cancelPricingEdit();
+      }
+      
+      // Refresh the list
+      fetchPricingPlans();
+      
+    } catch (err) {
+      console.error("Failed to delete pricing plan:", err);
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || "Failed to delete pricing plan";
+      toast.error(errorMessage);
+    }
+  }
+};
+
+// Edit pricing plan - populate form with plan data
+const editPricingPlan = (plan) => {
+  setEditingPricing(plan);
+  setIsEditingPricing(true);
+  setPricingForm({
+    name: plan.name,
+    description: plan.description,
+    monthlyPrice: plan.price?.monthly || 0,
+    yearlyPrice: plan.price?.yearly || 0,
+    isActive: plan.isActive,
+    isPopular: plan.isPopular,
+    order: plan.order || 0
+  });
+  
+  // Scroll to form
+  document.getElementById('pricing-form').scrollIntoView({ 
+    behavior: 'smooth',
+    block: 'start'
+  });
+};
+
+// Cancel pricing edit
+const cancelPricingEdit = () => {
+  setEditingPricing(null);
+  setIsEditingPricing(false);
+  setPricingForm({ 
+    name: '', 
+    description: '', 
+    monthlyPrice: '', 
+    yearlyPrice: '' 
+  });
+};
+
+// Toggle pricing plan active status
+const togglePricingActive = async (plan) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.patch(
+      `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing/${plan._id}/toggle-active`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+    
+    toast.success(`Plan ${response.data.isActive ? 'activated' : 'deactivated'} successfully`);
+    fetchPricingPlans();
+    
+  } catch (err) {
+    console.error("Failed to toggle plan status:", err);
+    toast.error("Failed to update plan status");
+  }
+};
+
+// Toggle pricing plan popular status
+const togglePricingPopular = async (plan) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.patch(
+      `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing/${plan._id}/popular`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+    
+    toast.success(`Plan ${response.data.isPopular ? 'marked as popular' : 'removed from popular'} successfully`);
+    fetchPricingPlans();
+    
+  } catch (err) {
+    console.error("Failed to toggle popular status:", err);
+    toast.error("Failed to update popular status");
   }
 };
   
@@ -1491,15 +1585,17 @@ const updatePricingPlan = async (e) => {
           </div>
         )}
 
-     {/* Pricing Tab */}
+{/* Pricing Tab */}
 {activeTab === 'pricing' && (
   <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
     <h2 className="text-xl font-semibold mb-4">Pricing Management</h2>
 
-    {/* Create Pricing Plan Form */}
-    <div className="mb-6 p-4 border rounded-lg">
-      <h3 className="font-semibold mb-3">Add New Pricing Plan</h3>
-      <form onSubmit={createPricingPlan}>
+    {/* Create/Edit Pricing Plan Form */}
+    <div id="pricing-form" className="mb-6 p-4 border rounded-lg">
+      <h3 className="font-semibold mb-3">
+        {isEditingPricing ? 'Edit Pricing Plan' : 'Add New Pricing Plan'}
+      </h3>
+      <form onSubmit={isEditingPricing ? updatePricingPlan : createPricingPlan}>
         <div className="mb-3">
           <label className="block text-sm font-medium mb-1">Plan Name *</label>
           <input
@@ -1507,7 +1603,7 @@ const updatePricingPlan = async (e) => {
             placeholder="e.g., Basic, Pro, Enterprise"
             value={pricingForm.name}
             onChange={(e) => setPricingForm({ ...pricingForm, name: e.target.value })}
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
@@ -1519,7 +1615,7 @@ const updatePricingPlan = async (e) => {
             value={pricingForm.description}
             onChange={(e) => setPricingForm({ ...pricingForm, description: e.target.value })}
             rows={2}
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
@@ -1534,7 +1630,7 @@ const updatePricingPlan = async (e) => {
               placeholder="0.00"
               value={pricingForm.monthlyPrice}
               onChange={(e) => setPricingForm({ ...pricingForm, monthlyPrice: e.target.value })}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
@@ -1547,23 +1643,69 @@ const updatePricingPlan = async (e) => {
               placeholder="0.00"
               value={pricingForm.yearlyPrice}
               onChange={(e) => setPricingForm({ ...pricingForm, yearlyPrice: e.target.value })}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
         </div>
         
+        {isEditingPricing && (
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={pricingForm.isActive || false}
+                  onChange={(e) => setPricingForm({ ...pricingForm, isActive: e.target.checked })}
+                  className="rounded"
+                />
+                <span className="text-sm font-medium">Active</span>
+              </label>
+            </div>
+            <div>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={pricingForm.isPopular || false}
+                  onChange={(e) => setPricingForm({ ...pricingForm, isPopular: e.target.checked })}
+                  className="rounded"
+                />
+                <span className="text-sm font-medium">Popular</span>
+              </label>
+            </div>
+          </div>
+        )}
+        
         <div className="text-sm text-gray-500 mb-3">
           💡 Tip: Yearly plans typically offer a discount (e.g., $9.99/month = $99.99/year)
         </div>
         
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-        >
-          {isSubmitting ? 'Creating...' : 'Add Pricing Plan'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="submit"
+            disabled={isSubmitting || isUpdatingPricing}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+          >
+            {isSubmitting || isUpdatingPricing ? (
+              <span className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                {isEditingPricing ? 'Updating...' : 'Creating...'}
+              </span>
+            ) : (
+              isEditingPricing ? 'Update Plan' : 'Create Plan'
+            )}
+          </button>
+          
+          {isEditingPricing && (
+            <button
+              type="button"
+              onClick={cancelPricingEdit}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
       </form>
     </div>
 
@@ -1571,41 +1713,85 @@ const updatePricingPlan = async (e) => {
     <h3 className="font-semibold mb-3">Existing Pricing Plans</h3>
     {pricingPlans.length === 0 ? (
       <div className="text-center py-8 text-gray-500">
+        <FiDollarSign className="w-12 h-12 mx-auto mb-4 opacity-50" />
         <p>No pricing plans created yet</p>
+        <p className="text-sm mt-2">Click "Add New Pricing Plan" to get started</p>
       </div>
     ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {pricingPlans.map((plan) => (
-          <div key={plan._id} className="border rounded-lg p-4">
-            <h4 className="font-semibold text-lg mb-2">{plan.name}</h4>
+          <div key={plan._id} className={`border rounded-lg p-4 transition-all ${
+            plan.isPopular ? 'ring-2 ring-yellow-400 shadow-lg' : ''
+          } ${!plan.isActive ? 'opacity-60' : ''}`}>
+            <div className="flex justify-between items-start mb-3">
+              <h4 className="font-semibold text-lg">{plan.name}</h4>
+              <div className="flex gap-1">
+                {plan.isPopular && (
+                  <span className="text-yellow-500 text-xs">⭐ Popular</span>
+                )}
+              </div>
+            </div>
+            
             <p className="text-gray-600 text-sm mb-3">{plan.description}</p>
+            
             <div className="mb-2">
               <span className="text-2xl font-bold">${plan.price?.monthly || 0}</span>
               <span className="text-gray-600">/month</span>
             </div>
-            <div className="mb-3">
+            
+            <div className="mb-4">
               <span className="text-lg font-semibold">${plan.price?.yearly || 0}</span>
               <span className="text-gray-600">/year</span>
+              {plan.price?.yearly > 0 && plan.price?.monthly > 0 && (
+                <span className="text-green-600 text-sm ml-2">
+                  Save ${((plan.price.monthly * 12) - plan.price.yearly).toFixed(2)}/year
+                </span>
+              )}
             </div>
-            <div className="flex gap-2">
-              <button 
-                onClick={() => {
-                  // TODO: Implement edit functionality
-                  toast.info("Edit functionality coming soon");
-                }}
+            
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => editPricingPlan(plan)}
                 className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
               >
                 <FiEdit size={14} /> Edit
               </button>
-              <button 
-                onClick={() => {
-                  // TODO: Implement delete functionality
-                  toast.info("Delete functionality coming soon");
-                }}
+              
+              <button
+                onClick={() => togglePricingActive(plan)}
+                className={`px-3 py-1 rounded text-sm flex items-center gap-1 ${
+                  plan.isActive 
+                    ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
+                    : 'bg-green-500 hover:bg-green-600 text-white'
+                }`}
+              >
+                {plan.isActive ? <FiEyeOff size={14} /> : <FiEye size={14} />}
+                {plan.isActive ? 'Deactivate' : 'Activate'}
+              </button>
+              
+              <button
+                onClick={() => togglePricingPopular(plan)}
+                className={`px-3 py-1 rounded text-sm flex items-center gap-1 ${
+                  plan.isPopular 
+                    ? 'bg-gray-500 hover:bg-gray-600 text-white' 
+                    : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                }`}
+              >
+                <FiStar size={14} />
+                {plan.isPopular ? 'Remove Popular' : 'Mark Popular'}
+              </button>
+              
+              <button
+                onClick={() => deletePricingPlan(plan._id, plan.name)}
                 className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
               >
                 <FiTrash2 size={14} /> Delete
               </button>
+            </div>
+            
+            <div className="mt-3 text-xs text-gray-500">
+              Status: {plan.isActive ? '✅ Active' : '❌ Inactive'} | 
+              Order: {plan.order || 0}
             </div>
           </div>
         ))}
