@@ -690,9 +690,31 @@ router.delete('/pricing/:id', protect, admin, async (req, res) => {
 });
 
 // Toggle pricing plan active status (admin)
-// Toggle popular status (admin)
+router.patch('/pricing/:id/toggle-active', protect, admin, async (req, res) => {
+  try {
+    console.log(`Toggling active status for plan: ${req.params.id}`);
+    
+    const pricingPlan = await PricingPlan.findById(req.params.id);
+    if (!pricingPlan) {
+      return res.status(404).json({ error: 'Pricing plan not found' });
+    }
+
+    pricingPlan.isActive = !pricingPlan.isActive;
+    await pricingPlan.save();
+    
+    console.log(`Plan ${pricingPlan.name} is now ${pricingPlan.isActive ? 'active' : 'inactive'}`);
+    res.json({ isActive: pricingPlan.isActive });
+  } catch (error) {
+    console.error('Error toggling plan status:', error);
+    res.status(500).json({ error: 'Server error: ' + error.message });
+  }
+});
+
+// Toggle pricing plan popular status (admin)
 router.patch('/pricing/:id/popular', protect, admin, async (req, res) => {
   try {
+    console.log(`Toggling popular status for plan: ${req.params.id}`);
+    
     const pricingPlan = await PricingPlan.findById(req.params.id);
     if (!pricingPlan) {
       return res.status(404).json({ error: 'Pricing plan not found' });
@@ -700,15 +722,14 @@ router.patch('/pricing/:id/popular', protect, admin, async (req, res) => {
 
     pricingPlan.isPopular = !pricingPlan.isPopular;
     await pricingPlan.save();
-
+    
+    console.log(`Plan ${pricingPlan.name} is now ${pricingPlan.isPopular ? 'popular' : 'not popular'}`);
     res.json({ isPopular: pricingPlan.isPopular });
   } catch (error) {
     console.error('Error toggling popular status:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error: ' + error.message });
   }
 });
-
-
 
 // Guide management routes for admin panel
 router.get('/guides', protect, admin, async (req, res) => {
