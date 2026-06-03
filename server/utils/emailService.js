@@ -450,7 +450,6 @@ const sendVerificationEmail = async (to, link) => {
     console.log(`🔍 Attempting to send verification email to: ${to}`);
   console.log(`🔍 Link: ${link}`);
   console.log(`🔍 Has transporter? ${!!transporter}`);
-  console.log(`🔍 Has credentials? ${hasEmailCredentials()}`);
   
   if (!transporter) {
     console.warn("Email transporter not available. Skipping verification email.");
