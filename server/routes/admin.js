@@ -500,7 +500,7 @@ router.post('/faqs', protect, admin, async (req, res) => {
   }
 });
 
-// Pricing management
+// Pricing management - FIXED VERSION for admin.js
 router.get('/pricing', protect, admin, async (req, res) => {
   try {
     const pricingPlans = await PricingPlan.find().sort({ order: 1 });
@@ -511,35 +511,134 @@ router.get('/pricing', protect, admin, async (req, res) => {
   }
 });
 
+// CREATE pricing plan - FIXED with proper validation
 router.post('/pricing', protect, admin, async (req, res) => {
   try {
-    const { name, description, monthlyPrice, yearlyPrice } = req.body;
-
+    console.log('📦 [admin.js] Received pricing data:', JSON.stringify(req.body, null, 2));
+    
+    let { name, description, price, monthlyPrice, yearlyPrice } = req.body;
+    
+    // Validate required fields
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Plan name is required' });
+    }
+    if (!description || !description.trim()) {
+      return res.status(400).json({ error: 'Plan description is required' });
+    }
+    
+    let finalMonthlyPrice = 0;
+    let finalYearlyPrice = 0;
+    
+    // Handle different data structures
+    if (price && typeof price === 'object') {
+      // Structure: { price: { monthly: 10, yearly: 100 } }
+      finalMonthlyPrice = price.monthly ? parseFloat(price.monthly) : 0;
+      finalYearlyPrice = price.yearly ? parseFloat(price.yearly) : 0;
+    } else if (monthlyPrice !== undefined || yearlyPrice !== undefined) {
+      // Structure: { monthlyPrice: 10, yearlyPrice: 100 }
+      finalMonthlyPrice = monthlyPrice ? parseFloat(monthlyPrice) : 0;
+      finalYearlyPrice = yearlyPrice ? parseFloat(yearlyPrice) : 0;
+    }
+    
+    // Ensure valid numbers
+    if (isNaN(finalMonthlyPrice)) finalMonthlyPrice = 0;
+    if (isNaN(finalYearlyPrice)) finalYearlyPrice = 0;
+    
+    console.log('💰 Processed prices:', { monthly: finalMonthlyPrice, yearly: finalYearlyPrice });
+    
     // Check if plan with same name exists
-    const existingPlan = await PricingPlan.findOne({ name });
+    const existingPlan = await PricingPlan.findOne({ name: name.trim() });
     if (existingPlan) {
       return res.status(409).json({ error: 'Pricing plan with this name already exists' });
     }
-
+    
     const pricingPlan = new PricingPlan({
-      name,
-      description,
+      name: name.trim(),
+      description: description.trim(),
       price: {
-        monthly: parseFloat(monthlyPrice),
-        yearly: parseFloat(yearlyPrice),
+        monthly: finalMonthlyPrice,
+        yearly: finalYearlyPrice,
         currency: 'USD'
       },
-      isActive: true
+      isActive: true,
+      isPopular: false,
+      order: 0,
+      features: [] // Add empty features array
     });
-
+    
     await pricingPlan.save();
+    console.log('✅ Pricing plan created successfully:', pricingPlan._id);
     res.status(201).json(pricingPlan);
   } catch (error) {
-    console.error('Error creating pricing plan:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('❌ Error creating pricing plan:', error);
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ error: error.message, details: error.errors });
+    }
+    res.status(500).json({ error: 'Server error: ' + error.message });
   }
 });
 
+// UPDATE pricing plan
+router.put('/pricing/:id', protect, admin, async (req, res) => {
+  try {
+    const { name, description, price, monthlyPrice, yearlyPrice, isActive, isPopular, order } = req.body;
+    
+    const pricingPlan = await PricingPlan.findById(req.params.id);
+    if (!pricingPlan) {
+      return res.status(404).json({ error: 'Pricing plan not found' });
+    }
+    
+    // Update fields
+    if (name) pricingPlan.name = name.trim();
+    if (description) pricingPlan.description = description.trim();
+    
+    // Handle price updates
+    if (price && typeof price === 'object') {
+      if (price.monthly !== undefined) {
+        const monthly = parseFloat(price.monthly);
+        if (!isNaN(monthly)) pricingPlan.price.monthly = monthly;
+      }
+      if (price.yearly !== undefined) {
+        const yearly = parseFloat(price.yearly);
+        if (!isNaN(yearly)) pricingPlan.price.yearly = yearly;
+      }
+    } else if (monthlyPrice !== undefined) {
+      const monthly = parseFloat(monthlyPrice);
+      if (!isNaN(monthly)) pricingPlan.price.monthly = monthly;
+    } else if (yearlyPrice !== undefined) {
+      const yearly = parseFloat(yearlyPrice);
+      if (!isNaN(yearly)) pricingPlan.price.yearly = yearly;
+    }
+    
+    if (isActive !== undefined) pricingPlan.isActive = isActive;
+    if (isPopular !== undefined) pricingPlan.isPopular = isPopular;
+    if (order !== undefined) pricingPlan.order = order;
+    
+    pricingPlan.updatedAt = new Date();
+    await pricingPlan.save();
+    
+    res.json(pricingPlan);
+  } catch (error) {
+    console.error('Error updating pricing plan:', error);
+    res.status(500).json({ error: 'Server error: ' + error.message });
+  }
+});
+
+// DELETE pricing plan
+router.delete('/pricing/:id', protect, admin, async (req, res) => {
+  try {
+    const pricingPlan = await PricingPlan.findById(req.params.id);
+    if (!pricingPlan) {
+      return res.status(404).json({ error: 'Pricing plan not found' });
+    }
+    
+    await PricingPlan.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Pricing plan deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting pricing plan:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 // Guide management routes for admin panel
 router.get('/guides', protect, admin, async (req, res) => {
   try {
