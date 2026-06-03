@@ -1,34 +1,41 @@
 const nodemailer = require('nodemailer');
 
-// Check if email credentials are available
+// Check if SendGrid API key is available
 const hasEmailCredentials = () => {
-  return process.env.EMAIL_USER && process.env.EMAIL_PASS;
+  return !!process.env.SENDGRID_API_KEY;
 };
 
-// Create transporter with Gmail configuration only if credentials are available
+// Create transporter with SendGrid SMTP configuration
 let transporter;
 
 if (hasEmailCredentials()) {
   transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.sendgrid.net',
+    port: 587,
+    secure: false, // false for port 587
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
+      user: 'apikey',  // Must be exactly 'apikey'
+      pass: process.env.SENDGRID_API_KEY
     }
   });
 
   // Verify connection configuration
   transporter.verify(function(error, success) {
     if (error) {
-      console.error('Email transporter verification failed:', error.message);
+      console.error('❌ SendGrid SMTP verification failed:', error.message);
     } else {
-      console.log('Email transporter is ready to send messages');
+      console.log('✅ SendGrid SMTP is ready to send messages');
     }
   });
 } else {
-  console.warn('Email credentials not found. Email functionality will be disabled.');
-  console.warn('Please set EMAIL_USER and EMAIL_PASS environment variables.');
+  console.warn('⚠️ SENDGRID_API_KEY not found. Email functionality will be disabled.');
+  console.warn('Please set SENDGRID_API_KEY environment variable in Render.');
 }
+
+// Helper function to get sender email
+const getSenderEmail = () => {
+  return process.env.EMAIL_FROM || 'kaujacob4@gmail.com';
+};
 
 // Base email template with consistent styling
 const baseEmailTemplate = (content, title, footerText = '') => `
@@ -158,7 +165,7 @@ const baseEmailTemplate = (content, title, footerText = '') => `
         <div class="email-footer">
             <p>© ${new Date().getFullYear()} Witty MoodTracker. All rights reserved.</p>
             <p>This is an automated message. Please do not reply to this email.</p>
-            <p>Contact us: <a href="mailto:kaujacob4@gmail.com">kaujacob4@gmail.com</a></p>
+            <p>Contact us: <a href="mailto:${process.env.CONTACT_EMAIL || 'kaujacob4@gmail.com'}">${process.env.CONTACT_EMAIL || 'kaujacob4@gmail.com'}</a></p>
         </div>
     </div>
 </body>
@@ -168,7 +175,7 @@ const baseEmailTemplate = (content, title, footerText = '') => `
 // Support email template
 const sendSupportEmail = async ({ ticketId, name, email, subject, message }) => {
   if (!transporter) {
-    console.warn('Email transporter not available. Skipping support email.');
+    console.warn('⚠️ Email transporter not available. Skipping support email.');
     return false;
   }
 
@@ -215,7 +222,7 @@ const sendSupportEmail = async ({ ticketId, name, email, subject, message }) => 
   `;
 
   const mailOptions = {
-    from: `MoodTracker Support <${process.env.EMAIL_USER}>`,
+    from: `MoodTracker Support <${getSenderEmail()}>`,
     to: process.env.SUPPORT_EMAIL || 'kaujacob4@gmail.com',
     subject: `🚨 Support Ticket #${ticketId}: ${subject}`,
     html: baseEmailTemplate(content, 'New Support Ticket')
@@ -223,10 +230,10 @@ const sendSupportEmail = async ({ ticketId, name, email, subject, message }) => 
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log(`Support email sent for ticket ${ticketId}:`, info.messageId);
+    console.log(`✅ Support email sent for ticket ${ticketId}:`, info.messageId);
     return true;
   } catch (error) {
-    console.error('Error sending support email:', error.message);
+    console.error('❌ Error sending support email:', error.message);
     return false;
   }
 };
@@ -234,7 +241,7 @@ const sendSupportEmail = async ({ ticketId, name, email, subject, message }) => 
 // Support confirmation email to user
 const sendSupportConfirmation = async ({ to, name, ticketId, subject }) => {
   if (!transporter) {
-    console.warn('Email transporter not available. Skipping confirmation email.');
+    console.warn('⚠️ Email transporter not available. Skipping confirmation email.');
     return false;
   }
 
@@ -276,7 +283,7 @@ const sendSupportConfirmation = async ({ to, name, ticketId, subject }) => {
   `;
 
   const mailOptions = {
-    from: `MoodTracker Support <${process.env.EMAIL_USER}>`,
+    from: `MoodTracker Support <${getSenderEmail()}>`,
     to: to,
     subject: `✅ Support Request Received - Ticket #${ticketId}`,
     html: baseEmailTemplate(content, 'Support Request Confirmation')
@@ -284,10 +291,10 @@ const sendSupportConfirmation = async ({ to, name, ticketId, subject }) => {
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log(`Support confirmation sent to ${to}:`, info.messageId);
+    console.log(`✅ Support confirmation sent to ${to}:`, info.messageId);
     return true;
   } catch (error) {
-    console.error('Error sending support confirmation:', error.message);
+    console.error('❌ Error sending support confirmation:', error.message);
     return false;
   }
 };
@@ -295,7 +302,7 @@ const sendSupportConfirmation = async ({ to, name, ticketId, subject }) => {
 // Contact form email template
 const sendContactEmail = async ({ name, email, subject, message, type }) => {
   if (!transporter) {
-    console.warn('Email transporter not available. Skipping contact email.');
+    console.warn('⚠️ Email transporter not available. Skipping contact email.');
     return false;
   }
 
@@ -359,7 +366,7 @@ const sendContactEmail = async ({ name, email, subject, message, type }) => {
   `;
 
   const mailOptions = {
-    from: `Witty MoodTracker Contact <${process.env.EMAIL_USER}>`,
+    from: `Witty MoodTracker Contact <${getSenderEmail()}>`,
     to: process.env.CONTACT_EMAIL || 'kaujacob4@gmail.com',
     subject: `${isPartnership ? '🤝' : '📧'} ${emailType} from ${name}`,
     html: baseEmailTemplate(content, emailType)
@@ -367,10 +374,10 @@ const sendContactEmail = async ({ name, email, subject, message, type }) => {
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log(`Contact email sent from ${email} (${type}):`, info.messageId);
+    console.log(`✅ Contact email sent from ${email} (${type}):`, info.messageId);
     return true;
   } catch (error) {
-    console.error('Error sending contact email:', error.message);
+    console.error('❌ Error sending contact email:', error.message);
     return false;
   }
 };
@@ -378,7 +385,7 @@ const sendContactEmail = async ({ name, email, subject, message, type }) => {
 // Newsletter welcome email
 const sendNewsletterWelcome = async (email) => {
   if (!transporter) {
-    console.warn('Email transporter not available. Skipping newsletter welcome.');
+    console.warn('⚠️ Email transporter not available. Skipping newsletter welcome.');
     return false;
   }
 
@@ -429,7 +436,7 @@ const sendNewsletterWelcome = async (email) => {
   `;
 
   const mailOptions = {
-    from: `Witty MoodTracker Newsletter <${process.env.EMAIL_USER}>`,
+    from: `Witty MoodTracker Newsletter <${getSenderEmail()}>`,
     to: email,
     subject: '🎉 Welcome to Witty MoodTracker Newsletter!',
     html: baseEmailTemplate(content, 'Welcome to Our Newsletter')
@@ -437,22 +444,22 @@ const sendNewsletterWelcome = async (email) => {
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log(`Newsletter welcome sent to ${email}:`, info.messageId);
+    console.log(`✅ Newsletter welcome sent to ${email}:`, info.messageId);
     return true;
   } catch (error) {
-    console.error('Error sending newsletter welcome:', error.message);
+    console.error('❌ Error sending newsletter welcome:', error.message);
     return false;
   }
 };
 
+// Verification email
 const sendVerificationEmail = async (to, link) => {
-
-    console.log(`🔍 Attempting to send verification email to: ${to}`);
+  console.log(`🔍 Attempting to send verification email to: ${to}`);
   console.log(`🔍 Link: ${link}`);
   console.log(`🔍 Has transporter? ${!!transporter}`);
   
   if (!transporter) {
-    console.warn("Email transporter not available. Skipping verification email.");
+    console.warn("⚠️ Email transporter not available. Skipping verification email.");
     return false;
   }
 
@@ -467,7 +474,7 @@ const sendVerificationEmail = async (to, link) => {
             Verify Email Address
         </a>
         <p style="color: #718096; margin-top: 20px; font-size: 14px;">
-            This link will expire in 24 hours for your security.
+            This link will expire in 1 hour for your security.
         </p>
     </div>
 
@@ -477,12 +484,12 @@ const sendVerificationEmail = async (to, link) => {
     </div>
 
     <div style="text-align: center; margin-top: 30px;">
-        <p style="color: #4a5568;">Need help? Contact our support team at <a href="mailto:kaujacob4@gmail.com">kaujacob4@gmail.com</a></p>
+        <p style="color: #4a5568;">Need help? Contact our support team at <a href="mailto:${process.env.CONTACT_EMAIL || 'kaujacob4@gmail.com'}">${process.env.CONTACT_EMAIL || 'kaujacob4@gmail.com'}</a></p>
     </div>
   `;
 
   const mailOptions = {
-    from: `Witty MoodTracker Security <${process.env.EMAIL_USER}>`,
+    from: `Witty MoodTracker Security <${getSenderEmail()}>`,
     to: to,
     subject: "🔐 Verify Your Witty MoodTracker Account",
     html: baseEmailTemplate(content, 'Email Verification')
@@ -490,124 +497,141 @@ const sendVerificationEmail = async (to, link) => {
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log(`Verification email sent to ${to}:`, info.messageId);
+    console.log(`✅ Verification email sent to ${to}:`, info.messageId);
     return true;
   } catch (error) {
-    console.error("Error sending verification email:", error.message);
+    console.error("❌ Error sending verification email:", error.message);
     return false;
   }
 };
 
+// Review notification email
 const sendReviewNotificationEmail = async (review) => {
+  if (!transporter) {
+    console.warn('⚠️ Email transporter not available. Skipping review notification.');
+    return false;
+  }
+
+  const adminEmail = process.env.ADMIN_EMAIL || 'kaujacob4@gmail.com';
+  
+  const content = `
+    <div class="email-section">
+        <h3>⭐ New Review Submission</h3>
+        <p>A user has submitted a new review that requires your approval before publication.</p>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="info-label">User</div>
+            <div class="info-value">${review.user.username}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Email</div>
+            <div class="info-value"><a href="mailto:${review.user.email}">${review.user.email}</a></div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Rating</div>
+            <div class="info-value" style="font-size: 18px; color: #f59e0b;">
+                ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
+            </div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Status</div>
+            <div class="info-value"><span class="priority-badge">Pending Review</span></div>
+        </div>
+    </div>
+
+    <div class="email-section">
+        <h3>📝 Review Content</h3>
+        <div style="background: white; padding: 25px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <h4 style="margin: 0 0 15px 0; color: #2d3748;">${review.title}</h4>
+            <p style="margin: 0; line-height: 1.6; color: #4a5568;">${review.comment}</p>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px;">
+        <a href="${process.env.ADMIN_URL || 'https://mood-tracker-bice.vercel.app'}/admin/reviews" class="btn-primary">
+          Review in Admin Panel
+        </a>
+        <p style="color: #718096; margin-top: 20px;">
+          Please review this submission within 48 hours.
+        </p>
+    </div>
+  `;
+
+  const mailOptions = {
+    from: `MoodTracker Reviews <${getSenderEmail()}>`,
+    to: adminEmail,
+    subject: '⭐ New Review Requires Approval',
+    html: baseEmailTemplate(content, 'Review Submission')
+  };
+
   try {
-    const adminEmail = process.env.ADMIN_EMAIL || 'kaujacob4@gmail.com';
-    
-    const content = `
-      <div class="email-section">
-          <h3>⭐ New Review Submission</h3>
-          <p>A user has submitted a new review that requires your approval before publication.</p>
-      </div>
-
-      <div class="info-grid">
-          <div class="info-item">
-              <div class="info-label">User</div>
-              <div class="info-value">${review.user.username}</div>
-          </div>
-          <div class="info-item">
-              <div class="info-label">Email</div>
-              <div class="info-value"><a href="mailto:${review.user.email}">${review.user.email}</a></div>
-          </div>
-          <div class="info-item">
-              <div class="info-label">Rating</div>
-              <div class="info-value" style="font-size: 18px; color: #f59e0b;">
-                  ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
-              </div>
-          </div>
-          <div class="info-item">
-              <div class="info-label">Status</div>
-              <div class="info-value"><span class="priority-badge">Pending Review</span></div>
-          </div>
-      </div>
-
-      <div class="email-section">
-          <h3>📝 Review Content</h3>
-          <div style="background: white; padding: 25px; border-radius: 8px; border: 1px solid #e2e8f0;">
-              <h4 style="margin: 0 0 15px 0; color: #2d3748;">${review.title}</h4>
-              <p style="margin: 0; line-height: 1.6; color: #4a5568;">${review.comment}</p>
-          </div>
-      </div>
-
-      <div style="text-align: center; margin-top: 40px;">
-          <a href="${process.env.ADMIN_URL}/admin/reviews" class="btn-primary">
-            Review in Admin Panel
-          </a>
-          <p style="color: #718096; margin-top: 20px;">
-            Please review this submission within 48 hours.
-          </p>
-      </div>
-    `;
-
-    const mailOptions = {
-      from: `MoodTracker Reviews <${process.env.EMAIL_USER}>`,
-      to: adminEmail,
-      subject: '⭐ New Review Requires Approval',
-      html: baseEmailTemplate(content, 'Review Submission')
-    };
-
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Review notification sent to admin`);
+    return true;
   } catch (error) {
-    console.error('Error sending review notification email:', error);
+    console.error('❌ Error sending review notification:', error.message);
     throw error;
   }
 };
 
+// Review response email
 const sendReviewResponseEmail = async (review, adminMessage) => {
+  if (!transporter) {
+    console.warn('⚠️ Email transporter not available. Skipping review response.');
+    return false;
+  }
+
+  const content = `
+    <div class="email-section">
+        <h3>💌 Response to Your Review</h3>
+        <p>Dear <strong>${review.user.username}</strong>,</p>
+        <p>Thank you for taking the time to share your experience with Witty MoodTracker. We truly value your feedback and have personally reviewed your comments.</p>
+    </div>
+
+    <div class="email-section">
+        <h3>📋 Our Response</h3>
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 8px;">
+            <p style="margin: 0; line-height: 1.6; font-style: italic;">"${adminMessage}"</p>
+        </div>
+    </div>
+
+    <div class="email-section">
+        <h3>🤝 Continuing the Conversation</h3>
+        <p>If you have any further thoughts or questions about our response, please don't hesitate to reply to this email. We're always here to listen and improve.</p>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <p style="color: #4a5568;">Thank you for being a valued member of our community. Together, we're making mental health support more accessible. 🌈</p>
+    </div>
+  `;
+
+  const mailOptions = {
+    from: `MoodTracker Team <${getSenderEmail()}>`,
+    to: review.user.email,
+    subject: '💌 Response to Your Witty MoodTracker Review',
+    html: baseEmailTemplate(content, 'Review Response')
+  };
+
   try {
-    const content = `
-      <div class="email-section">
-          <h3>💌 Response to Your Review</h3>
-          <p>Dear <strong>${review.user.username}</strong>,</p>
-          <p>Thank you for taking the time to share your experience with Witty MoodTracker. We truly value your feedback and have personally reviewed your comments.</p>
-      </div>
-
-      <div class="email-section">
-          <h3>📋 Our Response</h3>
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 8px;">
-              <p style="margin: 0; line-height: 1.6; font-style: italic;">"${adminMessage}"</p>
-          </div>
-      </div>
-
-      <div class="email-section">
-          <h3>🤝 Continuing the Conversation</h3>
-          <p>If you have any further thoughts or questions about our response, please don't hesitate to reply to this email. We're always here to listen and improve.</p>
-      </div>
-
-      <div style="text-align: center; margin-top: 30px;">
-          <p style="color: #4a5568;">Thank you for being a valued member of our community. Together, we're making mental health support more accessible. 🌈</p>
-      </div>
-    `;
-
-    const mailOptions = {
-      from: `MoodTracker Team <${process.env.EMAIL_USER}>`,
-      to: review.user.email,
-      subject: '💌 Response to Your Witty MoodTracker Review',
-      html: baseEmailTemplate(content, 'Review Response')
-    };
-
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Review response sent to ${review.user.email}`);
+    return true;
   } catch (error) {
-    console.error('Error sending review response email:', error);
+    console.error('❌ Error sending review response:', error.message);
     throw error;
   }
 };
 
+// Bulk email
 const sendBulkEmail = async (to, subject, content) => {
   if (!transporter) {
     throw new Error("Email transporter not configured");
   }
 
   const mailOptions = {
-    from: `Witty MoodTracker <${process.env.EMAIL_USER}>`,
+    from: `Witty MoodTracker <${getSenderEmail()}>`,
     to: to,
     subject: subject,
     html: content
