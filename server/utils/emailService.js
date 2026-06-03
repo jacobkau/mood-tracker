@@ -1,25 +1,33 @@
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 
-// Check if Resend API key is available
+// Check if Gmail credentials are available
 const hasEmailCredentials = () => {
-  return !!process.env.RESEND_API_KEY;
+  return !!(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
 };
 
-// Initialize Resend
-let resend;
+// Initialize Gmail transporter
+let transporter;
 
 if (hasEmailCredentials()) {
-  resend = new Resend(process.env.RESEND_API_KEY);
-  console.log('✅ Resend initialized successfully');
+  transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+  });
+  console.log('✅ Gmail transporter initialized successfully');
 } else {
-  console.warn('⚠️ RESEND_API_KEY not found. Email functionality will be disabled.');
-  console.warn('Get a free API key at: https://resend.com');
+  console.warn('⚠️ GMAIL_USER or GMAIL_APP_PASSWORD not found. Email functionality will be disabled.');
+  console.warn('To set up:');
+  console.warn('1. Enable 2-Factor Authentication on your Google account');
+  console.warn('2. Generate an App Password at https://myaccount.google.com/apppasswords');
+  console.warn('3. Add GMAIL_USER and GMAIL_APP_PASSWORD to your .env file');
 }
 
 // Helper function to get sender email
 const getSenderEmail = () => {
-  // Use Resend's test domain (works immediately, no verification needed)
-  return process.env.EMAIL_FROM || 'onboarding@resend.dev';
+  return process.env.GMAIL_USER || 'your-email@gmail.com';
 };
 
 // Base email template with consistent styling
@@ -157,14 +165,36 @@ const baseEmailTemplate = (content, title) => `
 </html>
 `;
 
+// Send email helper function
+const sendEmail = async (to, subject, html, fromName = 'Witty MoodTracker') => {
+  if (!transporter) {
+    console.warn("⚠️ Gmail not configured. Skipping email.");
+    return false;
+  }
+
+  try {
+    const info = await transporter.sendMail({
+      from: `${fromName} <${getSenderEmail()}>`,
+      to: to,
+      subject: subject,
+      html: html,
+    });
+    console.log(`✅ Email sent successfully to ${to}`, info.messageId);
+    return true;
+  } catch (error) {
+    console.error("❌ Error sending email:", error.message);
+    return false;
+  }
+};
+
 // Verification email
 const sendVerificationEmail = async (to, link) => {
   console.log(`🔍 Attempting to send verification email to: ${to}`);
   console.log(`🔍 Link: ${link}`);
-  console.log(`🔍 Has Resend? ${!!resend}`);
+  console.log(`🔍 Has Gmail transporter? ${!!transporter}`);
   
-  if (!resend) {
-    console.warn("⚠️ Resend not configured. Skipping verification email.");
+  if (!transporter) {
+    console.warn("⚠️ Gmail not configured. Skipping verification email.");
     return false;
   }
 
@@ -193,31 +223,17 @@ const sendVerificationEmail = async (to, link) => {
     </div>
   `;
 
-  try {
-    const { data, error } = await resend.emails.send({
-      from: `Witty MoodTracker <${getSenderEmail()}>`,
-      to: [to],
-      subject: "🔐 Verify Your Witty MoodTracker Account",
-      html: baseEmailTemplate(content, 'Email Verification'),
-    });
-
-    if (error) {
-      console.error('❌ Resend error:', error);
-      return false;
-    }
-    
-    console.log(`✅ Verification email sent to ${to}`, data?.id);
-    return true;
-  } catch (error) {
-    console.error("❌ Error sending verification email:", error.message);
-    return false;
-  }
+  return await sendEmail(
+    to,
+    "🔐 Verify Your Witty MoodTracker Account",
+    baseEmailTemplate(content, 'Email Verification')
+  );
 };
 
 // Support email template
 const sendSupportEmail = async ({ ticketId, name, email, subject, message }) => {
-  if (!resend) {
-    console.warn('⚠️ Resend not configured. Skipping support email.');
+  if (!transporter) {
+    console.warn('⚠️ Gmail not configured. Skipping support email.');
     return false;
   }
 
@@ -263,30 +279,18 @@ const sendSupportEmail = async ({ ticketId, name, email, subject, message }) => 
     </div>
   `;
 
-  try {
-    const { data, error } = await resend.emails.send({
-      from: `MoodTracker Support <${getSenderEmail()}>`,
-      to: [process.env.SUPPORT_EMAIL || 'kaujacob4@gmail.com'],
-      subject: `🚨 Support Ticket #${ticketId}: ${subject}`,
-      html: baseEmailTemplate(content, 'New Support Ticket'),
-    });
-
-    if (error) {
-      console.error('❌ Resend error:', error);
-      return false;
-    }
-    console.log(`✅ Support email sent for ticket ${ticketId}`);
-    return true;
-  } catch (error) {
-    console.error('❌ Error sending support email:', error.message);
-    return false;
-  }
+  return await sendEmail(
+    process.env.SUPPORT_EMAIL || 'kaujacob4@gmail.com',
+    `🚨 Support Ticket #${ticketId}: ${subject}`,
+    baseEmailTemplate(content, 'New Support Ticket'),
+    'MoodTracker Support'
+  );
 };
 
 // Support confirmation email to user
 const sendSupportConfirmation = async ({ to, name, ticketId, subject }) => {
-  if (!resend) {
-    console.warn('⚠️ Resend not configured. Skipping confirmation email.');
+  if (!transporter) {
+    console.warn('⚠️ Gmail not configured. Skipping confirmation email.');
     return false;
   }
 
@@ -327,30 +331,18 @@ const sendSupportConfirmation = async ({ to, name, ticketId, subject }) => {
     </div>
   `;
 
-  try {
-    const { data, error } = await resend.emails.send({
-      from: `MoodTracker Support <${getSenderEmail()}>`,
-      to: [to],
-      subject: `✅ Support Request Received - Ticket #${ticketId}`,
-      html: baseEmailTemplate(content, 'Support Request Confirmation'),
-    });
-
-    if (error) {
-      console.error('❌ Resend error:', error);
-      return false;
-    }
-    console.log(`✅ Support confirmation sent to ${to}`);
-    return true;
-  } catch (error) {
-    console.error('❌ Error sending support confirmation:', error.message);
-    return false;
-  }
+  return await sendEmail(
+    to,
+    `✅ Support Request Received - Ticket #${ticketId}`,
+    baseEmailTemplate(content, 'Support Request Confirmation'),
+    'MoodTracker Support'
+  );
 };
 
 // Contact form email template
 const sendContactEmail = async ({ name, email, subject, message, type }) => {
-  if (!resend) {
-    console.warn('⚠️ Resend not configured. Skipping contact email.');
+  if (!transporter) {
+    console.warn('⚠️ Gmail not configured. Skipping contact email.');
     return false;
   }
 
@@ -413,30 +405,18 @@ const sendContactEmail = async ({ name, email, subject, message, type }) => {
     </div>
   `;
 
-  try {
-    const { data, error } = await resend.emails.send({
-      from: `Witty MoodTracker Contact <${getSenderEmail()}>`,
-      to: [process.env.CONTACT_EMAIL || 'kaujacob4@gmail.com'],
-      subject: `${isPartnership ? '🤝' : '📧'} ${emailType} from ${name}`,
-      html: baseEmailTemplate(content, emailType),
-    });
-
-    if (error) {
-      console.error('❌ Resend error:', error);
-      return false;
-    }
-    console.log(`✅ Contact email sent from ${email} (${type})`);
-    return true;
-  } catch (error) {
-    console.error('❌ Error sending contact email:', error.message);
-    return false;
-  }
+  return await sendEmail(
+    process.env.CONTACT_EMAIL || 'kaujacob4@gmail.com',
+    `${isPartnership ? '🤝' : '📧'} ${emailType} from ${name}`,
+    baseEmailTemplate(content, emailType),
+    'Witty MoodTracker Contact'
+  );
 };
 
 // Newsletter welcome email
 const sendNewsletterWelcome = async (email) => {
-  if (!resend) {
-    console.warn('⚠️ Resend not configured. Skipping newsletter welcome.');
+  if (!transporter) {
+    console.warn('⚠️ Gmail not configured. Skipping newsletter welcome.');
     return false;
   }
 
@@ -486,30 +466,18 @@ const sendNewsletterWelcome = async (email) => {
     </div>
   `;
 
-  try {
-    const { data, error } = await resend.emails.send({
-      from: `Witty MoodTracker Newsletter <${getSenderEmail()}>`,
-      to: [email],
-      subject: '🎉 Welcome to Witty MoodTracker Newsletter!',
-      html: baseEmailTemplate(content, 'Welcome to Our Newsletter'),
-    });
-
-    if (error) {
-      console.error('❌ Resend error:', error);
-      return false;
-    }
-    console.log(`✅ Newsletter welcome sent to ${email}`);
-    return true;
-  } catch (error) {
-    console.error('❌ Error sending newsletter welcome:', error.message);
-    return false;
-  }
+  return await sendEmail(
+    email,
+    '🎉 Welcome to Witty MoodTracker Newsletter!',
+    baseEmailTemplate(content, 'Welcome to Our Newsletter'),
+    'Witty MoodTracker Newsletter'
+  );
 };
 
 // Review notification email
 const sendReviewNotificationEmail = async (review) => {
-  if (!resend) {
-    console.warn('⚠️ Resend not configured. Skipping review notification.');
+  if (!transporter) {
+    console.warn('⚠️ Gmail not configured. Skipping review notification.');
     return false;
   }
 
@@ -561,16 +529,14 @@ const sendReviewNotificationEmail = async (review) => {
   `;
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: `MoodTracker Reviews <${getSenderEmail()}>`,
-      to: [adminEmail],
-      subject: '⭐ New Review Requires Approval',
-      html: baseEmailTemplate(content, 'Review Submission'),
-    });
-
-    if (error) {
-      console.error('❌ Resend error:', error);
-      throw new Error(error.message);
+    const success = await sendEmail(
+      adminEmail,
+      '⭐ New Review Requires Approval',
+      baseEmailTemplate(content, 'Review Submission'),
+      'MoodTracker Reviews'
+    );
+    if (!success) {
+      throw new Error('Failed to send email');
     }
     console.log(`✅ Review notification sent to admin`);
     return true;
@@ -582,8 +548,8 @@ const sendReviewNotificationEmail = async (review) => {
 
 // Review response email
 const sendReviewResponseEmail = async (review, adminMessage) => {
-  if (!resend) {
-    console.warn('⚠️ Resend not configured. Skipping review response.');
+  if (!transporter) {
+    console.warn('⚠️ Gmail not configured. Skipping review response.');
     return false;
   }
 
@@ -612,16 +578,14 @@ const sendReviewResponseEmail = async (review, adminMessage) => {
   `;
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: `MoodTracker Team <${getSenderEmail()}>`,
-      to: [review.user.email],
-      subject: '💌 Response to Your Witty MoodTracker Review',
-      html: baseEmailTemplate(content, 'Review Response'),
-    });
-
-    if (error) {
-      console.error('❌ Resend error:', error);
-      throw new Error(error.message);
+    const success = await sendEmail(
+      review.user.email,
+      '💌 Response to Your Witty MoodTracker Review',
+      baseEmailTemplate(content, 'Review Response'),
+      'MoodTracker Team'
+    );
+    if (!success) {
+      throw new Error('Failed to send email');
     }
     console.log(`✅ Review response sent to ${review.user.email}`);
     return true;
@@ -633,21 +597,21 @@ const sendReviewResponseEmail = async (review, adminMessage) => {
 
 // Bulk email
 const sendBulkEmail = async (to, subject, content) => {
-  if (!resend) {
-    throw new Error("Resend not configured");
+  if (!transporter) {
+    throw new Error("Gmail not configured");
   }
 
-  const { data, error } = await resend.emails.send({
-    from: `Witty MoodTracker <${getSenderEmail()}>`,
-    to: [to],
-    subject: subject,
-    html: content,
-  });
-
-  if (error) {
+  try {
+    const info = await transporter.sendMail({
+      from: `Witty MoodTracker <${getSenderEmail()}>`,
+      to: to,
+      subject: subject,
+      html: content,
+    });
+    return info;
+  } catch (error) {
     throw new Error(error.message);
   }
-  return data;
 };
 
 module.exports = {
