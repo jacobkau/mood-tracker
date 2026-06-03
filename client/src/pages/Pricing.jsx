@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
-import { getSubscriptionPlans, subscribeToPlan, extractPlansFromResponse } from '../services/api';
+import { getSubscriptionPlans, subscribeToPlan } from '../services/api';
 import { toast } from 'react-toastify';
 import { useTheme } from '../context/useTheme';
 
@@ -19,72 +19,27 @@ const Pricing = () => {
         setLoading(true);
         const response = await getSubscriptionPlans();
         
-        // Use the helper function to extract plans from different response formats
-        const plansData = extractPlansFromResponse(response);
+        console.log('Fetched plans response:', response);
         
-        setPlans(plansData);
+        // Extract plans array from response
+        let plansArray = [];
+        if (Array.isArray(response)) {
+          plansArray = response;
+        } else if (response.data && Array.isArray(response.data)) {
+          plansArray = response.data;
+        } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+          plansArray = response.data.data;
+        } else {
+          plansArray = response.data || [];
+        }
+        
+        console.log('Processed plans array:', plansArray);
+        setPlans(plansArray);
+        
       } catch (error) {
         console.error('Failed to fetch plans:', error);
-        
-        // Show fallback plans if API is unavailable
-        if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
-          toast.error('Cannot connect to server. Showing demo plans.');
-          setPlans([
-            {
-              id: 'free',
-              name: 'Free',
-              price: 0,
-              description: 'Perfect for getting started with mood tracking',
-              features: [
-                'Basic mood tracking',
-                '7-day history',
-                'Standard charts',
-                'Email support',
-                'Basic analytics'
-              ],
-              popular: false,
-              period: 'month'
-            },
-            {
-              id: 'pro',
-              name: 'Pro',
-              price: 4.99,
-              period: 'month',
-              description: 'For those who want deeper insights',
-              features: [
-                'Unlimited mood tracking',
-                '90-day history',
-                'Advanced analytics',
-                'Custom reminders',
-                'Data export',
-                'Priority support',
-                'Trend analysis'
-              ],
-              popular: true
-            },
-            {
-              id: 'premium',
-              name: 'Premium',
-              price: 49.99,
-              period: 'year',
-              description: 'Best value for committed users',
-              features: [
-                'Everything in Pro',
-                '365-day history',
-                'Trend predictions',
-                'Personalized insights',
-                'Therapist sharing',
-                '24/7 support',
-                'Custom reports',
-                'Advanced patterns'
-              ],
-              popular: false
-            }
-          ]);
-        } else {
-          toast.error('Failed to load pricing plans');
-          setPlans([]);
-        }
+        toast.error('Failed to load pricing plans');
+        setPlans([]);
       } finally {
         setLoading(false);
       }
@@ -141,65 +96,83 @@ const Pricing = () => {
       />
       
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {plans.map((plan) => (
-            <div 
-              key={plan.id} 
-              className={`${currentTheme.cardBg} ${currentTheme.cardBorder} ${currentTheme.cardShadow} rounded-xl p-6 transition-all duration-300 hover:shadow-xl border relative ${
-                plan.popular ? 'ring-2 ring-opacity-50 transform hover:scale-105' : ''
-              } ${plan.popular ? `ring-${theme}-500` : ''}`}
-            >
-              {plan.popular && (
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <span className={`${currentTheme.highlight} text-sm font-medium px-4 py-1 rounded-full shadow-md`}>
-                    Most Popular
-                  </span>
-                </div>
-              )}
-              
-              <h3 className={`text-2xl font-bold ${currentTheme.bodySecondary} text-center mb-2`}>{plan.name}</h3>
-              <div className="mt-4 text-center">
-                <span className={`text-4xl font-bold ${currentTheme.bodySecondary}`}>${plan.price}</span>
-                {plan.period && <span className={`${currentTheme.bodyAccent} text-lg`}>/{plan.period}</span>}
-              </div>
-              <p className={`mt-2 ${currentTheme.bodyAccent} text-center text-sm`}>{plan.description}</p>
-              
-              <ul className="mt-6 space-y-3">
-                {plan.features.map((feature, index) => (
-                  <li key={index} className="flex items-start">
-                    <svg className={`h-5 w-5 ${currentTheme.bodyAccent} mr-2 mt-0.5 flex-shrink-0`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className={`${currentTheme.bodyText} text-sm`}>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              
-              <div className="mt-8">
-                <button
-                  onClick={() => handleSubscribe(plan.id, plan.name)}
-                  disabled={subscribing === plan.id}
-                  className={`w-full py-3 px-4 rounded-md font-medium transition-colors duration-200 ${
-                    plan.popular 
-                      ? `${currentTheme.btnPrimary} shadow-md hover:shadow-lg` 
-                      : `${currentTheme.btnSecondary}`
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  {subscribing === plan.id ? (
-                    <span className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                      Processing...
+        {plans.length === 0 ? (
+          <div className="text-center py-12">
+            <p className={`${currentTheme.bodyText} text-lg`}>No pricing plans available at the moment.</p>
+            <p className={`${currentTheme.bodyAccent} mt-2`}>Please check back later.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {plans.map((plan) => (
+              <div 
+                key={plan._id || plan.id} 
+                className={`${currentTheme.cardBg} ${currentTheme.cardBorder} ${currentTheme.cardShadow} rounded-xl p-6 transition-all duration-300 hover:shadow-xl border relative ${
+                  plan.isPopular || plan.popular ? 'ring-2 ring-opacity-50 transform hover:scale-105' : ''
+                }`}
+              >
+                {(plan.isPopular || plan.popular) && (
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <span className={`${currentTheme.highlight} text-sm font-medium px-4 py-1 rounded-full shadow-md`}>
+                      Most Popular
                     </span>
-                  ) : plan.id === 'free' ? (
-                    'Get Started'
-                  ) : (
-                    `Subscribe to ${plan.name}`
-                  )}
-                </button>
+                  </div>
+                )}
+                
+                <h3 className={`text-2xl font-bold ${currentTheme.bodySecondary} text-center mb-2`}>{plan.name}</h3>
+                <div className="mt-4 text-center">
+                  <span className={`text-4xl font-bold ${currentTheme.bodySecondary}`}>
+                    ${plan.price?.monthly || plan.price || 0}
+                  </span>
+                  <span className={`${currentTheme.bodyAccent} text-lg`}>/month</span>
+                </div>
+                {plan.price?.yearly && (
+                  <div className="text-center text-sm mt-1">
+                    <span className={`${currentTheme.bodyAccent}`}>
+                      or ${plan.price.yearly}/year (save {Math.round((1 - plan.price.yearly/(plan.price.monthly * 12)) * 100)}%)
+                    </span>
+                  </div>
+                )}
+                <p className={`mt-2 ${currentTheme.bodyAccent} text-center text-sm`}>{plan.description}</p>
+                
+                <ul className="mt-6 space-y-3">
+                  {(plan.features || []).map((feature, index) => (
+                    <li key={index} className="flex items-start">
+                      <svg className={`h-5 w-5 ${currentTheme.bodyAccent} mr-2 mt-0.5 flex-shrink-0`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className={`${currentTheme.bodyText} text-sm`}>
+                        {typeof feature === 'string' ? feature : feature.name}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                
+                <div className="mt-8">
+                  <button
+                    onClick={() => handleSubscribe(plan._id || plan.id, plan.name)}
+                    disabled={subscribing === (plan._id || plan.id)}
+                    className={`w-full py-3 px-4 rounded-md font-medium transition-colors duration-200 ${
+                      plan.isPopular || plan.popular 
+                        ? `${currentTheme.btnPrimary} shadow-md hover:shadow-lg` 
+                        : `${currentTheme.btnSecondary}`
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {subscribing === (plan._id || plan.id) ? (
+                      <span className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                        Processing...
+                      </span>
+                    ) : (plan.price?.monthly === 0 || plan.price === 0) ? (
+                      'Get Started'
+                    ) : (
+                      `Subscribe to ${plan.name}`
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
         
         <div className={`mt-16 ${currentTheme.cardBg} ${currentTheme.cardBorder} ${currentTheme.cardShadow} rounded-xl p-8 border`}>
           <h2 className={`text-2xl font-bold ${currentTheme.bodySecondary} text-center mb-6`}>Frequently Asked Questions</h2>
