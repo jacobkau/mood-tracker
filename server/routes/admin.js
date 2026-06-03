@@ -690,20 +690,20 @@ router.delete('/pricing/:id', protect, admin, async (req, res) => {
 });
 
 // Toggle pricing plan active status (admin)
-router.patch('/pricing/:id/toggle-active', protect, admin, async (req, res) => {
+// Toggle popular status (admin)
+router.patch('/pricing/:id/popular', protect, admin, async (req, res) => {
   try {
     const pricingPlan = await PricingPlan.findById(req.params.id);
     if (!pricingPlan) {
       return res.status(404).json({ error: 'Pricing plan not found' });
     }
-    
-    pricingPlan.isActive = !pricingPlan.isActive;
+
+    pricingPlan.isPopular = !pricingPlan.isPopular;
     await pricingPlan.save();
-    
-    res.json({ isActive: pricingPlan.isActive });
-    
+
+    res.json({ isPopular: pricingPlan.isPopular });
   } catch (error) {
-    console.error('Error toggling plan status:', error);
+    console.error('Error toggling popular status:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
