@@ -636,11 +636,11 @@ const createPricingPlan = async (e) => {
   const monthlyPrice = parseFloat(pricingForm.monthlyPrice);
   const yearlyPrice = parseFloat(pricingForm.yearlyPrice);
   
-  if (isNaN(monthlyPrice) || monthlyPrice < 0) {
+  if (isNaN(monthlyPrice)) {
     toast.error("Please enter a valid monthly price");
     return;
   }
-  if (isNaN(yearlyPrice) || yearlyPrice < 0) {
+  if (isNaN(yearlyPrice)) {
     toast.error("Please enter a valid yearly price");
     return;
   }
@@ -649,29 +649,24 @@ const createPricingPlan = async (e) => {
     setIsSubmitting(true);
     const token = localStorage.getItem("token");
     
-    // IMPORTANT: Send data in the format the backend expects
+    // Send data in the format expected by admin.js
     const planData = {
       name: pricingForm.name.trim(),
       description: pricingForm.description.trim(),
-      price: {
-        monthly: monthlyPrice,
-        yearly: yearlyPrice,
-        currency: 'USD'
-      },
-      features: [], // Add default empty features array
-      isActive: true,
-      isPopular: false,
-      order: 0,
-      trialPeriod: 0
+      monthlyPrice: monthlyPrice,  // Send as direct field
+      yearlyPrice: yearlyPrice     // Send as direct field
     };
     
-    console.log("Sending pricing plan data:", planData); // Debug log
+    console.log("Sending pricing data:", planData);
     
     const response = await axios.post(
       `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing`,
       planData,
       {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       }
     );
     
@@ -690,9 +685,6 @@ const createPricingPlan = async (e) => {
     
   } catch (err) {
     console.error("Failed to create pricing plan:", err);
-    console.error("Error details:", err.response?.data);
-    
-    // Show detailed error message
     const errorMessage = err.response?.data?.error || err.response?.data?.message || "Failed to create pricing plan";
     toast.error(errorMessage);
   } finally {
