@@ -78,11 +78,27 @@ router.get('/plans', async (req, res) => {
 // Get user's subscription status
 router.get('/status', protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('subscription');
+    const user = await User.findById(req.user.id).select('subscription username email');
+    
+    // Ensure subscription exists
+    if (!user.subscription) {
+      user.subscription = {
+        plan: 'free',
+        status: 'active',
+        currentPeriodStart: new Date()
+      };
+      await user.save();
+    }
+    
+    console.log('User subscription:', user.subscription);
     
     res.json({ 
       success: true, 
-      subscription: user.subscription 
+      subscription: user.subscription,
+      user: {
+        username: user.username,
+        email: user.email
+      }
     });
   } catch (error) {
     console.error('Get subscription status error:', error);
@@ -93,12 +109,13 @@ router.get('/status', protect, async (req, res) => {
   }
 });
 
-// Subscribe to a plan - UPDATED to handle both MongoDB IDs and plan names
+// Subscribe to a plan - FIXED
 router.post('/subscribe', protect, async (req, res) => {
   try {
     let { planId } = req.body;
     
     console.log('Received planId:', planId);
+    console.log('User ID:', req.user.id);
     
     // Define valid plans and their configurations
     const validPlans = {
@@ -107,9 +124,8 @@ router.post('/subscribe', protect, async (req, res) => {
       'premium': { plan: 'premium', status: 'active' }
     };
     
-    // Also map common MongoDB ID patterns or plan names
+    // Map plan names to IDs
     const planMapping = {
-      // Map by name
       'free': 'free',
       'pro': 'pro', 
       'premium': 'premium',
@@ -124,20 +140,28 @@ router.post('/subscribe', protect, async (req, res) => {
     let mappedPlanId = planId;
     
     if (isMongoId) {
-      // If it's a MongoDB ID, we need to look up the plan
-      const PricingPlan = require('../models/Pricing');
-      const plan = await PricingPlan.findById(planId);
-      
-      if (!plan) {
+      try {
+        // If it's a MongoDB ID, look up the plan
+        const PricingPlan = require('../models/Pricing');
+        const plan = await PricingPlan.findById(planId);
+        
+        if (!plan) {
+          return res.status(400).json({ 
+            success: false,
+            error: 'Invalid plan ID - Plan not found in database' 
+          });
+        }
+        
+        // Map the plan name to the expected ID
+        const planName = plan.name.toLowerCase();
+        mappedPlanId = planMapping[planName] || planName;
+      } catch (error) {
+        console.error('Error looking up plan:', error);
         return res.status(400).json({ 
           success: false,
-          error: 'Invalid plan ID - Plan not found in database' 
+          error: 'Invalid plan ID' 
         });
       }
-      
-      // Map the plan name to the expected ID
-      const planName = plan.name.toLowerCase();
-      mappedPlanId = planMapping[planName] || planName;
     } else {
       // Try direct mapping
       mappedPlanId = planMapping[planId] || planId;
@@ -163,21 +187,34 @@ router.post('/subscribe', protect, async (req, res) => {
     
     // Calculate period end date
     const periodDays = mappedPlanId === 'premium' ? 365 : 30;
+    const currentPeriodEnd = new Date();
+    currentPeriodEnd.setDate(currentPeriodEnd.getDate() + periodDays);
     
+    // Update subscription
     user.subscription = {
-      ...validPlans[mappedPlanId],
+      plan: mappedPlanId,
+      status: 'active',
       currentPeriodStart: new Date(),
-      currentPeriodEnd: new Date(Date.now() + periodDays * 24 * 60 * 60 * 1000)
+      currentPeriodEnd: currentPeriodEnd,
+      cancelledAt: null
     };
     
     await user.save();
     
     console.log(`User ${user.email} subscribed to ${mappedPlanId} plan`);
+    console.log('Updated subscription:', user.subscription);
+    
+    // Return the updated user with subscription
+    const updatedUser = await User.findById(req.user.id).select('subscription username email');
     
     res.json({ 
       success: true,
       message: `Subscribed to ${mappedPlanId} plan successfully`,
-      subscription: user.subscription
+      subscription: updatedUser.subscription,
+      user: {
+        username: updatedUser.username,
+        email: updatedUser.email
+      }
     });
   } catch (error) {
     console.error('Subscribe error:', error);
@@ -193,7 +230,7 @@ router.post('/cancel', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     
-    if (user.subscription.plan === 'free') {
+    if (!user.subscription || user.subscription.plan === 'free') {
       return res.status(400).json({ 
         success: false,
         error: 'Cannot cancel free plan' 
@@ -204,6 +241,8 @@ router.post('/cancel', protect, async (req, res) => {
     user.subscription.cancelledAt = new Date();
     
     await user.save();
+    
+    console.log(`User ${user.email} cancelled subscription`);
     
     res.json({ 
       success: true,
