@@ -93,46 +93,97 @@ router.get('/status', protect, async (req, res) => {
   }
 });
 
-// Subscribe to a plan
+// Subscribe to a plan - UPDATED to handle both MongoDB IDs and plan names
 router.post('/subscribe', protect, async (req, res) => {
   try {
-    const { planId } = req.body;
+    let { planId } = req.body;
     
-    const plans = {
-      free: { plan: 'free', status: 'active' },
-      pro: { plan: 'pro', status: 'active' },
-      premium: { plan: 'premium', status: 'active' }
+    console.log('Received planId:', planId);
+    
+    // Define valid plans and their configurations
+    const validPlans = {
+      'free': { plan: 'free', status: 'active' },
+      'pro': { plan: 'pro', status: 'active' },
+      'premium': { plan: 'premium', status: 'active' }
     };
     
-    if (!plans[planId]) {
+    // Also map common MongoDB ID patterns or plan names
+    const planMapping = {
+      // Map by name
+      'free': 'free',
+      'pro': 'pro', 
+      'premium': 'premium',
+      'basic': 'free',
+      'professional': 'pro',
+      'enterprise': 'premium'
+    };
+    
+    // Check if the planId is a MongoDB ObjectId (24 hex chars)
+    const isMongoId = /^[0-9a-fA-F]{24}$/.test(planId);
+    
+    let mappedPlanId = planId;
+    
+    if (isMongoId) {
+      // If it's a MongoDB ID, we need to look up the plan
+      const PricingPlan = require('../models/Pricing');
+      const plan = await PricingPlan.findById(planId);
+      
+      if (!plan) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'Invalid plan ID - Plan not found in database' 
+        });
+      }
+      
+      // Map the plan name to the expected ID
+      const planName = plan.name.toLowerCase();
+      mappedPlanId = planMapping[planName] || planName;
+    } else {
+      // Try direct mapping
+      mappedPlanId = planMapping[planId] || planId;
+    }
+    
+    console.log('Mapped planId:', mappedPlanId);
+    
+    // Check if the plan is valid
+    if (!validPlans[mappedPlanId]) {
       return res.status(400).json({ 
         success: false,
-        error: 'Invalid plan ID' 
+        error: `Invalid plan ID: ${planId}. Valid plans are: free, pro, premium` 
       });
     }
     
     const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'User not found' 
+      });
+    }
+    
+    // Calculate period end date
+    const periodDays = mappedPlanId === 'premium' ? 365 : 30;
+    
     user.subscription = {
-      ...plans[planId],
+      ...validPlans[mappedPlanId],
       currentPeriodStart: new Date(),
-      currentPeriodEnd: new Date(Date.now() + (planId === 'premium' ? 365 : 30) * 24 * 60 * 60 * 1000)
+      currentPeriodEnd: new Date(Date.now() + periodDays * 24 * 60 * 60 * 1000)
     };
     
     await user.save();
     
-    // In production, you would integrate with Stripe/PayPal here
-    // and handle actual payment processing
+    console.log(`User ${user.email} subscribed to ${mappedPlanId} plan`);
     
     res.json({ 
       success: true,
-      message: `Subscribed to ${planId} plan successfully`,
+      message: `Subscribed to ${mappedPlanId} plan successfully`,
       subscription: user.subscription
     });
   } catch (error) {
     console.error('Subscribe error:', error);
     res.status(500).json({ 
       success: false,
-      error: 'Failed to process subscription' 
+      error: 'Failed to process subscription: ' + error.message
     });
   }
 });
