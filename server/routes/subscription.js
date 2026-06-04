@@ -230,6 +230,22 @@ router.post('/cancel', protect, async (req, res) => {
     });
   }
 });
+// Add to subscribe.js for debugging
+router.get('/debug/:email', async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.params.email });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json({
+      email: user.email,
+      subscription: user.subscription,
+      hasSubscriptionField: user.subscription !== undefined
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Check if user has access to a feature
 router.get('/check-feature/:feature', protect, async (req, res) => {
