@@ -1,6 +1,36 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
+// Define subscription schema
+const SubscriptionSchema = new mongoose.Schema({
+  plan: {
+    type: String,
+    enum: ['free', 'pro', 'premium'],
+    default: 'free'
+  },
+  status: {
+    type: String,
+    enum: ['active', 'cancelled', 'expired', 'trialing'],
+    default: 'active'
+  },
+  currentPeriodStart: {
+    type: Date,
+    default: Date.now
+  },
+  currentPeriodEnd: {
+    type: Date
+  },
+  cancelledAt: {
+    type: Date
+  },
+  stripeSubscriptionId: {
+    type: String
+  },
+  stripeCustomerId: {
+    type: String
+  }
+}, { _id: false });
+
 const UserSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -21,30 +51,38 @@ const UserSchema = new mongoose.Schema({
   lastName: { type: String, trim: true },
   phone: { type: String, trim: true },
   address: { type: String, trim: true },
-   role: { 
+  role: { 
     type: String, 
     enum: ['user', 'admin'], 
     default: 'user' 
   },
-   profileImage: {
+  profileImage: {
     type: String,
     default: null
   },
-
   password: {
     type: String,
     required: [true, "Password is required"],
     minlength: 6
   },
-   emailSubscribed: {
+  emailSubscribed: {
     type: Boolean,
     default: true
   },
-
-  // Email verification {this in development should be changed to false}
+  // Email verification
   emailVerified: { type: Boolean, default: true },
   verificationToken: { type: String },
-  verificationTokenExpires: { type: Date }
+  verificationTokenExpires: { type: Date },
+  
+  // ADD THIS - Subscription field
+  subscription: {
+    type: SubscriptionSchema,
+    default: () => ({
+      plan: 'free',
+      status: 'active',
+      currentPeriodStart: new Date()
+    })
+  }
 }, { timestamps: true });
 
 UserSchema.pre("save", async function (next) {
