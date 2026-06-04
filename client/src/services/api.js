@@ -171,59 +171,23 @@ export const getSubscriptionPlans = async () => {
   }
 };
 
-// Subscribe to plan - FIXED to always send the correct ID
+// Subscribe to plan - SIMPLIFIED VERSION
 export const subscribeToPlan = async (planId) => {
   console.log('Subscribing to plan:', planId);
   
-  // Map common plan identifiers to standard IDs
-  const planMapping = {
-    // By name
-    'free': 'free',
-    'pro': 'pro',
-    'premium': 'premium',
-    'basic': 'free',
-    'professional': 'pro',
-    'enterprise': 'premium',
-    
-    // By price (if needed)
-    '0': 'free',
-    '4.99': 'pro',
-    '49.99': 'premium'
-  };
-  
-  // If it's a MongoDB ObjectId (24 hex chars), look it up
-  let finalPlanId = planId;
-  
-  if (planId && /^[0-9a-fA-F]{24}$/.test(planId)) {
-    console.log('Detected MongoDB ID, checking mapping...');
-    
-    // Fetch the plan to get its name
-    try {
-      const response = await API.get(`/pricing/${planId}`);
-      if (response.data && response.data.name) {
-        const planName = response.data.name.toLowerCase();
-        finalPlanId = planMapping[planName] || planName;
-        console.log(`Mapped MongoDB ID to plan: ${finalPlanId}`);
-      }
-    } catch (error) {
-      console.error('Failed to fetch plan details:', error);
-    }
-  } else if (planMapping[planId]) {
-    finalPlanId = planMapping[planId];
-    console.log(`Mapped ${planId} to ${finalPlanId}`);
-  }
-  
   // Ensure we have a valid plan ID
-  if (!['free', 'pro', 'premium'].includes(finalPlanId)) {
-    console.warn(`Invalid plan ID: ${planId}, defaulting to free`);
-    finalPlanId = 'free';
-  }
+  let finalPlanId = String(planId).toLowerCase().trim();
+  
+  // Map common variations to standard IDs
+  if (finalPlanId === 'basic' || finalPlanId === 'free') finalPlanId = 'free';
+  if (finalPlanId === 'professional' || finalPlanId === 'pro') finalPlanId = 'pro';
+  if (finalPlanId === 'enterprise' || finalPlanId === 'premium') finalPlanId = 'premium';
   
   console.log('Final plan ID for subscription:', finalPlanId);
   
+  // Send the subscription request
   return API.post('/subscription/subscribe', { planId: finalPlanId });
 };
-
 // Helper function to extract plans from API response - UPDATED
 export const extractPlansFromResponse = (response) => {
   console.log('Extracting plans from response:', response);
