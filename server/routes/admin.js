@@ -882,7 +882,8 @@ router.get('/stats', protect, admin, async (req, res) => {
       totalFeatures,
       totalFaqs,
       totalPricingPlans,
-      totalGuides
+      totalGuides,
+      subscriptionStats
     ] = await Promise.all([
       User.countDocuments(),
       Review.countDocuments(),
@@ -892,8 +893,29 @@ router.get('/stats', protect, admin, async (req, res) => {
       Feature.countDocuments(),
       FAQ.countDocuments(),
       PricingPlan.countDocuments(),
-      Guide.countDocuments()
+      Guide.countDocuments(),
+      User.aggregate([
+        {
+          $group: {
+            _id: '$subscription.plan',
+            count: { $sum: 1 }
+          }
+        }
+      ])
     ]);
+
+    // Format subscription stats
+    const subscriptions = {
+      free: 0,
+      pro: 0,
+      premium: 0
+    };
+    
+    subscriptionStats.forEach(stat => {
+      if (stat._id === 'free') subscriptions.free = stat.count;
+      else if (stat._id === 'pro') subscriptions.pro = stat.count;
+      else if (stat._id === 'premium') subscriptions.premium = stat.count;
+    });
 
     res.json({
       totalUsers,
@@ -904,14 +926,14 @@ router.get('/stats', protect, admin, async (req, res) => {
       totalFeatures,
       totalFaqs,
       totalPricingPlans,
-      totalGuides
+      totalGuides,
+      subscriptions
     });
   } catch (error) {
     console.error('Error fetching stats:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
-
 
 // Get pricing plans with subscriber counts (admin only)
 router.get('/pricing-with-subscribers', protect, admin, async (req, res) => {
