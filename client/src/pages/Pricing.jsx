@@ -48,35 +48,43 @@ const Pricing = () => {
     fetchPlans();
   }, []);
 
-  const handleSubscribe = async (planId, planName) => {
-    try {
-      setSubscribing(planId);
-      
-      // Check if user is authenticated
-      const token = localStorage.getItem('token');
-      if (!token) {
-        navigate('/register', { 
-          state: { 
-            message: `Please create an account to subscribe to the ${planName} plan`,
-            plan: planId
-          } 
-        });
-        return;
-      }
+ const handleSubscribe = async (plan, planName) => {
+  try {
+    setSubscribing(plan.id || plan._id);
+    
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/register', { 
+        state: { 
+          message: `Please create an account to subscribe to the ${planName} plan`,
+          plan: plan.id || plan._id
+        } 
+      });
+      return;
+    }
 
-      await subscribeToPlan(planId);
-      toast.success(`Successfully subscribed to ${planName} plan!`);
+    // Send the plan ID (should be 'free', 'pro', or 'premium')
+    const planIdToSend = plan.id || plan.name?.toLowerCase();
+    console.log('Subscribing with plan ID:', planIdToSend);
+    
+    await subscribeToPlan(planIdToSend);
+    toast.success(`Successfully subscribed to ${planName} plan!`);
+    
+    // Wait a moment before redirecting
+    setTimeout(() => {
       navigate('/dashboard', { 
         state: { message: `Welcome to your ${planName} plan!` } 
       });
-    } catch (error) {
-      console.error('Subscription failed:', error);
-      toast.error(error.response?.data?.error || 'Subscription failed. Please try again.');
-    } finally {
-      setSubscribing(null);
-    }
-  };
-
+    }, 1500);
+    
+  } catch (error) {
+    console.error('Subscription failed:', error);
+    toast.error(error.response?.data?.error || 'Subscription failed. Please try again.');
+  } finally {
+    setSubscribing(null);
+  }
+};
   if (loading) {
     return (
       <div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen flex items-center justify-center`}>
