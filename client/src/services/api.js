@@ -76,6 +76,7 @@ export const submitTestimonial = (data) => API.post('/content/testimonials', dat
 export const subscribeToNewsletter = (email) => API.post('/content/newsletter', { email });
 
 // Subscription API - FIXED
+// Update the getSubscriptionPlans response transformation in api.js
 export const getSubscriptionPlans = async () => {
   try {
     // Try to fetch from the public pricing endpoint
@@ -84,7 +85,8 @@ export const getSubscriptionPlans = async () => {
     
     // Transform the data to match what the frontend expects
     const plans = response.data.map(plan => ({
-      id: plan._id,
+      _id: plan._id,  // Keep the MongoDB ID
+      id: plan.name.toLowerCase(), // Use name as ID (free, pro, premium)
       name: plan.name,
       price: plan.price?.monthly || 0,
       yearlyPrice: plan.price?.yearly || 0,
@@ -101,70 +103,9 @@ export const getSubscriptionPlans = async () => {
     return { data: plans };
   } catch (error) {
     console.error('Failed to fetch pricing plans from API:', error);
-    
-    // Return mock data as fallback only in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Using mock data for development');
-      return {
-        data: [
-          {
-            id: 'free',
-            name: 'Free',
-            price: 0,
-            description: 'Perfect for getting started with mood tracking',
-            features: [
-              'Basic mood tracking',
-              '7-day history',
-              'Standard charts',
-              'Email support',
-              'Basic analytics'
-            ],
-            popular: false,
-            period: 'month'
-          },
-          {
-            id: 'pro',
-            name: 'Pro',
-            price: 4.99,
-            period: 'month',
-            description: 'For those who want deeper insights',
-            features: [
-              'Unlimited mood tracking',
-              '90-day history',
-              'Advanced analytics',
-              'Custom reminders',
-              'Data export',
-              'Priority support',
-              'Trend analysis'
-            ],
-            popular: true
-          },
-          {
-            id: 'premium',
-            name: 'Premium',
-            price: 49.99,
-            period: 'year',
-            description: 'Best value for committed users',
-            features: [
-              'Everything in Pro',
-              '365-day history',
-              'Trend predictions',
-              'Personalized insights',
-              'Therapist sharing',
-              '24/7 support',
-              'Custom reports',
-              'Advanced patterns'
-            ],
-            popular: false
-          }
-        ]
-      };
-    }
-    
     throw error;
   }
 };
-
 // Helper function to extract plans from API response - UPDATED
 export const extractPlansFromResponse = (response) => {
   console.log('Extracting plans from response:', response);
