@@ -2303,7 +2303,7 @@ const togglePricingPopular = async (plan) => {
           </div>
         )}
 
-        {/* Review Response Modal */}
+              {/* Review Response Modal */}
         {selectedReview && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg w-full max-w-md">
@@ -2333,7 +2333,9 @@ const togglePricingPopular = async (plan) => {
             </div>
           </div>
         )}
-      </div>
-    </div>
-  );
-}
+      </div>  {/* Closes the max-w-7xl mx-auto div */}
+    </div>  {/* Closes the main container div */}
+  );  
+}  
+
+export default AdminPanel;
