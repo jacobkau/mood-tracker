@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 export default function SubscriptionInfo({ currentTheme }) {
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
     fetchSubscriptionStatus();
@@ -13,9 +14,27 @@ export default function SubscriptionInfo({ currentTheme }) {
   const fetchSubscriptionStatus = async () => {
     try {
       const response = await getSubscriptionStatus();
-      setSubscription(response.data.subscription);
+      console.log('Subscription response:', response.data);
+      
+      if (response.data.success && response.data.subscription) {
+        setSubscription(response.data.subscription);
+      } else {
+        // Default subscription
+        setSubscription({
+          plan: 'free',
+          status: 'active',
+          currentPeriodStart: new Date(),
+          currentPeriodEnd: null
+        });
+      }
     } catch (error) {
       console.error('Failed to fetch subscription:', error);
+      toast.error('Could not load subscription status');
+      // Set default subscription
+      setSubscription({
+        plan: 'free',
+        status: 'active'
+      });
     } finally {
       setLoading(false);
     }
@@ -23,8 +42,8 @@ export default function SubscriptionInfo({ currentTheme }) {
 
   if (loading) {
     return (
-      <div className="animate-pulse">
-        <div className="h-20 bg-gray-200 rounded"></div>
+      <div className={`${currentTheme.cardBg} rounded-lg p-6 border animate-pulse`}>
+        <div className="h-32 bg-gray-200 rounded"></div>
       </div>
     );
   }
@@ -39,6 +58,8 @@ export default function SubscriptionInfo({ currentTheme }) {
     ? Math.ceil((new Date(subscription.currentPeriodEnd) - new Date()) / (1000 * 60 * 60 * 24))
     : 0;
 
+  const isExpired = daysLeft < 0 && subscription?.plan !== 'free';
+
   return (
     <div className={`${currentTheme.cardBg} rounded-lg p-6 border`}>
       <div className="flex justify-between items-start mb-4">
@@ -48,32 +69,34 @@ export default function SubscriptionInfo({ currentTheme }) {
             <span className={`${planColors[subscription?.plan || 'free']} text-white px-3 py-1 rounded-full text-sm font-medium capitalize`}>
               {subscription?.plan || 'free'}
             </span>
-            <span className="text-sm text-gray-500 capitalize">
-              {subscription?.status}
+            <span className={`text-sm capitalize ${subscription?.status === 'active' ? 'text-green-600' : 'text-red-600'}`}>
+              {subscription?.status || 'active'}
             </span>
           </div>
         </div>
-        {subscription?.plan !== 'premium' && (
+        {subscription?.plan !== 'premium' && subscription?.plan !== 'pro' && (
           <button
             onClick={() => window.location.href = '/pricing'}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg text-sm hover:opacity-90"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg text-sm hover:opacity-90 transition-all"
           >
             Upgrade
           </button>
         )}
       </div>
 
-      {subscription?.currentPeriodEnd && subscription?.plan !== 'free' && (
+      {subscription?.plan !== 'free' && subscription?.currentPeriodEnd && (
         <div className="mb-4">
           <div className="text-sm text-gray-600 mb-1">
-            {daysLeft > 0 ? `${daysLeft} days remaining` : 'Subscription expired'}
+            {isExpired ? 'Subscription expired' : `${daysLeft} days remaining`}
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-500 h-2 rounded-full transition-all"
-              style={{ width: `${Math.max(0, (daysLeft / 30) * 100)}%` }}
-            />
-          </div>
+          {!isExpired && (
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-blue-500 h-2 rounded-full transition-all"
+                style={{ width: `${Math.min(100, Math.max(0, (daysLeft / 30) * 100))}%` }}
+              />
+            </div>
+          )}
         </div>
       )}
 
