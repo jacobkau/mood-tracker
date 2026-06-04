@@ -2340,5 +2340,3 @@ const togglePricingPopular = async (plan) => {
     </div>  
   ); 
 } 
-
-export default AdminPanel;
