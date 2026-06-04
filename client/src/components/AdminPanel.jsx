@@ -2333,9 +2333,9 @@ const togglePricingPopular = async (plan) => {
             </div>
           </div>
         )}
-      </div>  {/* Closes max-w-7xl mx-auto */}
-    </div>  {/* Closes min-h-screen container */}
-  );  {/* Closes return statement */}
-}  {/* Closes AdminPanel component */}
+      </div>  
+    </div>  
+  ); 
+} 
 
 export default AdminPanel;
