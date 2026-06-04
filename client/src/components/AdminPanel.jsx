@@ -1842,121 +1842,248 @@ const togglePricingPopular = async (plan) => {
       </form>
     </div>
 
-{/* Pricing Plans List with Subscriber Counts */}
-<h3 className="font-semibold mb-3">Existing Pricing Plans</h3>
-{/* Use pricingPlansWithSubscribers if available, otherwise fallback to pricingPlans */}
-{(pricingPlansWithSubscribers.length > 0 ? pricingPlansWithSubscribers : pricingPlans).length === 0 ? (
-  <div className="text-center py-8 text-gray-500">
-    <FiDollarSign className="w-12 h-12 mx-auto mb-4 opacity-50" />
-    <p>No pricing plans created yet</p>
-    <p className="text-sm mt-2">Click "Add New Pricing Plan" to get started</p>
-  </div>
-) : (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    {(pricingPlansWithSubscribers.length > 0 ? pricingPlansWithSubscribers : pricingPlans).map((plan) => {
-      // Calculate subscriber count (either from fetched data or from local calculation)
-      let subscriberCount = plan.subscriberCount || 0;
-      
-      // If we don't have subscriberCount from the API, try to calculate from users
-      if (!subscriberCount && pricingPlansWithSubscribers.length === 0) {
-        subscriberCount = users.filter(u => u.subscription?.plan?.toLowerCase() === plan.name?.toLowerCase()).length;
-      }
-      
-      return (
-        <div key={plan._id} className={`border rounded-lg p-4 transition-all ${
-          plan.isPopular ? 'ring-2 ring-yellow-400 shadow-lg' : ''
-        } ${!plan.isActive ? 'opacity-60' : ''}`}>
-          <div className="flex justify-between items-start mb-3">
-            <h4 className="font-semibold text-lg">{plan.name}</h4>
-            <div className="flex gap-1">
-              {plan.isPopular && (
-                <span className="text-yellow-500 text-xs">⭐ Popular</span>
-              )}
-            </div>
-          </div>
-          
-          <p className="text-gray-600 text-sm mb-3">{plan.description}</p>
-          
-          <div className="mb-2">
-            <span className="text-2xl font-bold">${plan.price?.monthly || 0}</span>
-            <span className="text-gray-600">/month</span>
-          </div>
-          
-          <div className="mb-4">
-            <span className="text-lg font-semibold">${plan.price?.yearly || 0}</span>
-            <span className="text-gray-600">/year</span>
-            {plan.price?.yearly > 0 && plan.price?.monthly > 0 && (
-              <span className="text-green-600 text-sm ml-2">
-                Save ${((plan.price.monthly * 12) - plan.price.yearly).toFixed(2)}/year
-              </span>
-            )}
-          </div>
 
-          {/* Subscriber Count */}
-          <div className="mb-3 p-2 bg-gray-50 dark:bg-gray-800 rounded">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Subscribers:</span>
-              <span className="text-lg font-bold text-blue-600">
-                {subscriberCount}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-              <div 
-                className="bg-blue-500 h-1.5 rounded-full"
-                style={{ width: `${stats?.totalUsers ? (subscriberCount / stats.totalUsers) * 100 : 0}%` }}
-              ></div>
-            </div>
+    {/* Pricing Tab */}
+{activeTab === 'pricing' && (
+  <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
+    <h2 className="text-xl font-semibold mb-4">Pricing Management</h2>
+
+    {/* Create/Edit Pricing Plan Form */}
+    <div id="pricing-form" className="mb-6 p-4 border rounded-lg">
+      <h3 className="font-semibold mb-3">
+        {isEditingPricing ? 'Edit Pricing Plan' : 'Add New Pricing Plan'}
+      </h3>
+      <form onSubmit={isEditingPricing ? updatePricingPlan : createPricingPlan}>
+        <div className="mb-3">
+          <label className="block text-sm font-medium mb-1">Plan Name *</label>
+          <input
+            type="text"
+            placeholder="e.g., Basic, Pro, Enterprise"
+            value={pricingForm.name}
+            onChange={(e) => setPricingForm({ ...pricingForm, name: e.target.value })}
+            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+        
+        <div className="mb-3">
+          <label className="block text-sm font-medium mb-1">Plan Description *</label>
+          <textarea
+            placeholder="Describe what this plan offers..."
+            value={pricingForm.description}
+            onChange={(e) => setPricingForm({ ...pricingForm, description: e.target.value })}
+            rows={2}
+            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">Monthly Price ($) *</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+              value={pricingForm.monthlyPrice}
+              onChange={(e) => setPricingForm({ ...pricingForm, monthlyPrice: e.target.value })}
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+              required
+            />
           </div>
-          
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => editPricingPlan(plan)}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
-            >
-              <FiEdit size={14} /> Edit
-            </button>
-            
-            <button
-              onClick={() => togglePricingActive(plan)}
-              className={`px-3 py-1 rounded text-sm flex items-center gap-1 ${
-                plan.isActive 
-                  ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
-                  : 'bg-green-500 hover:bg-green-600 text-white'
-              }`}
-            >
-              {plan.isActive ? <FiEyeOff size={14} /> : <FiEye size={14} />}
-              {plan.isActive ? 'Deactivate' : 'Activate'}
-            </button>
-            
-            <button
-              onClick={() => togglePricingPopular(plan)}
-              className={`px-3 py-1 rounded text-sm flex items-center gap-1 ${
-                plan.isPopular 
-                  ? 'bg-gray-500 hover:bg-gray-600 text-white' 
-                  : 'bg-yellow-500 hover:bg-yellow-600 text-white'
-              }`}
-            >
-              <FiStar size={14} />
-              {plan.isPopular ? 'Remove Popular' : 'Mark Popular'}
-            </button>
-            
-            <button
-              onClick={() => deletePricingPlan(plan._id, plan.name)}
-              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
-            >
-              <FiTrash2 size={14} /> Delete
-            </button>
-          </div>
-          
-          <div className="mt-3 text-xs text-gray-500">
-            Status: {plan.isActive ? '✅ Active' : '❌ Inactive'} | 
-            Order: {plan.order || 0}
+          <div>
+            <label className="block text-sm font-medium mb-1">Yearly Price ($) *</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+              value={pricingForm.yearlyPrice}
+              onChange={(e) => setPricingForm({ ...pricingForm, yearlyPrice: e.target.value })}
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+              required
+            />
           </div>
         </div>
-      );
-    })}
+        
+        {isEditingPricing && (
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={pricingForm.isActive || false}
+                  onChange={(e) => setPricingForm({ ...pricingForm, isActive: e.target.checked })}
+                  className="rounded"
+                />
+                <span className="text-sm font-medium">Active</span>
+              </label>
+            </div>
+            <div>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={pricingForm.isPopular || false}
+                  onChange={(e) => setPricingForm({ ...pricingForm, isPopular: e.target.checked })}
+                  className="rounded"
+                />
+                <span className="text-sm font-medium">Popular</span>
+              </label>
+            </div>
+          </div>
+        )}
+        
+        <div className="text-sm text-gray-500 mb-3">
+          💡 Tip: Yearly plans typically offer a discount (e.g., $9.99/month = $99.99/year)
+        </div>
+        
+        <div className="flex gap-2">
+          <button
+            type="submit"
+            disabled={isSubmitting || isUpdatingPricing}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+          >
+            {isSubmitting || isUpdatingPricing ? (
+              <span className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                {isEditingPricing ? 'Updating...' : 'Creating...'}
+              </span>
+            ) : (
+              isEditingPricing ? 'Update Plan' : 'Create Plan'
+            )}
+          </button>
+          
+          {isEditingPricing && (
+            <button
+              type="button"
+              onClick={cancelPricingEdit}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
+      </form>
+    </div>
+
+    {/* Pricing Plans List with Subscriber Counts */}
+    <h3 className="font-semibold mb-3">Existing Pricing Plans</h3>
+    {(pricingPlansWithSubscribers.length > 0 ? pricingPlansWithSubscribers : pricingPlans).length === 0 ? (
+      <div className="text-center py-8 text-gray-500">
+        <FiDollarSign className="w-12 h-12 mx-auto mb-4 opacity-50" />
+        <p>No pricing plans created yet</p>
+        <p className="text-sm mt-2">Click "Add New Pricing Plan" to get started</p>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {(pricingPlansWithSubscribers.length > 0 ? pricingPlansWithSubscribers : pricingPlans).map((plan) => {
+          let subscriberCount = plan.subscriberCount || 0;
+          
+          if (!subscriberCount && pricingPlansWithSubscribers.length === 0) {
+            subscriberCount = users.filter(u => u.subscription?.plan?.toLowerCase() === plan.name?.toLowerCase()).length;
+          }
+          
+          return (
+            <div key={plan._id} className={`border rounded-lg p-4 transition-all ${
+              plan.isPopular ? 'ring-2 ring-yellow-400 shadow-lg' : ''
+            } ${!plan.isActive ? 'opacity-60' : ''}`}>
+              <div className="flex justify-between items-start mb-3">
+                <h4 className="font-semibold text-lg">{plan.name}</h4>
+                <div className="flex gap-1">
+                  {plan.isPopular && (
+                    <span className="text-yellow-500 text-xs">⭐ Popular</span>
+                  )}
+                </div>
+              </div>
+              
+              <p className="text-gray-600 text-sm mb-3">{plan.description}</p>
+              
+              <div className="mb-2">
+                <span className="text-2xl font-bold">${plan.price?.monthly || 0}</span>
+                <span className="text-gray-600">/month</span>
+              </div>
+              
+              <div className="mb-4">
+                <span className="text-lg font-semibold">${plan.price?.yearly || 0}</span>
+                <span className="text-gray-600">/year</span>
+                {plan.price?.yearly > 0 && plan.price?.monthly > 0 && (
+                  <span className="text-green-600 text-sm ml-2">
+                    Save ${((plan.price.monthly * 12) - plan.price.yearly).toFixed(2)}/year
+                  </span>
+                )}
+              </div>
+
+              {/* Subscriber Count */}
+              <div className="mb-3 p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Subscribers:</span>
+                  <span className="text-lg font-bold text-blue-600">
+                    {subscriberCount}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                  <div 
+                    className="bg-blue-500 h-1.5 rounded-full"
+                    style={{ width: `${stats?.totalUsers ? (subscriberCount / stats.totalUsers) * 100 : 0}%` }}
+                  ></div>
+                </div>
+              </div>
+              
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => editPricingPlan(plan)}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+                >
+                  <FiEdit size={14} /> Edit
+                </button>
+                
+                <button
+                  onClick={() => togglePricingActive(plan)}
+                  className={`px-3 py-1 rounded text-sm flex items-center gap-1 ${
+                    plan.isActive 
+                      ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
+                      : 'bg-green-500 hover:bg-green-600 text-white'
+                  }`}
+                >
+                  {plan.isActive ? <FiEyeOff size={14} /> : <FiEye size={14} />}
+                  {plan.isActive ? 'Deactivate' : 'Activate'}
+                </button>
+                
+                <button
+                  onClick={() => togglePricingPopular(plan)}
+                  className={`px-3 py-1 rounded text-sm flex items-center gap-1 ${
+                    plan.isPopular 
+                      ? 'bg-gray-500 hover:bg-gray-600 text-white' 
+                      : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                  }`}
+                >
+                  <FiStar size={14} />
+                  {plan.isPopular ? 'Remove Popular' : 'Mark Popular'}
+                </button>
+                
+                <button
+                  onClick={() => deletePricingPlan(plan._id, plan.name)}
+                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+                >
+                  <FiTrash2 size={14} /> Delete
+                </button>
+              </div>
+              
+              <div className="mt-3 text-xs text-gray-500">
+                Status: {plan.isActive ? '✅ Active' : '❌ Inactive'} | 
+                Order: {plan.order || 0}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    )}
   </div>
 )}
+
+
+    
 {/* Guides Tab */}
 {activeTab === 'guides' && (
           <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
