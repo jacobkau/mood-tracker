@@ -14,36 +14,39 @@ const Pricing = () => {
   const currentTheme = themes[theme];
 
   useEffect(() => {
-    const fetchPlans = async () => {
-      try {
-        setLoading(true);
-        const response = await getSubscriptionPlans();
-        
-        console.log('Fetched plans response:', response);
-        
-        // Extract plans array from response
-        let plansArray = [];
-        if (Array.isArray(response)) {
-          plansArray = response;
-        } else if (response.data && Array.isArray(response.data)) {
-          plansArray = response.data;
-        } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
-          plansArray = response.data.data;
-        } else {
-          plansArray = response.data || [];
-        }
-        
-        console.log('Processed plans array:', plansArray);
-        setPlans(plansArray);
-        
-      } catch (error) {
-        console.error('Failed to fetch plans:', error);
-        toast.error('Failed to load pricing plans');
-        setPlans([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+   // In pricing.jsx, update the plan mapping when fetching
+const fetchPlans = async () => {
+  try {
+    setLoading(true);
+    const response = await getSubscriptionPlans();
+    
+    console.log('Raw response:', response);
+    
+    let plansArray = [];
+    if (response.data && Array.isArray(response.data)) {
+      plansArray = response.data;
+    } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+      plansArray = response.data.data;
+    } else {
+      plansArray = [];
+    }
+    
+    // Ensure each plan has a proper ID for subscription
+    const processedPlans = plansArray.map(plan => ({
+      ...plan,
+      subscriptionId: plan.id || plan.name?.toLowerCase() || 'free'
+    }));
+    
+    console.log('Processed plans:', processedPlans);
+    setPlans(processedPlans);
+    
+  } catch (error) {
+    console.error('Failed to fetch plans:', error);
+    toast.error('Failed to load pricing plans');
+  } finally {
+    setLoading(false);
+  }
+};
 
     fetchPlans();
   }, []);
