@@ -913,5 +913,38 @@ router.get('/stats', protect, admin, async (req, res) => {
 });
 
 
-
+// Get pricing plans with subscriber counts (admin only)
+router.get('/pricing-with-subscribers', protect, admin, async (req, res) => {
+  try {
+    // Get all pricing plans
+    const pricingPlans = await PricingPlan.find().sort({ order: 1 });
+    
+    // Get subscriber counts for each plan
+    const subscribersByPlan = await User.aggregate([
+      {
+        $group: {
+          _id: '$subscription.plan',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+    
+    // Create a map of plan to subscriber count
+    const subscriberMap = {};
+    subscribersByPlan.forEach(item => {
+      subscriberMap[item._id] = item.count;
+    });
+    
+    // Add subscriber count to each plan
+    const plansWithSubscribers = pricingPlans.map(plan => ({
+      ...plan.toObject(),
+      subscriberCount: subscriberMap[plan.name.toLowerCase()] || 0
+    }));
+    
+    res.json(plansWithSubscribers);
+  } catch (error) {
+    console.error('Error fetching pricing plans with subscribers:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 module.exports = router;
