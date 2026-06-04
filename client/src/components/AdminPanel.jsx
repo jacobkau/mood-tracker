@@ -50,10 +50,10 @@ export default function AdminPanel() {
   const { theme, themes } = useTheme();
   const currentTheme = themes[theme];
   const [editingPricing, setEditingPricing] = useState(null);
-const [isEditingPricing, setIsEditingPricing] = useState(false);
-const [isUpdatingPricing, setIsUpdatingPricing] = useState(false);
+  const [isEditingPricing, setIsEditingPricing] = useState(false);
+  const [isUpdatingPricing, setIsUpdatingPricing] = useState(false);
   const [subscriptionStats, setSubscriptionStats] = useState({ free: 0, pro: 0, premium: 0 });
-const [pricingPlansWithSubscribers, setPricingPlansWithSubscribers] = useState([]);
+  const [pricingPlansWithSubscribers, setPricingPlansWithSubscribers] = useState([]);
 
   // Form states for different sections
   const [pageForm, setPageForm] = useState({ title: '', slug: '', content: '' });
@@ -106,43 +106,43 @@ const [pricingPlansWithSubscribers, setPricingPlansWithSubscribers] = useState([
   }, [activeTab]);
 
   useEffect(() => {
-  fetchStats();
-  if (activeTab === 'users') fetchUsers();
-  if (activeTab === 'reviews') fetchReviews();
-  if (activeTab === 'contacts') fetchContacts();
-  if (activeTab === 'pages') fetchPages();
-  if (activeTab === 'emails') fetchEmails();
-  if (activeTab === 'blogs') fetchBlogs();
-  if (activeTab === 'features') fetchFeatures();
-  if (activeTab === 'faqs') fetchFaqs();
-  if (activeTab === 'pricing') {
-    fetchPricingPlans();
-    fetchPricingPlansWithSubscribers();
-  }
-  if (activeTab === 'guides') fetchGuides();
-}, [activeTab]);
-
- const fetchStats = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    const { data } = await axios.get(
-      `${import.meta.env.VITE_API_BASE_URL}/api/admin/stats`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    setStats(data);
-    if (data.subscriptions) {
-      setSubscriptionStats(data.subscriptions);
+    fetchStats();
+    if (activeTab === 'users') fetchUsers();
+    if (activeTab === 'reviews') fetchReviews();
+    if (activeTab === 'contacts') fetchContacts();
+    if (activeTab === 'pages') fetchPages();
+    if (activeTab === 'emails') fetchEmails();
+    if (activeTab === 'blogs') fetchBlogs();
+    if (activeTab === 'features') fetchFeatures();
+    if (activeTab === 'faqs') fetchFaqs();
+    if (activeTab === 'pricing') {
+      fetchPricingPlans();
+      fetchPricingPlansWithSubscribers();
     }
-  } catch (err) {
-    console.error("Failed to fetch stats", err);
-  } finally {
-    setLoading(false);
-  }
-};
+    if (activeTab === 'guides') fetchGuides();
+  }, [activeTab]);
 
-  
+  const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/stats`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setStats(data);
+      if (data.subscriptions) {
+        setSubscriptionStats(data.subscriptions);
+      }
+    } catch (err) {
+      console.error("Failed to fetch stats", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -158,24 +158,24 @@ const [pricingPlansWithSubscribers, setPricingPlansWithSubscribers] = useState([
       toast.error("Failed to load users");
     }
   };
-// Fetch pricing plans with subscriber counts
-const fetchPricingPlansWithSubscribers = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    console.log("Fetching pricing plans with subscribers...");
-    const { data } = await axios.get(
-      `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing-with-subscribers`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    console.log("Pricing plans with subscribers:", data);
-    setPricingPlansWithSubscribers(data);
-  } catch (err) {
-    console.error("Failed to fetch pricing plans with subscribers", err);
-    console.error("Error details:", err.response?.data);
-  }
-};
+  // Fetch pricing plans with subscriber counts
+  const fetchPricingPlansWithSubscribers = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      console.log("Fetching pricing plans with subscribers...");
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing-with-subscribers`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("Pricing plans with subscribers:", data);
+      setPricingPlansWithSubscribers(data);
+    } catch (err) {
+      console.error("Failed to fetch pricing plans with subscribers", err);
+      console.error("Error details:", err.response?.data);
+    }
+  };
 
   const fetchReviews = async () => {
 
@@ -647,295 +647,295 @@ const fetchPricingPlansWithSubscribers = async () => {
     }
   };
 
-const createPricingPlan = async (e) => {
-  e.preventDefault();
-  
-  // Validate inputs
-  if (!pricingForm.name.trim()) {
-    toast.error("Plan name is required");
-    return;
-  }
-  if (!pricingForm.description.trim()) {
-    toast.error("Plan description is required");
-    return;
-  }
-  
-  // Parse and validate price values
-  const monthlyPrice = parseFloat(pricingForm.monthlyPrice);
-  const yearlyPrice = parseFloat(pricingForm.yearlyPrice);
-  
-  if (isNaN(monthlyPrice)) {
-    toast.error("Please enter a valid monthly price");
-    return;
-  }
-  if (isNaN(yearlyPrice)) {
-    toast.error("Please enter a valid yearly price");
-    return;
-  }
-  
-  try {
-    setIsSubmitting(true);
-    const token = localStorage.getItem("token");
-    
-    // Send data in the format expected by admin.js
-    const planData = {
-      name: pricingForm.name.trim(),
-      description: pricingForm.description.trim(),
-      monthlyPrice: monthlyPrice,  // Send as direct field
-      yearlyPrice: yearlyPrice     // Send as direct field
-    };
-    
-    console.log("Sending pricing data:", planData);
-    
-    const response = await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing`,
-      planData,
-      {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-    
-    toast.success("Pricing plan created successfully");
-    
-    // Reset form
-    setPricingForm({ 
-      name: '', 
-      description: '', 
-      monthlyPrice: '', 
-      yearlyPrice: '' 
-    });
-    
-    // Refresh the list
-    fetchPricingPlans();
-    
-  } catch (err) {
-    console.error("Failed to create pricing plan:", err);
-    const errorMessage = err.response?.data?.error || err.response?.data?.message || "Failed to create pricing plan";
-    toast.error(errorMessage);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-// Update pricing plan
-const updatePricingPlan = async (e) => {
-  e.preventDefault();
-  
-  if (!editingPricing) return;
-  
-  // Validate inputs
-  if (!pricingForm.name.trim()) {
-    toast.error("Plan name is required");
-    return;
-  }
-  if (!pricingForm.description.trim()) {
-    toast.error("Plan description is required");
-    return;
-  }
-  
-  // Parse and validate price values
-  const monthlyPrice = parseFloat(pricingForm.monthlyPrice);
-  const yearlyPrice = parseFloat(pricingForm.yearlyPrice);
-  
-  if (isNaN(monthlyPrice)) {
-    toast.error("Please enter a valid monthly price");
-    return;
-  }
-  if (isNaN(yearlyPrice)) {
-    toast.error("Please enter a valid yearly price");
-    return;
-  }
-  
-  try {
-    setIsUpdatingPricing(true);
-    const token = localStorage.getItem("token");
-    
-    const planData = {
-      name: pricingForm.name.trim(),
-      description: pricingForm.description.trim(),
-      monthlyPrice: monthlyPrice,
-      yearlyPrice: yearlyPrice,
-      isActive: pricingForm.isActive !== undefined ? pricingForm.isActive : true,
-      isPopular: pricingForm.isPopular || false,
-      order: pricingForm.order || 0
-    };
-    
-    console.log("Updating pricing plan:", planData);
-    
-    const response = await axios.put(
-      `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing/${editingPricing._id}`,
-      planData,
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    );
-    
-    toast.success("Pricing plan updated successfully");
-    
-    // Reset editing state
-    cancelPricingEdit();
-    
-    // Refresh the list
-    fetchPricingPlans();
-    
-  } catch (err) {
-    console.error("Failed to update pricing plan:", err);
-    const errorMessage = err.response?.data?.error || err.response?.data?.message || "Failed to update pricing plan";
-    toast.error(errorMessage);
-  } finally {
-    setIsUpdatingPricing(false);
-  }
-};
+  const createPricingPlan = async (e) => {
+    e.preventDefault();
 
-// Delete pricing plan
-const deletePricingPlan = async (planId, planName) => {
-  if (window.confirm(`Are you sure you want to delete the "${planName}" pricing plan?`)) {
+    // Validate inputs
+    if (!pricingForm.name.trim()) {
+      toast.error("Plan name is required");
+      return;
+    }
+    if (!pricingForm.description.trim()) {
+      toast.error("Plan description is required");
+      return;
+    }
+
+    // Parse and validate price values
+    const monthlyPrice = parseFloat(pricingForm.monthlyPrice);
+    const yearlyPrice = parseFloat(pricingForm.yearlyPrice);
+
+    if (isNaN(monthlyPrice)) {
+      toast.error("Please enter a valid monthly price");
+      return;
+    }
+    if (isNaN(yearlyPrice)) {
+      toast.error("Please enter a valid yearly price");
+      return;
+    }
+
     try {
+      setIsSubmitting(true);
       const token = localStorage.getItem("token");
-      await axios.delete(
-        `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing/${planId}`,
+
+      // Send data in the format expected by admin.js
+      const planData = {
+        name: pricingForm.name.trim(),
+        description: pricingForm.description.trim(),
+        monthlyPrice: monthlyPrice,  // Send as direct field
+        yearlyPrice: yearlyPrice     // Send as direct field
+      };
+
+      console.log("Sending pricing data:", planData);
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing`,
+        planData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      toast.success("Pricing plan created successfully");
+
+      // Reset form
+      setPricingForm({
+        name: '',
+        description: '',
+        monthlyPrice: '',
+        yearlyPrice: ''
+      });
+
+      // Refresh the list
+      fetchPricingPlans();
+
+    } catch (err) {
+      console.error("Failed to create pricing plan:", err);
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || "Failed to create pricing plan";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  // Update pricing plan
+  const updatePricingPlan = async (e) => {
+    e.preventDefault();
+
+    if (!editingPricing) return;
+
+    // Validate inputs
+    if (!pricingForm.name.trim()) {
+      toast.error("Plan name is required");
+      return;
+    }
+    if (!pricingForm.description.trim()) {
+      toast.error("Plan description is required");
+      return;
+    }
+
+    // Parse and validate price values
+    const monthlyPrice = parseFloat(pricingForm.monthlyPrice);
+    const yearlyPrice = parseFloat(pricingForm.yearlyPrice);
+
+    if (isNaN(monthlyPrice)) {
+      toast.error("Please enter a valid monthly price");
+      return;
+    }
+    if (isNaN(yearlyPrice)) {
+      toast.error("Please enter a valid yearly price");
+      return;
+    }
+
+    try {
+      setIsUpdatingPricing(true);
+      const token = localStorage.getItem("token");
+
+      const planData = {
+        name: pricingForm.name.trim(),
+        description: pricingForm.description.trim(),
+        monthlyPrice: monthlyPrice,
+        yearlyPrice: yearlyPrice,
+        isActive: pricingForm.isActive !== undefined ? pricingForm.isActive : true,
+        isPopular: pricingForm.isPopular || false,
+        order: pricingForm.order || 0
+      };
+
+      console.log("Updating pricing plan:", planData);
+
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing/${editingPricing._id}`,
+        planData,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
-      
-      toast.success("Pricing plan deleted successfully");
-      
-      // If we were editing this plan, cancel edit
-      if (editingPricing?._id === planId) {
-        cancelPricingEdit();
-      }
-      
+
+      toast.success("Pricing plan updated successfully");
+
+      // Reset editing state
+      cancelPricingEdit();
+
       // Refresh the list
       fetchPricingPlans();
-      
+
     } catch (err) {
-      console.error("Failed to delete pricing plan:", err);
-      const errorMessage = err.response?.data?.error || err.response?.data?.message || "Failed to delete pricing plan";
+      console.error("Failed to update pricing plan:", err);
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || "Failed to update pricing plan";
       toast.error(errorMessage);
+    } finally {
+      setIsUpdatingPricing(false);
     }
-  }
-};
+  };
 
-// Edit pricing plan - populate form with plan data
-const editPricingPlan = (plan) => {
-  console.log("Edit button clicked for plan:", plan); // Debug log
-  
-  if (!plan) {
-    console.error("No plan data provided");
-    toast.error("Cannot edit: No plan data");
-    return;
-  }
-  
-  try {
-    // Set editing states
-    setEditingPricing(plan);
-    setIsEditingPricing(true);
-    
-    // Populate the form with plan data
+  // Delete pricing plan
+  const deletePricingPlan = async (planId, planName) => {
+    if (window.confirm(`Are you sure you want to delete the "${planName}" pricing plan?`)) {
+      try {
+        const token = localStorage.getItem("token");
+        await axios.delete(
+          `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing/${planId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
+        toast.success("Pricing plan deleted successfully");
+
+        // If we were editing this plan, cancel edit
+        if (editingPricing?._id === planId) {
+          cancelPricingEdit();
+        }
+
+        // Refresh the list
+        fetchPricingPlans();
+
+      } catch (err) {
+        console.error("Failed to delete pricing plan:", err);
+        const errorMessage = err.response?.data?.error || err.response?.data?.message || "Failed to delete pricing plan";
+        toast.error(errorMessage);
+      }
+    }
+  };
+
+  // Edit pricing plan - populate form with plan data
+  const editPricingPlan = (plan) => {
+    console.log("Edit button clicked for plan:", plan); // Debug log
+
+    if (!plan) {
+      console.error("No plan data provided");
+      toast.error("Cannot edit: No plan data");
+      return;
+    }
+
+    try {
+      // Set editing states
+      setEditingPricing(plan);
+      setIsEditingPricing(true);
+
+      // Populate the form with plan data
+      setPricingForm({
+        name: plan.name || '',
+        description: plan.description || '',
+        monthlyPrice: plan.price?.monthly || 0,
+        yearlyPrice: plan.price?.yearly || 0,
+        isActive: plan.isActive !== undefined ? plan.isActive : true,
+        isPopular: plan.isPopular || false,
+        order: plan.order || 0
+      });
+
+      console.log("Form populated with:", {
+        name: plan.name,
+        description: plan.description,
+        monthlyPrice: plan.price?.monthly,
+        yearlyPrice: plan.price?.yearly
+      });
+
+      // Show success message
+      toast.info(`Editing plan: ${plan.name}`);
+
+      // Scroll to form after a short delay to allow DOM update
+      setTimeout(() => {
+        const formElement = document.getElementById('pricing-form');
+        if (formElement) {
+          formElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+          // Highlight the form
+          formElement.style.transition = 'all 0.3s ease';
+          formElement.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.5)';
+          setTimeout(() => {
+            formElement.style.boxShadow = '';
+          }, 2000);
+        } else {
+          console.error("Form element with id 'pricing-form' not found");
+        }
+      }, 100);
+
+    } catch (error) {
+      console.error("Error in editPricingPlan:", error);
+      toast.error("Failed to load plan data for editing");
+    }
+  };
+
+  // Cancel pricing edit
+  const cancelPricingEdit = () => {
+    console.log("Canceling edit mode"); // Debug log
+    setEditingPricing(null);
+    setIsEditingPricing(false);
     setPricingForm({
-      name: plan.name || '',
-      description: plan.description || '',
-      monthlyPrice: plan.price?.monthly || 0,
-      yearlyPrice: plan.price?.yearly || 0,
-      isActive: plan.isActive !== undefined ? plan.isActive : true,
-      isPopular: plan.isPopular || false,
-      order: plan.order || 0
+      name: '',
+      description: '',
+      monthlyPrice: '',
+      yearlyPrice: ''
     });
-    
-    console.log("Form populated with:", {
-      name: plan.name,
-      description: plan.description,
-      monthlyPrice: plan.price?.monthly,
-      yearlyPrice: plan.price?.yearly
-    });
-    
-    // Show success message
-    toast.info(`Editing plan: ${plan.name}`);
-    
-    // Scroll to form after a short delay to allow DOM update
-    setTimeout(() => {
-      const formElement = document.getElementById('pricing-form');
-      if (formElement) {
-        formElement.scrollIntoView({ 
-          behavior: 'smooth',
-          block: 'start'
-        });
-        // Highlight the form
-        formElement.style.transition = 'all 0.3s ease';
-        formElement.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.5)';
-        setTimeout(() => {
-          formElement.style.boxShadow = '';
-        }, 2000);
-      } else {
-        console.error("Form element with id 'pricing-form' not found");
-      }
-    }, 100);
-    
-  } catch (error) {
-    console.error("Error in editPricingPlan:", error);
-    toast.error("Failed to load plan data for editing");
-  }
-};
+    toast.info("Edit cancelled");
+  };
 
-// Cancel pricing edit
-const cancelPricingEdit = () => {
-  console.log("Canceling edit mode"); // Debug log
-  setEditingPricing(null);
-  setIsEditingPricing(false);
-  setPricingForm({ 
-    name: '', 
-    description: '', 
-    monthlyPrice: '', 
-    yearlyPrice: '' 
-  });
-  toast.info("Edit cancelled");
-};
+  // Toggle pricing plan active status
+  const togglePricingActive = async (plan) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.patch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing/${plan._id}/toggle-active`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
 
-// Toggle pricing plan active status
-const togglePricingActive = async (plan) => {
-  try {
-    const token = localStorage.getItem("token");
-    const response = await axios.patch(
-      `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing/${plan._id}/toggle-active`,
-      {},
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    );
-    
-    toast.success(`Plan ${response.data.isActive ? 'activated' : 'deactivated'} successfully`);
-    fetchPricingPlans();
-    
-  } catch (err) {
-    console.error("Failed to toggle plan status:", err);
-    toast.error("Failed to update plan status");
-  }
-};
+      toast.success(`Plan ${response.data.isActive ? 'activated' : 'deactivated'} successfully`);
+      fetchPricingPlans();
 
-// Toggle pricing plan popular status
-const togglePricingPopular = async (plan) => {
-  try {
-    const token = localStorage.getItem("token");
-    const response = await axios.patch(
-      `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing/${plan._id}/popular`,
-      {},
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    );
-    
-    toast.success(`Plan ${response.data.isPopular ? 'marked as popular' : 'removed from popular'} successfully`);
-    fetchPricingPlans();
-    
-  } catch (err) {
-    console.error("Failed to toggle popular status:", err);
-    toast.error("Failed to update popular status");
-  }
-};
-  
+    } catch (err) {
+      console.error("Failed to toggle plan status:", err);
+      toast.error("Failed to update plan status");
+    }
+  };
+
+  // Toggle pricing plan popular status
+  const togglePricingPopular = async (plan) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.patch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing/${plan._id}/popular`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      toast.success(`Plan ${response.data.isPopular ? 'marked as popular' : 'removed from popular'} successfully`);
+      fetchPricingPlans();
+
+    } catch (err) {
+      console.error("Failed to toggle popular status:", err);
+      toast.error("Failed to update popular status");
+    }
+  };
+
   const saveGuide = async (e) => {
     e.preventDefault();
     try {
@@ -1173,96 +1173,97 @@ const togglePricingPopular = async (plan) => {
           <TabButton name="settings" icon={<FiSettings />} label="Settings" />
         </div>
 
+        {/* Dashboard Tab */}
+        {activeTab === 'dashboard' && stats && (
+          <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className={`${currentTheme.cardBg} p-6 rounded-lg border text-center`}>
+                <FiUsers className="w-8 h-8 mx-auto mb-2 text-blue-500" />
+                <h3 className="text-lg font-semibold mb-2">Total Users</h3>
+                <p className="text-3xl font-bold">{stats.totalUsers}</p>
+              </div>
+              <div className={`${currentTheme.cardBg} p-6 rounded-lg border text-center`}>
+                <FiStar className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
+                <h3 className="text-lg font-semibold mb-2">Total Reviews</h3>
+                <p className="text-3xl font-bold">{stats.totalReviews}</p>
+              </div>
+              <div className={`${currentTheme.cardBg} p-6 rounded-lg border text-center`}>
+                <FiMessageSquare className="w-8 h-8 mx-auto mb-2 text-green-500" />
+                <h3 className="text-lg font-semibold mb-2">Pending Contacts</h3>
+                <p className="text-3xl font-bold">{stats.pendingContacts}</p>
+              </div>
+              <div className={`${currentTheme.cardBg} p-6 rounded-lg border text-center`}>
+                <FiMail className="w-8 h-8 mx-auto mb-2 text-purple-500" />
+                <h3 className="text-lg font-semibold mb-2">Newsletter Subscribers</h3>
+                <p className="text-3xl font-bold">{stats.newsletterSubscribers || 0}</p>
+              </div>
+            </div>
 
-  
-{/* Dashboard Tab */}
-{activeTab === 'dashboard' && stats && (
-  <div>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <div className={`${currentTheme.cardBg} p-6 rounded-lg border text-center`}>
-        <FiUsers className="w-8 h-8 mx-auto mb-2 text-blue-500" />
-        <h3 className="text-lg font-semibold mb-2">Total Users</h3>
-        <p className="text-3xl font-bold">{stats.totalUsers}</p>
-      </div>
-      <div className={`${currentTheme.cardBg} p-6 rounded-lg border text-center`}>
-        <FiStar className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
-        <h3 className="text-lg font-semibold mb-2">Total Reviews</h3>
-        <p className="text-3xl font-bold">{stats.totalReviews}</p>
-      </div>
-      <div className={`${currentTheme.cardBg} p-6 rounded-lg border text-center`}>
-        <FiMessageSquare className="w-8 h-8 mx-auto mb-2 text-green-500" />
-        <h3 className="text-lg font-semibold mb-2">Pending Contacts</h3>
-        <p className="text-3xl font-bold">{stats.pendingContacts}</p>
-      </div>
-      <div className={`${currentTheme.cardBg} p-6 rounded-lg border text-center`}>
-        <FiMail className="w-8 h-8 mx-auto mb-2 text-purple-500" />
-        <h3 className="text-lg font-semibold mb-2">Newsletter Subscribers</h3>
-        <p className="text-3xl font-bold">{stats.newsletterSubscribers || 0}</p>
-      </div>
-    </div>
+            {/* Subscription Distribution Section */}
+            <div className={`${currentTheme.cardBg} p-6 rounded-lg border mb-8`}>
+              <h3 className="text-lg font-semibold mb-4">Subscription Distribution</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="text-3xl font-bold text-gray-500">{stats.subscriptions?.free || 0}</div>
+                  <div className="text-sm text-gray-600 mt-1">Free Plan Users</div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div
+                      className="bg-gray-500 h-2 rounded-full"
+                      style={{ width: `${stats.totalUsers ? ((stats.subscriptions?.free || 0) / stats.totalUsers) * 100 : 0}%` }}
+                    ></div>
+                  </div>
+                </div>
+                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="text-3xl font-bold text-blue-500">{stats.subscriptions?.pro || 0}</div>
+                  <div className="text-sm text-gray-600 mt-1">Pro Plan Users</div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div
+                      className="bg-blue-500 h-2 rounded-full"
+                      style={{ width: `${stats.totalUsers ? ((stats.subscriptions?.pro || 0) / stats.totalUsers) * 100 : 0}%` }}
+                    ></div>
+                  </div>
+                </div>
+                <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                  <div className="text-3xl font-bold text-purple-500">{stats.subscriptions?.premium || 0}</div>
+                  <div className="text-sm text-gray-600 mt-1">Premium Plan Users</div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div
+                      className="bg-purple-500 h-2 rounded-full"
+                      style={{ width: `${stats.totalUsers ? ((stats.subscriptions?.premium || 0) / stats.totalUsers) * 100 : 0}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-    {/* Subscription Distribution Section */}
-    <div className={`${currentTheme.cardBg} p-6 rounded-lg border mb-8`}>
-      <h3 className="text-lg font-semibold mb-4">Subscription Distribution</h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <div className="text-3xl font-bold text-gray-500">{stats.subscriptions?.free || 0}</div>
-          <div className="text-sm text-gray-600 mt-1">Free Plan Users</div>
-          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-            <div 
-              className="bg-gray-500 h-2 rounded-full"
-              style={{ width: `${stats.totalUsers ? ((stats.subscriptions?.free || 0) / stats.totalUsers) * 100 : 0}%` }}
-            ></div>
+            {/* Content Stats Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className={`${currentTheme.cardBg} p-6 rounded-lg border text-center`}>
+                <FiBook className="w-8 h-8 mx-auto mb-2 text-indigo-500" />
+                <h3 className="text-lg font-semibold mb-2">Blogs</h3>
+                <p className="text-3xl font-bold">{stats.totalBlogs || 0}</p>
+              </div>
+              <div className={`${currentTheme.cardBg} p-6 rounded-lg border text-center`}>
+                <FiBox className="w-8 h-8 mx-auto mb-2 text-orange-500" />
+                <h3 className="text-lg font-semibold mb-2">Features</h3>
+                <p className="text-3xl font-bold">{stats.totalFeatures || 0}</p>
+              </div>
+              <div className={`${currentTheme.cardBg} p-6 rounded-lg border text-center`}>
+                <FiHelpCircle className="w-8 h-8 mx-auto mb-2 text-teal-500" />
+                <h3 className="text-lg font-semibold mb-2">FAQs</h3>
+                <p className="text-3xl font-bold">{stats.totalFaqs || 0}</p>
+              </div>
+              <div className={`${currentTheme.cardBg} p-6 rounded-lg border text-center`}>
+                <FiDollarSign className="w-8 h-8 mx-auto mb-2 text-pink-500" />
+                <h3 className="text-lg font-semibold mb-2">Pricing Plans</h3>
+                <p className="text-3xl font-bold">{stats.totalPricingPlans || 0}</p>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-          <div className="text-3xl font-bold text-blue-500">{stats.subscriptions?.pro || 0}</div>
-          <div className="text-sm text-gray-600 mt-1">Pro Plan Users</div>
-          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-            <div 
-              className="bg-blue-500 h-2 rounded-full"
-              style={{ width: `${stats.totalUsers ? ((stats.subscriptions?.pro || 0) / stats.totalUsers) * 100 : 0}%` }}
-            ></div>
-          </div>
-        </div>
-        <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-          <div className="text-3xl font-bold text-purple-500">{stats.subscriptions?.premium || 0}</div>
-          <div className="text-sm text-gray-600 mt-1">Premium Plan Users</div>
-          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-            <div 
-              className="bg-purple-500 h-2 rounded-full"
-              style={{ width: `${stats.totalUsers ? ((stats.subscriptions?.premium || 0) / stats.totalUsers) * 100 : 0}%` }}
-            ></div>
-          </div>
-        </div>
-      </div>
-    </div>
+        )}
 
-    {/* Content Stats Section */}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div className={`${currentTheme.cardBg} p-6 rounded-lg border text-center`}>
-        <FiBook className="w-8 h-8 mx-auto mb-2 text-indigo-500" />
-        <h3 className="text-lg font-semibold mb-2">Blogs</h3>
-        <p className="text-3xl font-bold">{stats.totalBlogs || 0}</p>
-      </div>
-      <div className={`${currentTheme.cardBg} p-6 rounded-lg border text-center`}>
-        <FiBox className="w-8 h-8 mx-auto mb-2 text-orange-500" />
-        <h3 className="text-lg font-semibold mb-2">Features</h3>
-        <p className="text-3xl font-bold">{stats.totalFeatures || 0}</p>
-      </div>
-      <div className={`${currentTheme.cardBg} p-6 rounded-lg border text-center`}>
-        <FiHelpCircle className="w-8 h-8 mx-auto mb-2 text-teal-500" />
-        <h3 className="text-lg font-semibold mb-2">FAQs</h3>
-        <p className="text-3xl font-bold">{stats.totalFaqs || 0}</p>
-      </div>
-      <div className={`${currentTheme.cardBg} p-6 rounded-lg border text-center`}>
-        <FiDollarSign className="w-8 h-8 mx-auto mb-2 text-pink-500" />
-        <h3 className="text-lg font-semibold mb-2">Pricing Plans</h3>
-        <p className="text-3xl font-bold">{stats.totalPricingPlans || 0}</p>
-      </div>
-    </div>
-  </div>
-)}
+
+
 
         {/* Users Tab */}
         {activeTab === 'users' && (
@@ -1449,9 +1450,9 @@ const togglePricingPopular = async (plan) => {
                     required
                   />
                 </div>
-                 <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Page Content
-                    </label>
+                <label className="block text-sm font-medium text-gray-200 mb-2">
+                  Page Content
+                </label>
                 <TinyEditor
                   className="mt-5"
                   value={pageForm.content}
@@ -1718,261 +1719,248 @@ const togglePricingPopular = async (plan) => {
           </div>
         )}
 
-{/* Pricing Tab */}
-{activeTab === 'pricing' && (
-  <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
-    <h2 className="text-xl font-semibold mb-4">Pricing Management</h2>
+        {/* Pricing Tab */}
+        {activeTab === 'pricing' && (
+          <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
+            <h2 className="text-xl font-semibold mb-4">Pricing Management</h2>
 
-    {/* Create/Edit Pricing Plan Form */}
-    <div id="pricing-form" className="mb-6 p-4 border rounded-lg">
-      <h3 className="font-semibold mb-3">
-        {isEditingPricing ? 'Edit Pricing Plan' : 'Add New Pricing Plan'}
-      </h3>
-      <form onSubmit={isEditingPricing ? updatePricingPlan : createPricingPlan}>
-        <div className="mb-3">
-          <label className="block text-sm font-medium mb-1">Plan Name *</label>
-          <input
-            type="text"
-            placeholder="e.g., Basic, Pro, Enterprise"
-            value={pricingForm.name}
-            onChange={(e) => setPricingForm({ ...pricingForm, name: e.target.value })}
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-        
-        <div className="mb-3">
-          <label className="block text-sm font-medium mb-1">Plan Description *</label>
-          <textarea
-            placeholder="Describe what this plan offers..."
-            value={pricingForm.description}
-            onChange={(e) => setPricingForm({ ...pricingForm, description: e.target.value })}
-            rows={2}
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-        
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          <div>
-            <label className="block text-sm font-medium mb-1">Monthly Price ($) *</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="0.00"
-              value={pricingForm.monthlyPrice}
-              onChange={(e) => setPricingForm({ ...pricingForm, monthlyPrice: e.target.value })}
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Yearly Price ($) *</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="0.00"
-              value={pricingForm.yearlyPrice}
-              onChange={(e) => setPricingForm({ ...pricingForm, yearlyPrice: e.target.value })}
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-        </div>
-        
-        {isEditingPricing && (
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={pricingForm.isActive || false}
-                  onChange={(e) => setPricingForm({ ...pricingForm, isActive: e.target.checked })}
-                  className="rounded"
-                />
-                <span className="text-sm font-medium">Active</span>
-              </label>
+            {/* Create/Edit Pricing Plan Form */}
+            <div id="pricing-form" className="mb-6 p-4 border rounded-lg">
+              <h3 className="font-semibold mb-3">
+                {isEditingPricing ? 'Edit Pricing Plan' : 'Add New Pricing Plan'}
+              </h3>
+              <form onSubmit={isEditingPricing ? updatePricingPlan : createPricingPlan}>
+                <div className="mb-3">
+                  <label className="block text-sm font-medium mb-1">Plan Name *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Basic, Pro, Enterprise"
+                    value={pricingForm.name}
+                    onChange={(e) => setPricingForm({ ...pricingForm, name: e.target.value })}
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="block text-sm font-medium mb-1">Plan Description *</label>
+                  <textarea
+                    placeholder="Describe what this plan offers..."
+                    value={pricingForm.description}
+                    onChange={(e) => setPricingForm({ ...pricingForm, description: e.target.value })}
+                    rows={2}
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Monthly Price ($) *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      value={pricingForm.monthlyPrice}
+                      onChange={(e) => setPricingForm({ ...pricingForm, monthlyPrice: e.target.value })}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Yearly Price ($) *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      value={pricingForm.yearlyPrice}
+                      onChange={(e) => setPricingForm({ ...pricingForm, yearlyPrice: e.target.value })}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {isEditingPricing && (
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={pricingForm.isActive || false}
+                          onChange={(e) => setPricingForm({ ...pricingForm, isActive: e.target.checked })}
+                          className="rounded"
+                        />
+                        <span className="text-sm font-medium">Active</span>
+                      </label>
+                    </div>
+                    <div>
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={pricingForm.isPopular || false}
+                          onChange={(e) => setPricingForm({ ...pricingForm, isPopular: e.target.checked })}
+                          className="rounded"
+                        />
+                        <span className="text-sm font-medium">Popular</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                <div className="text-sm text-gray-500 mb-3">
+                  💡 Tip: Yearly plans typically offer a discount (e.g., $9.99/month = $99.99/year)
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || isUpdatingPricing}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+                  >
+                    {isSubmitting || isUpdatingPricing ? (
+                      <span className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        {isEditingPricing ? 'Updating...' : 'Creating...'}
+                      </span>
+                    ) : (
+                      isEditingPricing ? 'Update Plan' : 'Create Plan'
+                    )}
+                  </button>
+
+                  {isEditingPricing && (
+                    <button
+                      type="button"
+                      onClick={cancelPricingEdit}
+                      className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </form>
             </div>
-            <div>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={pricingForm.isPopular || false}
-                  onChange={(e) => setPricingForm({ ...pricingForm, isPopular: e.target.checked })}
-                  className="rounded"
-                />
-                <span className="text-sm font-medium">Popular</span>
-              </label>
-            </div>
+
+            {/* Pricing Plans List with Subscriber Counts */}
+            <h3 className="font-semibold mb-3">Existing Pricing Plans</h3>
+            {/* Use pricingPlansWithSubscribers if available, otherwise fallback to pricingPlans */}
+            {(pricingPlansWithSubscribers.length > 0 ? pricingPlansWithSubscribers : pricingPlans).length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <FiDollarSign className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>No pricing plans created yet</p>
+                <p className="text-sm mt-2">Click "Add New Pricing Plan" to get started</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {(pricingPlansWithSubscribers.length > 0 ? pricingPlansWithSubscribers : pricingPlans).map((plan) => {
+                  // Calculate subscriber count (either from fetched data or from local calculation)
+                  let subscriberCount = plan.subscriberCount || 0;
+
+                  // If we don't have subscriberCount from the API, try to calculate from users
+                  if (!subscriberCount && pricingPlansWithSubscribers.length === 0) {
+                    subscriberCount = users.filter(u => u.subscription?.plan?.toLowerCase() === plan.name?.toLowerCase()).length;
+                  }
+
+                  return (
+                    <div key={plan._id} className={`border rounded-lg p-4 transition-all ${plan.isPopular ? 'ring-2 ring-yellow-400 shadow-lg' : ''
+                      } ${!plan.isActive ? 'opacity-60' : ''}`}>
+                      <div className="flex justify-between items-start mb-3">
+                        <h4 className="font-semibold text-lg">{plan.name}</h4>
+                        <div className="flex gap-1">
+                          {plan.isPopular && (
+                            <span className="text-yellow-500 text-xs">⭐ Popular</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <p className="text-gray-600 text-sm mb-3">{plan.description}</p>
+
+                      <div className="mb-2">
+                        <span className="text-2xl font-bold">${plan.price?.monthly || 0}</span>
+                        <span className="text-gray-600">/month</span>
+                      </div>
+
+                      <div className="mb-4">
+                        <span className="text-lg font-semibold">${plan.price?.yearly || 0}</span>
+                        <span className="text-gray-600">/year</span>
+                        {plan.price?.yearly > 0 && plan.price?.monthly > 0 && (
+                          <span className="text-green-600 text-sm ml-2">
+                            Save ${((plan.price.monthly * 12) - plan.price.yearly).toFixed(2)}/year
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Subscriber Count */}
+                      <div className="mb-3 p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Subscribers:</span>
+                          <span className="text-lg font-bold text-blue-600">
+                            {subscriberCount}
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                          <div
+                            className="bg-blue-500 h-1.5 rounded-full"
+                            style={{ width: `${stats?.totalUsers ? (subscriberCount / stats.totalUsers) * 100 : 0}%` }}
+                          ></div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => editPricingPlan(plan)}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+                        >
+                          <FiEdit size={14} /> Edit
+                        </button>
+
+                        <button
+                          onClick={() => togglePricingActive(plan)}
+                          className={`px-3 py-1 rounded text-sm flex items-center gap-1 ${plan.isActive
+                              ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                              : 'bg-green-500 hover:bg-green-600 text-white'
+                            }`}
+                        >
+                          {plan.isActive ? <FiEyeOff size={14} /> : <FiEye size={14} />}
+                          {plan.isActive ? 'Deactivate' : 'Activate'}
+                        </button>
+
+                        <button
+                          onClick={() => togglePricingPopular(plan)}
+                          className={`px-3 py-1 rounded text-sm flex items-center gap-1 ${plan.isPopular
+                              ? 'bg-gray-500 hover:bg-gray-600 text-white'
+                              : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                            }`}
+                        >
+                          <FiStar size={14} />
+                          {plan.isPopular ? 'Remove Popular' : 'Mark Popular'}
+                        </button>
+
+                        <button
+                          onClick={() => deletePricingPlan(plan._id, plan.name)}
+                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+                        >
+                          <FiTrash2 size={14} /> Delete
+                        </button>
+                      </div>
+
+                      <div className="mt-3 text-xs text-gray-500">
+                        Status: {plan.isActive ? '✅ Active' : '❌ Inactive'} |
+                        Order: {plan.order || 0}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
           </div>
         )}
-        
-        <div className="text-sm text-gray-500 mb-3">
-          💡 Tip: Yearly plans typically offer a discount (e.g., $9.99/month = $99.99/year)
-        </div>
-        
-        <div className="flex gap-2">
-          <button
-            type="submit"
-            disabled={isSubmitting || isUpdatingPricing}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-          >
-            {isSubmitting || isUpdatingPricing ? (
-              <span className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                {isEditingPricing ? 'Updating...' : 'Creating...'}
-              </span>
-            ) : (
-              isEditingPricing ? 'Update Plan' : 'Create Plan'
-            )}
-          </button>
-          
-          {isEditingPricing && (
-            <button
-              type="button"
-              onClick={cancelPricingEdit}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-            >
-              Cancel
-            </button>
-          )}
-        </div>
-      </form>
-    </div>
 
-
-    {/* Pricing Tab */}
-{activeTab === 'pricing' && (
-  <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
-    <h2 className="text-xl font-semibold mb-4">Pricing Management</h2>
-
-    {/* Create/Edit Pricing Plan Form */}
-    <div id="pricing-form" className="mb-6 p-4 border rounded-lg">
-      <h3 className="font-semibold mb-3">
-        {isEditingPricing ? 'Edit Pricing Plan' : 'Add New Pricing Plan'}
-      </h3>
-      <form onSubmit={isEditingPricing ? updatePricingPlan : createPricingPlan}>
-        <div className="mb-3">
-          <label className="block text-sm font-medium mb-1">Plan Name *</label>
-          <input
-            type="text"
-            placeholder="e.g., Basic, Pro, Enterprise"
-            value={pricingForm.name}
-            onChange={(e) => setPricingForm({ ...pricingForm, name: e.target.value })}
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-        
-        <div className="mb-3">
-          <label className="block text-sm font-medium mb-1">Plan Description *</label>
-          <textarea
-            placeholder="Describe what this plan offers..."
-            value={pricingForm.description}
-            onChange={(e) => setPricingForm({ ...pricingForm, description: e.target.value })}
-            rows={2}
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-        
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          <div>
-            <label className="block text-sm font-medium mb-1">Monthly Price ($) *</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="0.00"
-              value={pricingForm.monthlyPrice}
-              onChange={(e) => setPricingForm({ ...pricingForm, monthlyPrice: e.target.value })}
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Yearly Price ($) *</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="0.00"
-              value={pricingForm.yearlyPrice}
-              onChange={(e) => setPricingForm({ ...pricingForm, yearlyPrice: e.target.value })}
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-        </div>
-        
-        {isEditingPricing && (
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={pricingForm.isActive || false}
-                  onChange={(e) => setPricingForm({ ...pricingForm, isActive: e.target.checked })}
-                  className="rounded"
-                />
-                <span className="text-sm font-medium">Active</span>
-              </label>
-            </div>
-            <div>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={pricingForm.isPopular || false}
-                  onChange={(e) => setPricingForm({ ...pricingForm, isPopular: e.target.checked })}
-                  className="rounded"
-                />
-                <span className="text-sm font-medium">Popular</span>
-              </label>
-            </div>
-          </div>
-        )}
-        
-        <div className="text-sm text-gray-500 mb-3">
-          💡 Tip: Yearly plans typically offer a discount (e.g., $9.99/month = $99.99/year)
-        </div>
-        
-        <div className="flex gap-2">
-          <button
-            type="submit"
-            disabled={isSubmitting || isUpdatingPricing}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-          >
-            {isSubmitting || isUpdatingPricing ? (
-              <span className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                {isEditingPricing ? 'Updating...' : 'Creating...'}
-              </span>
-            ) : (
-              isEditingPricing ? 'Update Plan' : 'Create Plan'
-            )}
-          </button>
-          
-          {isEditingPricing && (
-            <button
-              type="button"
-              onClick={cancelPricingEdit}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-            >
-              Cancel
-            </button>
-          )}
-        </div>
-      </form>
-    </div>
-
-
-
-
-    
-{/* Guides Tab */}
-{activeTab === 'guides' && (
+        {/* Guides Tab */}
+        {activeTab === 'guides' && (
           <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
             <h2 className="text-xl font-semibold mb-4">Guide Management</h2>
 
@@ -2211,10 +2199,10 @@ const togglePricingPopular = async (plan) => {
                 onChange={(e) => setEmailSubject(e.target.value)}
                 className="w-full p-2 border rounded mb-2"
               />
-               <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Email Content
-                    </label>
-              
+              <label className="block text-sm font-medium text-gray-200 mb-2">
+                Email Content
+              </label>
+
               <TinyEditor
                 value={emailContent}
                 onChange={setEmailContent}
@@ -2230,63 +2218,62 @@ const togglePricingPopular = async (plan) => {
               </button>
             </div>
 
-              {/* Email History */}
-    <h3 className="font-semibold mb-3">Email History</h3>
-    <div className="space-y-3">
-      {emails.map((email) => (
-        <div key={email._id} className="border rounded-lg p-4">
-          <div className="flex justify-between items-start mb-2">
-            <h4 className="font-semibold">{email.subject || 'No Subject'}</h4>
-            <span className={`px-2 py-1 rounded text-xs ${
-              email.status === 'completed' ? 'bg-green-100 text-green-800' :
-              email.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
-              email.status === 'failed' ? 'bg-red-100 text-red-800' :
-              'bg-gray-100 text-gray-800'
-            }`}>
-              {email.status}
-            </span>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4 mb-2 text-sm">
-            <div>
-              <span className="font-medium">Recipients: </span>
-              {email.recipientCount || 0}
-            </div>
-            <div>
-              <span className="font-medium">Sent: </span>
-              {email.successfulSends || 0}
-            </div>
-            <div>
-              <span className="font-medium">Failed: </span>
-              {email.failedSends || 0}
-            </div>
-            <div>
-              <span className="font-medium">Date: </span>
-              {email.createdAt ? new Date(email.createdAt).toLocaleDateString() : 'N/A'}
-            </div>
-          </div>
-          
-          <p className="text-gray-600 text-sm mb-2">
-            {(email.content || '').substring(0, 150)}...
-          </p>
-          
-          <div className="flex justify-between items-center text-xs text-gray-500">
-            <span>Sent by: {email.sentBy?.username || 'System'}</span>
-            {email.completedAt && (
-              <span>Completed: {new Date(email.completedAt).toLocaleString()}</span>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
+            {/* Email History */}
+            <h3 className="font-semibold mb-3">Email History</h3>
+            <div className="space-y-3">
+              {emails.map((email) => (
+                <div key={email._id} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-semibold">{email.subject || 'No Subject'}</h4>
+                    <span className={`px-2 py-1 rounded text-xs ${email.status === 'completed' ? 'bg-green-100 text-green-800' :
+                      email.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
+                        email.status === 'failed' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800'
+                      }`}>
+                      {email.status}
+                    </span>
+                  </div>
 
-    {/* Show message if no emails */}
-    {emails.length === 0 && (
-      <div className="text-center py-8 text-gray-500">
-        <FiMail className="w-12 h-12 mx-auto mb-4 opacity-50" />
-        <p>No emails sent yet</p>
-      </div>
-    )}
+                  <div className="grid grid-cols-2 gap-4 mb-2 text-sm">
+                    <div>
+                      <span className="font-medium">Recipients: </span>
+                      {email.recipientCount || 0}
+                    </div>
+                    <div>
+                      <span className="font-medium">Sent: </span>
+                      {email.successfulSends || 0}
+                    </div>
+                    <div>
+                      <span className="font-medium">Failed: </span>
+                      {email.failedSends || 0}
+                    </div>
+                    <div>
+                      <span className="font-medium">Date: </span>
+                      {email.createdAt ? new Date(email.createdAt).toLocaleDateString() : 'N/A'}
+                    </div>
+                  </div>
+
+                  <p className="text-gray-600 text-sm mb-2">
+                    {(email.content || '').substring(0, 150)}...
+                  </p>
+
+                  <div className="flex justify-between items-center text-xs text-gray-500">
+                    <span>Sent by: {email.sentBy?.username || 'System'}</span>
+                    {email.completedAt && (
+                      <span>Completed: {new Date(email.completedAt).toLocaleString()}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Show message if no emails */}
+            {emails.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <FiMail className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>No emails sent yet</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -2332,7 +2319,7 @@ const togglePricingPopular = async (plan) => {
           </div>
         )}
 
-          {/* Review Response Modal */}
+        {/* Review Response Modal */}
         {selectedReview && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg w-full max-w-md">
@@ -2362,7 +2349,7 @@ const togglePricingPopular = async (plan) => {
             </div>
           </div>
         )}
-      </div>  
-    </div>  
-  ); 
+      </div>
+    </div>
+  );
 } 
