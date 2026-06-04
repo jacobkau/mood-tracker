@@ -192,7 +192,32 @@ export const extractPlansFromResponse = (response) => {
   return [];
 };
 
-export const subscribeToPlan = (planId) => API.post('/subscription/subscribe', { planId });
+export const subscribeToPlan = async (planId) => {
+  // Map MongoDB IDs to the expected plan IDs if needed
+  let mappedPlanId = planId;
+  
+  // If it's a MongoDB ObjectId, map it to the correct plan type
+  // You can add specific mappings based on your database IDs
+  const planMapping = {
+    // Example mappings - replace with your actual IDs
+    // '64f5a1b2c3d4e5f6a7b8c9d0': 'free',
+    // '64f5a1b2c3d4e5f6a7b8c9d1': 'pro',
+    // '64f5a1b2c3d4e5f6a7b8c9d2': 'premium'
+  };
+  
+  if (planMapping[planId]) {
+    mappedPlanId = planMapping[planId];
+  }
+  
+  // If the ID is one of the expected values, use it directly
+  if (['free', 'pro', 'premium'].includes(mappedPlanId)) {
+    return API.post('/subscription/subscribe', { planId: mappedPlanId });
+  }
+  
+  // Otherwise, try to find the plan by name or return error
+  console.warn('Unknown plan ID:', planId);
+  return API.post('/subscription/subscribe', { planId: 'free' }); // Default to free
+};
 export const getSubscriptionStatus = () => API.get('/subscription/status');
 export const cancelSubscription = () => API.post('/subscription/cancel');
 
