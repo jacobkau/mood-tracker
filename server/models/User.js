@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-// Define subscription schema
-const SubscriptionSchema = new mongoose.Schema({
+// Define subscription sub-schema
+const subscriptionSchema = new mongoose.Schema({
   plan: {
     type: String,
     enum: ['free', 'pro', 'premium'],
@@ -23,12 +23,8 @@ const SubscriptionSchema = new mongoose.Schema({
   cancelledAt: {
     type: Date
   },
-  stripeSubscriptionId: {
-    type: String
-  },
-  stripeCustomerId: {
-    type: String
-  }
+  stripeSubscriptionId: String,
+  stripeCustomerId: String
 }, { _id: false });
 
 const UserSchema = new mongoose.Schema({
@@ -69,14 +65,13 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  // Email verification
   emailVerified: { type: Boolean, default: true },
   verificationToken: { type: String },
   verificationTokenExpires: { type: Date },
   
   // ADD THIS - Subscription field
   subscription: {
-    type: SubscriptionSchema,
+    type: subscriptionSchema,
     default: () => ({
       plan: 'free',
       status: 'active',
