@@ -112,38 +112,67 @@ router.get('/status', protect, async (req, res) => {
   }
 });
 
-// Subscribe to a plan - COMPLETELY REWRITTEN
+// Subscribe to a plan - COMPLETELY REWRITTEN with better logging
 router.post('/subscribe', protect, async (req, res) => {
   try {
-    const { planId } = req.body;
+    let { planId } = req.body;
     
-    console.log('=== SUBSCRIPTION REQUEST ===');
+    console.log('========================================');
+    console.log('SUBSCRIPTION REQUEST RECEIVED');
     console.log('User ID:', req.user.id);
     console.log('Requested planId:', planId);
+    console.log('Type of planId:', typeof planId);
     
-    // Validate planId
+    // Normalize the plan ID
+    let normalizedPlanId = String(planId).toLowerCase().trim();
+    
+    // Map various plan identifiers to standard ones
+    const planMapping = {
+      'free': 'free',
+      'pro': 'pro',
+      'premium': 'premium',
+      'basic': 'free',
+      'professional': 'pro',
+      'enterprise': 'premium',
+      'standard': 'pro',
+      'plus': 'pro',
+      'ultimate': 'premium'
+    };
+    
+    // Check if it's a MongoDB ObjectId
+    const isMongoId = /^[0-9a-fA-F]{24}$/.test(normalizedPlanId);
+    
+    if (isMongoId) {
+      console.log('Detected MongoDB ObjectId');
+      try {
+        const PricingPlan = require('../models/Pricing');
+        const plan = await PricingPlan.findById(normalizedPlanId);
+        
+        if (plan) {
+          const planName = plan.name.toLowerCase();
+          normalizedPlanId = planMapping[planName] || planName;
+          console.log(`Mapped MongoDB ID to plan name: ${normalizedPlanId}`);
+        } else {
+          console.log('Plan not found in database, using default');
+          normalizedPlanId = 'free';
+        }
+      } catch (error) {
+        console.error('Error looking up plan:', error);
+        normalizedPlanId = 'free';
+      }
+    } else if (planMapping[normalizedPlanId]) {
+      normalizedPlanId = planMapping[normalizedPlanId];
+      console.log(`Mapped plan ID to: ${normalizedPlanId}`);
+    }
+    
+    // Validate final plan ID
     const validPlans = ['free', 'pro', 'premium'];
-    let selectedPlan = planId;
-    
-    // If it's a MongoDB ObjectId, map it to plan name
-    if (planId && /^[0-9a-fA-F]{24}$/.test(planId)) {
-      const planMapping = {
-        // You'll need to add your actual MongoDB IDs here
-        // '64f5a1b2c3d4e5f6a7b8c9d0': 'free',
-        // '64f5a1b2c3d4e5f6a7b8c9d1': 'pro',
-        // '64f5a1b2c3d4e5f6a7b8c9d2': 'premium'
-      };
-      selectedPlan = planMapping[planId] || 'free';
-      console.log('Mapped MongoDB ID to plan:', selectedPlan);
+    if (!validPlans.includes(normalizedPlanId)) {
+      console.log(`Invalid plan ID: ${normalizedPlanId}, defaulting to free`);
+      normalizedPlanId = 'free';
     }
     
-    // Validate plan
-    if (!validPlans.includes(selectedPlan)) {
-      return res.status(400).json({ 
-        success: false,
-        error: `Invalid plan. Valid plans are: ${validPlans.join(', ')}` 
-      });
-    }
+    console.log('Final plan ID to save:', normalizedPlanId);
     
     // Find user
     const user = await User.findById(req.user.id);
@@ -154,40 +183,81 @@ router.post('/subscribe', protect, async (req, res) => {
       });
     }
     
-    // Calculate subscription dates
+    console.log('Current user subscription before update:', user.subscription);
+    
+    // Calculate dates
     const now = new Date();
-    const periodDays = selectedPlan === 'premium' ? 365 : 30;
+    const periodDays = normalizedPlanId === 'premium' ? 365 : 30;
     const periodEnd = new Date(now);
     periodEnd.setDate(periodEnd.getDate() + periodDays);
     
     // Update subscription
     user.subscription = {
-      plan: selectedPlan,
+      plan: normalizedPlanId,
       status: 'active',
       currentPeriodStart: now,
       currentPeriodEnd: periodEnd,
-      cancelledAt: null
+      cancelledAt: null,
+      updatedAt: now
     };
     
     // Save user
     await user.save();
     
-    console.log(`✅ User ${user.email} subscribed to ${selectedPlan} plan`);
-    console.log('Subscription data saved:', user.subscription);
+    console.log('User subscription AFTER update:', user.subscription);
+    console.log(`✅ SUCCESS: User ${user.email} subscribed to ${normalizedPlanId} plan`);
+    console.log('========================================');
     
-    // Return updated subscription
+    // Return success
     res.json({ 
       success: true,
-      message: `Successfully subscribed to ${selectedPlan} plan`,
-      subscription: user.subscription
+      message: `Successfully subscribed to ${normalizedPlanId} plan`,
+      subscription: user.subscription,
+      plan: normalizedPlanId
     });
     
   } catch (error) {
     console.error('❌ Subscribe error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ 
       success: false,
       error: 'Failed to process subscription: ' + error.message
     });
+  }
+});
+
+// Test endpoint to directly update subscription (for debugging)
+router.post('/test-update', protect, async (req, res) => {
+  try {
+    const { plan } = req.body;
+    const validPlans = ['free', 'pro', 'premium'];
+    
+    if (!validPlans.includes(plan)) {
+      return res.status(400).json({ error: 'Invalid plan' });
+    }
+    
+    const user = await User.findById(req.user.id);
+    const now = new Date();
+    const periodDays = plan === 'premium' ? 365 : 30;
+    const periodEnd = new Date(now);
+    periodEnd.setDate(periodEnd.getDate() + periodDays);
+    
+    user.subscription = {
+      plan: plan,
+      status: 'active',
+      currentPeriodStart: now,
+      currentPeriodEnd: periodEnd
+    };
+    
+    await user.save();
+    
+    res.json({ 
+      success: true, 
+      message: `Subscription updated to ${plan}`,
+      subscription: user.subscription
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
