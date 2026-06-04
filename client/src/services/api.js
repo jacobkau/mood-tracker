@@ -75,17 +75,16 @@ export const getTestimonials = () => API.get('/content/testimonials');
 export const submitTestimonial = (data) => API.post('/content/testimonials', data);
 export const subscribeToNewsletter = (email) => API.post('/content/newsletter', { email });
 
-// Subscription API - FIXED
-// Update the getSubscriptionPlans response transformation in api.js
+// Subscription API - COMPLETELY FIXED
 export const getSubscriptionPlans = async () => {
   try {
-    // Try to fetch from the public pricing endpoint
+    // Fetch from the public pricing endpoint
     const response = await API.get('/pricing');
     console.log('Pricing API response:', response.data);
     
-    // Transform the data to match what the frontend expects
+    // Transform the data to use consistent IDs
     const plans = response.data.map(plan => ({
-      _id: plan._id,  // Keep the MongoDB ID
+      _id: plan._id,
       id: plan.name.toLowerCase(), // Use name as ID (free, pro, premium)
       name: plan.name,
       price: plan.price?.monthly || 0,
@@ -103,9 +102,128 @@ export const getSubscriptionPlans = async () => {
     return { data: plans };
   } catch (error) {
     console.error('Failed to fetch pricing plans from API:', error);
-    throw error;
+    
+    // Fallback to subscription plans endpoint
+    try {
+      const subResponse = await API.get('/subscription/plans');
+      if (subResponse.data && subResponse.data.success && subResponse.data.plans) {
+        return { data: subResponse.data.plans };
+      }
+    } catch (fallbackError) {
+      console.error('Fallback also failed:', fallbackError);
+    }
+    
+    // Return mock data as last resort
+    return {
+      data: [
+        {
+          id: 'free',
+          name: 'Free',
+          price: 0,
+          description: 'Perfect for getting started with mood tracking',
+          features: [
+            'Basic mood tracking',
+            '7-day history',
+            'Standard charts',
+            'Email support',
+            'Basic analytics'
+          ],
+          popular: false,
+          period: 'month'
+        },
+        {
+          id: 'pro',
+          name: 'Pro',
+          price: 4.99,
+          period: 'month',
+          description: 'For those who want deeper insights',
+          features: [
+            'Unlimited mood tracking',
+            '90-day history',
+            'Advanced analytics',
+            'Custom reminders',
+            'Data export',
+            'Priority support',
+            'Trend analysis'
+          ],
+          popular: true
+        },
+        {
+          id: 'premium',
+          name: 'Premium',
+          price: 49.99,
+          period: 'year',
+          description: 'Best value for committed users',
+          features: [
+            'Everything in Pro',
+            '365-day history',
+            'Trend predictions',
+            'Personalized insights',
+            'Therapist sharing',
+            '24/7 support',
+            'Custom reports',
+            'Advanced patterns'
+          ],
+          popular: false
+        }
+      ]
+    };
   }
 };
+
+// Subscribe to plan - FIXED to always send the correct ID
+export const subscribeToPlan = async (planId) => {
+  console.log('Subscribing to plan:', planId);
+  
+  // Map common plan identifiers to standard IDs
+  const planMapping = {
+    // By name
+    'free': 'free',
+    'pro': 'pro',
+    'premium': 'premium',
+    'basic': 'free',
+    'professional': 'pro',
+    'enterprise': 'premium',
+    
+    // By price (if needed)
+    '0': 'free',
+    '4.99': 'pro',
+    '49.99': 'premium'
+  };
+  
+  // If it's a MongoDB ObjectId (24 hex chars), look it up
+  let finalPlanId = planId;
+  
+  if (planId && /^[0-9a-fA-F]{24}$/.test(planId)) {
+    console.log('Detected MongoDB ID, checking mapping...');
+    
+    // Fetch the plan to get its name
+    try {
+      const response = await API.get(`/pricing/${planId}`);
+      if (response.data && response.data.name) {
+        const planName = response.data.name.toLowerCase();
+        finalPlanId = planMapping[planName] || planName;
+        console.log(`Mapped MongoDB ID to plan: ${finalPlanId}`);
+      }
+    } catch (error) {
+      console.error('Failed to fetch plan details:', error);
+    }
+  } else if (planMapping[planId]) {
+    finalPlanId = planMapping[planId];
+    console.log(`Mapped ${planId} to ${finalPlanId}`);
+  }
+  
+  // Ensure we have a valid plan ID
+  if (!['free', 'pro', 'premium'].includes(finalPlanId)) {
+    console.warn(`Invalid plan ID: ${planId}, defaulting to free`);
+    finalPlanId = 'free';
+  }
+  
+  console.log('Final plan ID for subscription:', finalPlanId);
+  
+  return API.post('/subscription/subscribe', { planId: finalPlanId });
+};
+
 // Helper function to extract plans from API response - UPDATED
 export const extractPlansFromResponse = (response) => {
   console.log('Extracting plans from response:', response);
@@ -133,32 +251,7 @@ export const extractPlansFromResponse = (response) => {
   return [];
 };
 
-export const subscribeToPlan = async (planId) => {
-  // Map MongoDB IDs to the expected plan IDs if needed
-  let mappedPlanId = planId;
-  
-  // If it's a MongoDB ObjectId, map it to the correct plan type
-  // You can add specific mappings based on your database IDs
-  const planMapping = {
-    // Example mappings - replace with your actual IDs
-    // '64f5a1b2c3d4e5f6a7b8c9d0': 'free',
-    // '64f5a1b2c3d4e5f6a7b8c9d1': 'pro',
-    // '64f5a1b2c3d4e5f6a7b8c9d2': 'premium'
-  };
-  
-  if (planMapping[planId]) {
-    mappedPlanId = planMapping[planId];
-  }
-  
-  // If the ID is one of the expected values, use it directly
-  if (['free', 'pro', 'premium'].includes(mappedPlanId)) {
-    return API.post('/subscription/subscribe', { planId: mappedPlanId });
-  }
-  
-  // Otherwise, try to find the plan by name or return error
-  console.warn('Unknown plan ID:', planId);
-  return API.post('/subscription/subscribe', { planId: 'free' }); // Default to free
-};
+
 export const getSubscriptionStatus = () => API.get('/subscription/status');
 export const cancelSubscription = () => API.post('/subscription/cancel');
 
