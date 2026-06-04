@@ -4,6 +4,7 @@ import MoodEntry from "../components/mood/MoodEntry";
 import MoodList from "../components/mood/MoodList";
 import MoodStats from "../components/mood/MoodStats";
 import PageHeader from "../components/PageHeader";
+import SubscriptionInfo from "../components/SubscriptionInfo";
 import { useTheme } from '../context/useTheme';
 
 export default function Dashboard() {
@@ -24,7 +25,7 @@ export default function Dashboard() {
           return;
         }
 
-        // Fetch user profile first
+        // Fetch user profile
         const profileRes = await axios.get(
           `${import.meta.env.VITE_API_BASE_URL}/api/auth/me`,
           {
@@ -33,7 +34,7 @@ export default function Dashboard() {
         );
         setUser(profileRes.data);
 
-        // Then fetch moods
+        // Fetch moods
         const moodsRes = await axios.get(
           `${import.meta.env.VITE_API_BASE_URL}/api/moods`,
           {
@@ -45,7 +46,6 @@ export default function Dashboard() {
       } catch (err) {
         console.error("Failed to fetch dashboard data", err);
         if (err.response?.status === 401) {
-          // Token expired or invalid
           localStorage.removeItem("token");
           localStorage.removeItem("user");
           window.location.href = '/login';
@@ -57,13 +57,6 @@ export default function Dashboard() {
 
     fetchData();
   }, []);
-
-  // Store user data in localStorage when it's fetched
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
-    }
-  }, [user]);
 
   if (loading) {
     return (
@@ -82,14 +75,15 @@ export default function Dashboard() {
         title={`Welcome back, ${user?.username || user?.firstName || "Friend"} 🌿`}
         description="This is your personal space to reflect, track moods, and nurture your well-being each day."
       />
-      <div className="mt-4 max-w-4xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 space-y-6">
+      <div className="mt-4 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="md:col-span-3 space-y-6">
             <MoodEntry setMoods={setMoods} />
             <MoodList moods={moods} setMoods={setMoods} />
           </div>
-          <div className="md:col-span-1">
+          <div className="md:col-span-1 space-y-6">
             <MoodStats moods={moods} />
+            <SubscriptionInfo currentTheme={currentTheme} />
           </div>
         </div>
       </div>
