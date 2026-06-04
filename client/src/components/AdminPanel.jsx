@@ -158,19 +158,22 @@ const [pricingPlansWithSubscribers, setPricingPlansWithSubscribers] = useState([
       toast.error("Failed to load users");
     }
   };
-  // Fetch pricing plans with subscriber counts
+// Fetch pricing plans with subscriber counts
 const fetchPricingPlansWithSubscribers = async () => {
   try {
     const token = localStorage.getItem("token");
+    console.log("Fetching pricing plans with subscribers...");
     const { data } = await axios.get(
       `${import.meta.env.VITE_API_BASE_URL}/api/admin/pricing-with-subscribers`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }
     );
+    console.log("Pricing plans with subscribers:", data);
     setPricingPlansWithSubscribers(data);
   } catch (err) {
     console.error("Failed to fetch pricing plans with subscribers", err);
+    console.error("Error details:", err.response?.data);
   }
 };
 
@@ -1170,7 +1173,9 @@ const togglePricingPopular = async (plan) => {
           <TabButton name="settings" icon={<FiSettings />} label="Settings" />
         </div>
 
-     {/* Dashboard Tab */}
+
+  
+{/* Dashboard Tab */}
 {activeTab === 'dashboard' && stats && (
   <div>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -1191,8 +1196,8 @@ const togglePricingPopular = async (plan) => {
       </div>
       <div className={`${currentTheme.cardBg} p-6 rounded-lg border text-center`}>
         <FiMail className="w-8 h-8 mx-auto mb-2 text-purple-500" />
-        <h3 className="text-lg font-semibold mb-2">Emails Sent</h3>
-        <p className="text-3xl font-bold">{stats.emailsSent}</p>
+        <h3 className="text-lg font-semibold mb-2">Newsletter Subscribers</h3>
+        <p className="text-3xl font-bold">{stats.newsletterSubscribers || 0}</p>
       </div>
     </div>
 
@@ -1201,32 +1206,32 @@ const togglePricingPopular = async (plan) => {
       <h3 className="text-lg font-semibold mb-4">Subscription Distribution</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <div className="text-3xl font-bold text-gray-500">{subscriptionStats.free || 0}</div>
+          <div className="text-3xl font-bold text-gray-500">{stats.subscriptions?.free || 0}</div>
           <div className="text-sm text-gray-600 mt-1">Free Plan Users</div>
           <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
             <div 
               className="bg-gray-500 h-2 rounded-full"
-              style={{ width: `${stats.totalUsers ? ((subscriptionStats.free || 0) / stats.totalUsers) * 100 : 0}%` }}
+              style={{ width: `${stats.totalUsers ? ((stats.subscriptions?.free || 0) / stats.totalUsers) * 100 : 0}%` }}
             ></div>
           </div>
         </div>
         <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-          <div className="text-3xl font-bold text-blue-500">{subscriptionStats.pro || 0}</div>
+          <div className="text-3xl font-bold text-blue-500">{stats.subscriptions?.pro || 0}</div>
           <div className="text-sm text-gray-600 mt-1">Pro Plan Users</div>
           <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
             <div 
               className="bg-blue-500 h-2 rounded-full"
-              style={{ width: `${stats.totalUsers ? ((subscriptionStats.pro || 0) / stats.totalUsers) * 100 : 0}%` }}
+              style={{ width: `${stats.totalUsers ? ((stats.subscriptions?.pro || 0) / stats.totalUsers) * 100 : 0}%` }}
             ></div>
           </div>
         </div>
         <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-          <div className="text-3xl font-bold text-purple-500">{subscriptionStats.premium || 0}</div>
+          <div className="text-3xl font-bold text-purple-500">{stats.subscriptions?.premium || 0}</div>
           <div className="text-sm text-gray-600 mt-1">Premium Plan Users</div>
           <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
             <div 
               className="bg-purple-500 h-2 rounded-full"
-              style={{ width: `${stats.totalUsers ? ((subscriptionStats.premium || 0) / stats.totalUsers) * 100 : 0}%` }}
+              style={{ width: `${stats.totalUsers ? ((stats.subscriptions?.premium || 0) / stats.totalUsers) * 100 : 0}%` }}
             ></div>
           </div>
         </div>
@@ -1837,9 +1842,10 @@ const togglePricingPopular = async (plan) => {
       </form>
     </div>
 
-   {/* Pricing Plans List with Subscriber Counts */}
+{/* Pricing Plans List with Subscriber Counts */}
 <h3 className="font-semibold mb-3">Existing Pricing Plans</h3>
-{pricingPlansWithSubscribers.length === 0 ? (
+{/* Use pricingPlansWithSubscribers if available, otherwise fallback to pricingPlans */}
+{(pricingPlansWithSubscribers.length > 0 ? pricingPlansWithSubscribers : pricingPlans).length === 0 ? (
   <div className="text-center py-8 text-gray-500">
     <FiDollarSign className="w-12 h-12 mx-auto mb-4 opacity-50" />
     <p>No pricing plans created yet</p>
@@ -1847,104 +1853,110 @@ const togglePricingPopular = async (plan) => {
   </div>
 ) : (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    {pricingPlansWithSubscribers.map((plan) => (
-      <div key={plan._id} className={`border rounded-lg p-4 transition-all ${
-        plan.isPopular ? 'ring-2 ring-yellow-400 shadow-lg' : ''
-      } ${!plan.isActive ? 'opacity-60' : ''}`}>
-        <div className="flex justify-between items-start mb-3">
-          <h4 className="font-semibold text-lg">{plan.name}</h4>
-          <div className="flex gap-1">
-            {plan.isPopular && (
-              <span className="text-yellow-500 text-xs">⭐ Popular</span>
+    {(pricingPlansWithSubscribers.length > 0 ? pricingPlansWithSubscribers : pricingPlans).map((plan) => {
+      // Calculate subscriber count (either from fetched data or from local calculation)
+      let subscriberCount = plan.subscriberCount || 0;
+      
+      // If we don't have subscriberCount from the API, try to calculate from users
+      if (!subscriberCount && pricingPlansWithSubscribers.length === 0) {
+        subscriberCount = users.filter(u => u.subscription?.plan?.toLowerCase() === plan.name?.toLowerCase()).length;
+      }
+      
+      return (
+        <div key={plan._id} className={`border rounded-lg p-4 transition-all ${
+          plan.isPopular ? 'ring-2 ring-yellow-400 shadow-lg' : ''
+        } ${!plan.isActive ? 'opacity-60' : ''}`}>
+          <div className="flex justify-between items-start mb-3">
+            <h4 className="font-semibold text-lg">{plan.name}</h4>
+            <div className="flex gap-1">
+              {plan.isPopular && (
+                <span className="text-yellow-500 text-xs">⭐ Popular</span>
+              )}
+            </div>
+          </div>
+          
+          <p className="text-gray-600 text-sm mb-3">{plan.description}</p>
+          
+          <div className="mb-2">
+            <span className="text-2xl font-bold">${plan.price?.monthly || 0}</span>
+            <span className="text-gray-600">/month</span>
+          </div>
+          
+          <div className="mb-4">
+            <span className="text-lg font-semibold">${plan.price?.yearly || 0}</span>
+            <span className="text-gray-600">/year</span>
+            {plan.price?.yearly > 0 && plan.price?.monthly > 0 && (
+              <span className="text-green-600 text-sm ml-2">
+                Save ${((plan.price.monthly * 12) - plan.price.yearly).toFixed(2)}/year
+              </span>
             )}
           </div>
-        </div>
-        
-        <p className="text-gray-600 text-sm mb-3">{plan.description}</p>
-        
-        <div className="mb-2">
-          <span className="text-2xl font-bold">${plan.price?.monthly || 0}</span>
-          <span className="text-gray-600">/month</span>
-        </div>
-        
-        <div className="mb-4">
-          <span className="text-lg font-semibold">${plan.price?.yearly || 0}</span>
-          <span className="text-gray-600">/year</span>
-          {plan.price?.yearly > 0 && plan.price?.monthly > 0 && (
-            <span className="text-green-600 text-sm ml-2">
-              Save ${((plan.price.monthly * 12) - plan.price.yearly).toFixed(2)}/year
-            </span>
-          )}
-        </div>
 
-        {/* Subscriber Count */}
-        <div className="mb-3 p-2 bg-gray-50 dark:bg-gray-800 rounded">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Subscribers:</span>
-            <span className="text-lg font-bold text-blue-600">
-              {plan.subscriberCount || 0}
-            </span>
+          {/* Subscriber Count */}
+          <div className="mb-3 p-2 bg-gray-50 dark:bg-gray-800 rounded">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Subscribers:</span>
+              <span className="text-lg font-bold text-blue-600">
+                {subscriberCount}
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+              <div 
+                className="bg-blue-500 h-1.5 rounded-full"
+                style={{ width: `${stats?.totalUsers ? (subscriberCount / stats.totalUsers) * 100 : 0}%` }}
+              ></div>
+            </div>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-            <div 
-              className="bg-blue-500 h-1.5 rounded-full"
-              style={{ width: `${stats?.totalUsers ? ((plan.subscriberCount || 0) / stats.totalUsers) * 100 : 0}%` }}
-            ></div>
+          
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => editPricingPlan(plan)}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+            >
+              <FiEdit size={14} /> Edit
+            </button>
+            
+            <button
+              onClick={() => togglePricingActive(plan)}
+              className={`px-3 py-1 rounded text-sm flex items-center gap-1 ${
+                plan.isActive 
+                  ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
+                  : 'bg-green-500 hover:bg-green-600 text-white'
+              }`}
+            >
+              {plan.isActive ? <FiEyeOff size={14} /> : <FiEye size={14} />}
+              {plan.isActive ? 'Deactivate' : 'Activate'}
+            </button>
+            
+            <button
+              onClick={() => togglePricingPopular(plan)}
+              className={`px-3 py-1 rounded text-sm flex items-center gap-1 ${
+                plan.isPopular 
+                  ? 'bg-gray-500 hover:bg-gray-600 text-white' 
+                  : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+              }`}
+            >
+              <FiStar size={14} />
+              {plan.isPopular ? 'Remove Popular' : 'Mark Popular'}
+            </button>
+            
+            <button
+              onClick={() => deletePricingPlan(plan._id, plan.name)}
+              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+            >
+              <FiTrash2 size={14} /> Delete
+            </button>
+          </div>
+          
+          <div className="mt-3 text-xs text-gray-500">
+            Status: {plan.isActive ? '✅ Active' : '❌ Inactive'} | 
+            Order: {plan.order || 0}
           </div>
         </div>
-        
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => editPricingPlan(plan)}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
-          >
-            <FiEdit size={14} /> Edit
-          </button>
-          
-          <button
-            onClick={() => togglePricingActive(plan)}
-            className={`px-3 py-1 rounded text-sm flex items-center gap-1 ${
-              plan.isActive 
-                ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
-                : 'bg-green-500 hover:bg-green-600 text-white'
-            }`}
-          >
-            {plan.isActive ? <FiEyeOff size={14} /> : <FiEye size={14} />}
-            {plan.isActive ? 'Deactivate' : 'Activate'}
-          </button>
-          
-          <button
-            onClick={() => togglePricingPopular(plan)}
-            className={`px-3 py-1 rounded text-sm flex items-center gap-1 ${
-              plan.isPopular 
-                ? 'bg-gray-500 hover:bg-gray-600 text-white' 
-                : 'bg-yellow-500 hover:bg-yellow-600 text-white'
-            }`}
-          >
-            <FiStar size={14} />
-            {plan.isPopular ? 'Remove Popular' : 'Mark Popular'}
-          </button>
-          
-          <button
-            onClick={() => deletePricingPlan(plan._id, plan.name)}
-            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
-          >
-            <FiTrash2 size={14} /> Delete
-          </button>
-        </div>
-        
-        <div className="mt-3 text-xs text-gray-500">
-          Status: {plan.isActive ? '✅ Active' : '❌ Inactive'} | 
-          Order: {plan.order || 0}
-        </div>
-      </div>
-       ))}
+      );
+    })}
   </div>
 )}
-
-  </div>   
-)}       
-
 {/* Guides Tab */}
 {activeTab === 'guides' && (
           <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
