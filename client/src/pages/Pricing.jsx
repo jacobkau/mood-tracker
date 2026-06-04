@@ -14,80 +14,83 @@ const Pricing = () => {
   const currentTheme = themes[theme];
 
   useEffect(() => {
-   // In pricing.jsx, update the plan mapping when fetching
-const fetchPlans = async () => {
-  try {
-    setLoading(true);
-    const response = await getSubscriptionPlans();
-    
-    console.log('Raw response:', response);
-    
-    let plansArray = [];
-    if (response.data && Array.isArray(response.data)) {
-      plansArray = response.data;
-    } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
-      plansArray = response.data.data;
-    } else {
-      plansArray = [];
-    }
-    
-    // Ensure each plan has a proper ID for subscription
-    const processedPlans = plansArray.map(plan => ({
-      ...plan,
-      subscriptionId: plan.id || plan.name?.toLowerCase() || 'free'
-    }));
-    
-    console.log('Processed plans:', processedPlans);
-    setPlans(processedPlans);
-    
-  } catch (error) {
-    console.error('Failed to fetch plans:', error);
-    toast.error('Failed to load pricing plans');
-  } finally {
-    setLoading(false);
-  }
-};
+    const fetchPlans = async () => {
+      try {
+        setLoading(true);
+        const response = await getSubscriptionPlans();
+        
+        console.log('Raw response:', response);
+        
+        let plansArray = [];
+        if (response.data && Array.isArray(response.data)) {
+          plansArray = response.data;
+        } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+          plansArray = response.data.data;
+        } else {
+          plansArray = [];
+        }
+        
+        // Ensure each plan has a proper ID for subscription
+        const processedPlans = plansArray.map(plan => ({
+          ...plan,
+          subscriptionId: plan.id || plan.name?.toLowerCase() || 'free'
+        }));
+        
+        console.log('Processed plans:', processedPlans);
+        setPlans(processedPlans);
+        
+      } catch (error) {
+        console.error('Failed to fetch plans:', error);
+        toast.error('Failed to load pricing plans');
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchPlans();
   }, []);
 
- const handleSubscribe = async (plan, planName) => {
-  try {
-    setSubscribing(plan.id || plan._id);
-    
-    // Check if user is authenticated
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/register', { 
-        state: { 
-          message: `Please create an account to subscribe to the ${planName} plan`,
-          plan: plan.id || plan._id
-        } 
-      });
-      return;
-    }
+  const handleSubscribe = async (plan, planName) => {
+    try {
+      // Use the plan's id or name as the subscription ID
+      const planIdToSend = plan.id || plan.name?.toLowerCase();
+      console.log('Subscribing with plan ID:', planIdToSend);
+      console.log('Full plan object:', plan);
+      
+      setSubscribing(planIdToSend);
+      
+      // Check if user is authenticated
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/register', { 
+          state: { 
+            message: `Please create an account to subscribe to the ${planName} plan`,
+            plan: planIdToSend
+          } 
+        });
+        return;
+      }
 
-    // Send the plan ID (should be 'free', 'pro', or 'premium')
-    const planIdToSend = plan.id || plan.name?.toLowerCase();
-    console.log('Subscribing with plan ID:', planIdToSend);
-    
-    await subscribeToPlan(planIdToSend);
-    toast.success(`Successfully subscribed to ${planName} plan!`);
-    
-    // Wait a moment before redirecting
-    setTimeout(() => {
-      navigate('/dashboard', { 
-        state: { message: `Welcome to your ${planName} plan!` } 
-      });
-    }, 1500);
-    
-  } catch (error) {
-    console.error('Subscription failed:', error);
-    toast.error(error.response?.data?.error || 'Subscription failed. Please try again.');
-  } finally {
-    setSubscribing(null);
-  }
-};
+      const result = await subscribeToPlan(planIdToSend);
+      console.log('Subscription result:', result);
+      
+      toast.success(`Successfully subscribed to ${planName} plan!`);
+      
+      // Wait a moment before redirecting
+      setTimeout(() => {
+        navigate('/dashboard', { 
+          state: { message: `Welcome to your ${planName} plan!` } 
+        });
+      }, 1500);
+      
+    } catch (error) {
+      console.error('Subscription failed:', error);
+      toast.error(error.response?.data?.error || 'Subscription failed. Please try again.');
+    } finally {
+      setSubscribing(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className={`${currentTheme.bodyBg} ${currentTheme.bodyText} min-h-screen flex items-center justify-center`}>
@@ -160,15 +163,15 @@ const fetchPlans = async () => {
                 
                 <div className="mt-8">
                   <button
-                    onClick={() => handleSubscribe(plan._id || plan.id, plan.name)}
-                    disabled={subscribing === (plan._id || plan.id)}
+                    onClick={() => handleSubscribe(plan, plan.name)}
+                    disabled={subscribing === (plan.id || plan.name?.toLowerCase())}
                     className={`w-full py-3 px-4 rounded-md font-medium transition-colors duration-200 ${
                       plan.isPopular || plan.popular 
                         ? `${currentTheme.btnPrimary} shadow-md hover:shadow-lg` 
                         : `${currentTheme.btnSecondary}`
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
-                    {subscribing === (plan._id || plan.id) ? (
+                    {subscribing === (plan.id || plan.name?.toLowerCase()) ? (
                       <span className="flex items-center justify-center">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
                         Processing...
