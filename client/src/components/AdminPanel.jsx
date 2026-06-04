@@ -1938,12 +1938,15 @@ const togglePricingPopular = async (plan) => {
           Order: {plan.order || 0}
         </div>
       </div>
-    ))}
+       ))}
   </div>
 )}
 
-        {/* Guides Tab */}
-        {activeTab === 'guides' && (
+  </div>   
+)}       
+
+{/* Guides Tab */}
+{activeTab === 'guides' && (
           <div className={`${currentTheme.cardBg} p-6 rounded-lg border`}>
             <h2 className="text-xl font-semibold mb-4">Guide Management</h2>
 
